@@ -1,7 +1,6 @@
 import {
     ChainDefinition,
     Checksum256,
-    Checksum256Type,
     PrivateKey,
     Session,
     Signature,

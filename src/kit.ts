@@ -1,4 +1,4 @@
-import {Checksum256, Name, PermissionLevel} from '@greymass/eosio'
+import {Name, PermissionLevel} from '@greymass/eosio'
 
 import {Session} from './session'
 

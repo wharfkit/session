@@ -1,7 +1,6 @@
 import {
     AnyAction,
     AnyTransaction,
-    Checksum256,
     Checksum256Type,
     PermissionLevel,
     PermissionLevelType,
@@ -11,12 +10,6 @@ import {
 
 import {Hook} from './types'
 
-import {
-    CallbackPayload,
-    ChainIdType,
-    ResolvedSigningRequest,
-    ResolvedTransaction,
-} from 'eosio-signing-request'
 import {SessionContext} from './session'
 import {ChainDefinition, WalletPlugin} from './kit.types'
 

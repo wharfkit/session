@@ -1,4 +1,4 @@
-import {AnyTransaction, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
+import {AnyTransaction, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
 
