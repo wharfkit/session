@@ -1,12 +1,12 @@
 {
-    "name": "PACKAGE",
+    "name": "@wharfkit/session",
     "description": "DESCRIPTION",
-    "version": "0.0.0",
-    "homepage": "https://github.com/greymass/PACKAGE",
+    "version": "0.0.1",
+    "homepage": "https://github.com/wharfkit/session",
     "license": "BSD-3-Clause",
-    "main": "lib/PACKAGE.js",
-    "module": "lib/PACKAGE.m.js",
-    "types": "lib/PACKAGE.d.ts",
+    "main": "lib/session.js",
+    "module": "lib/session.m.js",
+    "types": "lib/session.d.ts",
     "sideEffects": false,
     "files": [
         "lib/*",
@@ -16,6 +16,8 @@
         "prepare": "make"
     },
     "dependencies": {
+        "@greymass/eosio": "^0.6.4",
+        "eosio-signing-request": "^2.5.1",
         "tslib": "^2.1.0"
     },
     "devDependencies": {

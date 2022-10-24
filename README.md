@@ -1,7 +1,7 @@
-PACKAGE
+@wharfkit/session
 =======
 
-Greymass TypeScript library template, intended for libraries that work in any JavaScript context (node.js, Browser, React native), `@types/node` are installed only for tests, don't rely on any node.js types or imports inside `src/` (no `buffer`, `crypto` imports etc, they can be filled for browser but will bloat the bundle 100x)
+DESCRIPTION
 
 ## Installation
 
