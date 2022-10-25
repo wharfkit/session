@@ -14,6 +14,91 @@ import {
 } from './kit.types'
 import {SessionOptions} from './session.types'
 
+/**
+ * Request a session from an account.
+ *
+ * @mermaid - SessionKit Architecture
+ * classDiagram
+ *    SessionKit <|-- Session
+ *    SessionKitOptions --> SessionKit
+ *    LoginHooks --> SessionKitOptions
+ *    TransactHooks --> SessionKitOptions
+ *    ChainDefinition --> SessionKitOptions
+ *    WalletPlugin --> SessionKitOptions
+ *    AfterSignHook --> TransactHooks
+ *    BeforeSignHook --> TransactHooks
+ *    AfterBroadcastHook --> TransactHooks
+ *    BeforeBroadcastHook --> TransactHooks
+ *    AfterLoginHook --> LoginHooks
+ *    BeforeLoginHook --> LoginHooks
+ *    class SessionKit {
+ *        +Name appName
+ *        +ChainDefinition[] chains
+ *        +BeforeLoginHook[] beforeLoginHooks
+ *        +AfterLoginHook[] afterLoginHooks
+ *        +WalletPlugin[] walletPlugins
+ *        +login(LoginOptions options) Session
+ *        +mate()
+ *    }
+ *    class LoginHooks{
+ *        <<interface>>
+ *        +AfterLoginHook[] afterLogin
+ *        +BeforeLoginHook[] beforeLogin
+ *    }
+ *    class TransactHooks{
+ *        <<interface>>
+ *        +AfterSignHook[] afterSign
+ *        +BeforeSignHook[] beforeSign
+ *        +AfterBroadcastHook[] afterBroadcast
+ *        +BeforeBroadcastHook[] beforeBroadcast
+ *    }
+ *    class WalletPlugin{
+ *        +login(WalletPluginLoginOptions options)
+ *        +sign(ChainDefinition chain, Transaction
+ *    }
+ *    class WalletPluginLoginOptions{
+ *        <<interface>>
+ *        +Name appName
+ *        +ChainDefinition[] chains
+ *        +SessionOptions context
+ *    }
+ *    class AfterLoginHook{
+ *        <<interface>>
+ *    }
+ *    class BeforeLoginHook{
+ *        <<interface>>
+ *    }
+ *    class AfterSignHook{
+ *        <<interface>>
+ *    }
+ *    class BeforeSignHook{
+ *        <<interface>>
+ *    }
+ *    class AfterBroadcastHook{
+ *        <<interface>>
+ *    }
+ *    class BeforeBroadcastHook{
+ *        <<interface>>
+ *    }
+ *    class ChainDefinition{
+ *        +Checksum256 id
+ *        +string url
+ *    }
+ *    class SessionKitOptions{
+ *        <<interface>>
+ *        +NameType appName
+ *        +ChainDefinitionType chains
+ *        +LoginHooks loginHooks
+ *        +TransactHooks transactHooks
+ *        +WalletPlugin[] walletPlugins
+ *    }
+ *    class Session{
+ *        +String beakColor
+ *        +swim()
+ *        +quack()
+ *    }
+ */
+
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
