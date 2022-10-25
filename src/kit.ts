@@ -35,7 +35,7 @@ export class SessionKit extends AbstractSessionKit {
      *
      * @mermaid - Login sequence diagram
      * flowchart LR
-     *   A((Login)) --> B{{"beforeLogin"}}
+     *   A((Login)) --> B{{"Hook(s): beforeLogin"}}
      *   B --> C[Wallet Plugin]
      *   C --> D{{"Hook(s): afterLogin"}}
      *   D --> E[Session]
