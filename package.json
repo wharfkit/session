@@ -47,6 +47,7 @@
         "ts-node": "^10.1.0",
         "tsconfig-paths": "^4.0.0",
         "typedoc": "^0.23.14",
+        "typedoc-plugin-mermaid": "^1.9.0",
         "typescript": "^4.1.2"
     }
 }
