@@ -30,6 +30,16 @@ export class SessionKit extends AbstractSessionKit {
         this.walletPlugins = options.walletPlugins
     }
 
+    /**
+     * Request a session from an account.
+     *
+     * @mermaid - Login sequence diagram
+     * flowchart LR
+     *   A((Login)) --> B{{"beforeLogin"}}
+     *   B --> C[Wallet Plugin]
+     *   C --> D{{"Hook(s): afterLogin"}}
+     *   D --> E[Session]
+     */
     async login(options?: LoginOptions): Promise<Session> {
         // Configuration for the Login
         const context: SessionOptions = {

@@ -1479,6 +1479,11 @@ html-escaper@^2.0.0:
   resolved "https://registry.yarnpkg.com/html-escaper/-/html-escaper-2.0.2.tgz#dfd60027da36a36dfcbe236262c00a5822681453"
   integrity sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==
 
+html-escaper@^3.0.0:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/html-escaper/-/html-escaper-3.0.3.tgz#4d336674652beb1dcbc29ef6b6ba7f6be6fdfed6"
+  integrity sha512-RuMffC89BOWQoY0WKGpIhn5gX3iI54O6nRA0yC124NYVtzjmFWBIiFd8M0x+ZdX0P9R4lADg1mgP8C7PxGOWuQ==
+
 ignore@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.0.tgz#6d3bac8fa7fe0d45d9f9be7bac2fc279577e345a"
@@ -2551,6 +2556,13 @@ typedarray-to-buffer@^3.1.5:
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   dependencies:
     is-typedarray "^1.0.0"
+
+typedoc-plugin-mermaid@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-mermaid/-/typedoc-plugin-mermaid-1.9.0.tgz#0d0c9848da0a3565f90db9ba81b031353dde9ccd"
+  integrity sha512-nZUTrgqx7tTwWcdekayFXA6qHbTUFdBYVp4uhHVgQM65+i+DVHsMGn/AjJLCMY0bEdtc9HWS2BuaKkBq1PKNlg==
+  dependencies:
+    html-escaper "^3.0.0"
 
 typedoc@^0.23.14:
   version "0.23.14"
