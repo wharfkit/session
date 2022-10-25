@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
 import {Session, SessionKit} from '$lib'
-import {makeWallet} from 'utils/mock-wallet'
+import {makeWallet} from './utils/mock-wallet'
 
 const defaultSessionKitOptions = {
     appName: 'demo.app',

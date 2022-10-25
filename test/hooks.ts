@@ -3,7 +3,7 @@ import {APIClient, Name, Transaction} from '@greymass/eosio'
 import * as lib from '$lib'
 
 import {MockProvider} from './utils/mock-provider'
-import {makeMockTransaction} from 'utils/mock-transfer'
+import {makeMockTransaction} from './utils/mock-transfer'
 
 const jungle = new APIClient({
     provider: new MockProvider(),
