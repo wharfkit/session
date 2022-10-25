@@ -1,8 +1,8 @@
 import {assert} from 'chai'
 
-import {makeClient} from 'utils/mock-provider'
-import {makeWallet} from 'utils/mock-wallet'
-import {makeMockTransaction} from 'utils/mock-transfer'
+import {makeClient} from './utils/mock-provider'
+import {makeWallet} from './utils/mock-wallet'
+import {makeMockTransaction} from './utils/mock-transfer'
 import {
     ChainDefinition,
     Checksum256,
