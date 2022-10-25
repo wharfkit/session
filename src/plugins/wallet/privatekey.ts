@@ -8,7 +8,7 @@ import {
     WalletPlugin,
     WalletPluginLoginOptions,
     WalletPluginOptions,
-} from '$lib'
+} from '../../'
 
 interface Options extends WalletPluginOptions {
     privateKey: PrivateKey
