@@ -38,7 +38,6 @@ import {SessionOptions} from './session.types'
  *        +AfterLoginHook[] afterLoginHooks
  *        +WalletPlugin[] walletPlugins
  *        +login(LoginOptions options) Session
- *        +mate()
  *    }
  *    class LoginHooks{
  *        <<interface>>
@@ -91,11 +90,6 @@ import {SessionOptions} from './session.types'
  *        +LoginHooks loginHooks
  *        +TransactHooks transactHooks
  *        +WalletPlugin[] walletPlugins
- *    }
- *    class Session{
- *        +String beakColor
- *        +swim()
- *        +quack()
  *    }
  */
 
