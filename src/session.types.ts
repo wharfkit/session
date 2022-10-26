@@ -45,7 +45,7 @@ export interface TransactArgs {
 }
 
 export interface TransactHook extends Hook {
-    process(transaction: Transaction, context: SessionContext): SigningRequest
+    process(request: SigningRequest, context: SessionContext): SigningRequest
 }
 
 export interface TransactHooks {
@@ -55,10 +55,11 @@ export interface TransactHooks {
     beforeBroadcast: BeforeBroadcastHook[]
 }
 
-export interface BeforeSignHook extends TransactHook {}
-export interface AfterSignHook extends TransactHook {}
+export interface SignHook extends TransactHook {}
+export interface BeforeSignHook extends SignHook {}
+export interface AfterSignHook extends SignHook {}
 
-export interface BroadcastHook extends Hook {}
+export interface BroadcastHook extends TransactHook {}
 export interface BeforeBroadcastHook extends BroadcastHook {}
 export interface AfterBroadcastHook extends BroadcastHook {}
 

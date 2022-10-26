@@ -8,6 +8,7 @@ import {
     AbstractSession,
     SessionOptions,
     TransactArgs,
+    TransactHooks,
     TransactOptions,
     TransactResult,
 } from './session.types'
@@ -26,6 +27,7 @@ export class SessionContext {
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
     readonly context: SessionContext
+    readonly hooks: TransactHooks
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
@@ -37,6 +39,13 @@ export class Session extends AbstractSession {
             client = options.client
         } else {
             client = new APIClient({url: this.chain.url})
+        }
+        // TODO: Implement passing of default hooks into the session
+        this.hooks = {
+            afterBroadcast: [],
+            afterSign: [],
+            beforeBroadcast: [],
+            beforeSign: [],
         }
         this.context = new SessionContext({client})
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
@@ -71,6 +80,7 @@ export class Session extends AbstractSession {
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         let request: SigningRequest = await this.createRequest(args)
         const transaction: Transaction = request.getRawTransaction()
+        const allowModify = options?.allowModify ?? true
         const result: TransactResult = {
             chain: this.chain,
             request,
@@ -79,45 +89,36 @@ export class Session extends AbstractSession {
             transaction,
         }
 
-        if (options?.beforeSignHooks) {
-            // Use before-sign hooks specified in the options of this sign call
-            options.beforeSignHooks.forEach((hook) => {
-                const modifiedRequest = hook.process(transaction, this.context)
-                if (options.allowModify) {
-                    request = modifiedRequest
-                }
-            })
-        } else {
-            // Use before-sign hooks defined within this instance of the SessionKit
-            // this.beforeSignHooks.forEach((hook) => {
-            //     transaction = hook.process(transaction)
-            // })
-        }
+        // Determine which set of hooks to use, with hooks specified in the options taking priority
+        const beforeSignHooks = options?.beforeSignHooks || this.hooks.beforeSign
+        const afterSignHooks = options?.afterSignHooks || this.hooks.afterSign
+        const beforeBroadcastHooks = options?.beforeBroadcastHooks || this.hooks.beforeBroadcast
+        const afterBroadcastHooks = options?.afterBroadcastHooks || this.hooks.afterBroadcast
+
+        // Run the beforeSign hooks
+        beforeSignHooks.forEach((hook) => {
+            const modifiedRequest = hook.process(request, this.context)
+            if (allowModify) {
+                request = modifiedRequest
+            }
+        })
 
         // Sign transaction based on wallet plugin
         const signature = await this.wallet.sign(this.chain, transaction)
         result.signatures.push(signature)
 
-        if (options?.afterSignHooks) {
-            // Use after-sign hooks specified in the options of this sign call
-        } else {
-            // Use after-sign hooks defined within this instance of the SessionKit
-        }
+        // Run the afterSign hooks
+        afterSignHooks.forEach((hook) => hook.process(request, this.context))
 
         if (options?.broadcast) {
-            if (options?.beforeBroadcastHooks) {
-                // Use before-broadcast hooks specified in the options of this broadcast call
-            } else {
-                // Use before-broadcast hooks defined within this instance of the SessionKit
-            }
+            // Run the beforeBroadcast hooks
+            beforeBroadcastHooks.forEach((hook) => hook.process(request, this.context))
 
             // broadcast transaction
+            // TODO: Implement broadcast
 
-            if (options?.afterBroadcastHooks) {
-                // Use after-broadcast hooks specified in the options of this broadcast call
-            } else {
-                // Use after-broadcast hooks defined within this instance of the SessionKit
-            }
+            // Run the afterBroadcast hooks
+            afterBroadcastHooks.forEach((hook) => hook.process(request, this.context))
         }
 
         return {
