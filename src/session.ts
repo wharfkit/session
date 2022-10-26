@@ -1,10 +1,19 @@
-import {AnyTransaction, Name, PermissionLevel, Transaction} from '@greymass/eosio'
+import {APIClient, Name, PermissionLevel, Serializer, Transaction} from '@greymass/eosio'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
 
 import {AbstractSession, SessionOptions, TransactOptions, TransactResult} from './session.types'
 
-export class SessionContext {}
+export interface SessionContextOptions {
+    client: APIClient
+}
+
+export class SessionContext {
+    client: APIClient
+    constructor(options: SessionContextOptions) {
+        this.client = options.client
+    }
+}
 
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
@@ -15,7 +24,13 @@ export class Session extends AbstractSession {
     constructor(options: SessionOptions) {
         super()
         this.chain = ChainDefinition.from(options.chain)
-        this.context = new SessionContext()
+        let client: APIClient
+        if (options.client) {
+            client = options.client
+        } else {
+            client = new APIClient({url: this.chain.url})
+        }
+        this.context = new SessionContext({client})
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
         this.wallet = options.walletPlugin
     }

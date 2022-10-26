@@ -1,4 +1,12 @@
-import {Name, PermissionLevel} from '@greymass/eosio'
+import {
+    APIClient,
+    Checksum256,
+    Checksum256Type,
+    FetchProvider,
+    FetchProviderOptions,
+    Name,
+    PermissionLevel,
+} from '@greymass/eosio'
 
 import {Session} from './session'
 
@@ -13,6 +21,7 @@ import {
     WalletPluginLoginOptions,
 } from './kit.types'
 import {SessionOptions} from './session.types'
+import {Fetch} from './types'
 
 /**
  * Request a session from an account.
@@ -96,6 +105,7 @@ import {SessionOptions} from './session.types'
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
+    readonly fetch?: Fetch
     readonly beforeLoginHooks: BeforeLoginHook[]
     readonly afterLoginHooks: AfterLoginHook[]
     readonly walletPlugins: WalletPlugin[]
@@ -104,9 +114,26 @@ export class SessionKit extends AbstractSessionKit {
         super()
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
+        if (options.fetch) {
+            this.fetch = options.fetch
+        }
         this.beforeLoginHooks = options.loginHooks?.beforeLogin || []
         this.afterLoginHooks = options.loginHooks?.afterLogin || []
         this.walletPlugins = options.walletPlugins
+    }
+
+    getClient(id: Checksum256Type): APIClient {
+        // Find the chain listed in the definitions array
+        const chain = this.chains.find((c) => c.id.equals(Checksum256.from(id)))
+        if (!chain) {
+            throw new Error(`No chain chain found for ${chain}`)
+        }
+        const options: FetchProviderOptions = {
+            fetch: this.fetch,
+        }
+        const provider = new FetchProvider(chain.url, options)
+        const client = new APIClient({provider})
+        return client
     }
 
     /**
@@ -121,8 +148,10 @@ export class SessionKit extends AbstractSessionKit {
      */
     async login(options?: LoginOptions): Promise<Session> {
         // Configuration for the Login
+        const chain = this.chains[0]
         const context: SessionOptions = {
-            chain: this.chains[0],
+            chain,
+            client: this.getClient(chain.id),
             permissionLevel: 'eosio@active',
             walletPlugin: this.walletPlugins[0],
         }
@@ -156,6 +185,7 @@ export class SessionKit extends AbstractSessionKit {
 
         // Perform login based on wallet plugin
         const response = await context.walletPlugin.login(walletOptions)
+        context.chain = response.chain
         context.permissionLevel = response.permissionLevel
 
         if (options?.afterLoginHooks) {
