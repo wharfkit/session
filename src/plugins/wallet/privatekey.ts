@@ -3,6 +3,7 @@ import {
     Checksum256,
     PermissionLevel,
     PrivateKey,
+    PrivateKeyType,
     Signature,
     Transaction,
     WalletPlugin,
@@ -12,14 +13,14 @@ import {
 } from '../../'
 
 interface Options extends WalletPluginOptions {
-    privateKey: PrivateKey
+    privateKey: PrivateKeyType
 }
 
 export class WalletPluginPrivateKey implements WalletPlugin {
     readonly privateKey: PrivateKey
     constructor(options: Options) {
         if (options.privateKey) {
-            this.privateKey = options.privateKey
+            this.privateKey = PrivateKey.from(options.privateKey)
         } else {
             throw new Error('The Private Key wallet plugin must be initialized with a private key.')
         }
