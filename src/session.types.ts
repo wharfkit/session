@@ -40,6 +40,8 @@ export interface TransactArgs {
     action?: AnyAction
     /** Actions to sign. */
     actions?: AnyAction[]
+    /** An ESR payload */
+    request?: SigningRequest | string
 }
 
 export interface TransactHook extends Hook {
