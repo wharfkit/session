@@ -12,7 +12,7 @@ import {
 import {Hook} from './types'
 
 import {SessionContext} from './session'
-import {ChainDefinition, WalletPlugin} from './kit.types'
+import {ChainDefinition, ChainDefinitionType, WalletPlugin} from './kit.types'
 import {SigningRequest} from 'eosio-signing-request'
 
 export abstract class AbstractSession {
@@ -23,7 +23,7 @@ export abstract class AbstractSession {
 }
 
 export interface SessionOptions {
-    chain: ChainDefinition
+    chain: ChainDefinitionType
     client?: APIClient
     permissionLevel: PermissionLevelType | string
     walletPlugin: WalletPlugin
