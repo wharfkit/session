@@ -1,6 +1,8 @@
 import {assert} from 'chai'
+import fetch from 'node-fetch'
 
 import {Session, SessionKit} from '$lib'
+
 import {makeWallet} from './utils/mock-wallet'
 
 const defaultSessionKitOptions = {
@@ -11,6 +13,7 @@ const defaultSessionKitOptions = {
             url: 'https://jungle3.greymass.com',
         },
     ],
+    fetch,
     walletPlugins: [makeWallet()],
 }
 

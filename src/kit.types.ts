@@ -3,6 +3,7 @@ import {
     Checksum256Type,
     Name,
     NameType,
+    PermissionLevel,
     PermissionLevelType,
     Signature,
     Struct,
@@ -10,8 +11,8 @@ import {
 } from '@greymass/eosio'
 
 import {Session} from './session'
-import {SessionOptions} from './session.types'
-import {Hook} from './types'
+import {SessionOptions, TransactHooks} from './session.types'
+import {Fetch, Hook} from './types'
 
 export abstract class AbstractSessionKit {
     abstract login(options?: LoginOptions): Promise<Session>
@@ -28,6 +29,7 @@ export type ChainDefinitionType = ChainDefinition | {id: Checksum256Type; url: s
 export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
+    fetch?: Fetch
     loginHooks?: LoginHooks
     walletPlugins: WalletPlugin[]
 }

@@ -1,6 +1,7 @@
 import {
     AnyAction,
     AnyTransaction,
+    APIClient,
     Checksum256Type,
     PermissionLevel,
     PermissionLevelType,
@@ -22,6 +23,7 @@ export abstract class AbstractSession {
 
 export interface SessionOptions {
     chain: ChainDefinition
+    client?: APIClient
     permissionLevel: PermissionLevelType | string
     walletPlugin: WalletPlugin
 }
