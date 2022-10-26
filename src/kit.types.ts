@@ -31,6 +31,7 @@ export interface SessionKitOptions {
     chains: ChainDefinitionType[]
     fetch?: Fetch
     loginHooks?: LoginHooks
+    transactHooks?: TransactHooks
     walletPlugins: WalletPlugin[]
 }
 
