@@ -1,4 +1,5 @@
 import {assert} from 'chai'
+import zlib from 'pako'
 
 import {makeClient} from './utils/mock-provider'
 import {makeWallet} from './utils/mock-wallet'
@@ -7,11 +8,11 @@ import {
     Action,
     ChainDefinition,
     PermissionLevel,
-    PrivateKey,
     Serializer,
     Session,
     SessionOptions,
     Signature,
+    SigningRequest,
     Transaction,
     WalletPluginPrivateKey,
 } from '$lib'
@@ -96,6 +97,22 @@ suite('transact', function () {
     })
     test('handles: transaction (as untyped param)', async function () {
         const result = await session.transact(Serializer.objectify(transaction))
+        assetValidTransactResponse(result)
+    })
+    test('handles: ESR Payload (String)', async function () {
+        const result = await session.transact({
+            request:
+                'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+        })
+        assetValidTransactResponse(result)
+    })
+    test('handles: ESR Payload (Object)', async function () {
+        const result = await session.transact({
+            request: SigningRequest.from(
+                'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+                {zlib}
+            ),
+        })
         assetValidTransactResponse(result)
     })
     test('response - type check', async function () {

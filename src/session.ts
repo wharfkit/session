@@ -1,5 +1,6 @@
-import {APIClient, Name, PermissionLevel, Serializer, Transaction} from '@greymass/eosio'
+import {APIClient, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 import {SigningRequest} from 'eosio-signing-request'
+import zlib from 'pako'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
 
@@ -50,35 +51,26 @@ export class Session extends AbstractSession {
         return this.permissionLevel.permission
     }
 
-    createRequest(transaction: Transaction): SigningRequest {
-        const serializedTransaction = Serializer.encode({object: transaction})
-        return SigningRequest.fromTransaction(this.chain.id, serializedTransaction)
-    }
-
-    async createTransaction(args: TransactArgs): Promise<Transaction> {
-        if (args.transaction) {
-            return Transaction.from(args.transaction)
+    async createRequest(args: TransactArgs): Promise<SigningRequest> {
+        if (args.request && args.request instanceof SigningRequest) {
+            return args.request
+        } else if (args.request) {
+            return SigningRequest.from(args.request, {zlib})
+        } else {
+            const request = await SigningRequest.create(
+                {
+                    ...args,
+                    chainId: this.chain.id,
+                },
+                {zlib}
+            )
+            return request
         }
-        const info = await this.context.client.v1.chain.get_info()
-        const header = info.getTransactionHeader()
-        if (args.action) {
-            return Transaction.from({
-                ...header,
-                actions: [args.action],
-            })
-        }
-        if (args.actions) {
-            return Transaction.from({
-                ...header,
-                actions: args.actions,
-            })
-        }
-        throw new Error('Missing transaction, action or actions')
     }
 
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
-        const transaction = await this.createTransaction(args)
-        let request = this.createRequest(transaction)
+        let request: SigningRequest = await this.createRequest(args)
+        const transaction: Transaction = request.getRawTransaction()
         const result: TransactResult = {
             chain: this.chain,
             request,
