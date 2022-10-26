@@ -130,7 +130,7 @@ export class Session extends AbstractSession {
 
         return {
             ...result,
-            ...request, // Pass the transaction that may have been modified by hooks
+            request, // Pass the transaction that may have been modified by hooks
         }
     }
 }
