@@ -1,12 +1,13 @@
 import {
     ChainDefinition,
     Checksum256,
+    PermissionLevel,
     PrivateKey,
-    Session,
     Signature,
     Transaction,
     WalletPlugin,
     WalletPluginLoginOptions,
+    WalletPluginLoginResponse,
     WalletPluginOptions,
 } from '../../'
 
@@ -23,15 +24,15 @@ export class WalletPluginPrivateKey implements WalletPlugin {
             throw new Error('The Private Key wallet plugin must be initialized with a private key.')
         }
     }
-    login(options: WalletPluginLoginOptions) {
-        return new Session({
+    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse {
+        return {
             chain: ChainDefinition.from({
                 id: Checksum256.from(options.context.chain.id),
                 url: options.context.chain.url,
             }),
-            permissionLevel: options.context.permissionLevel,
+            permissionLevel: PermissionLevel.from(options.context.permissionLevel),
             walletPlugin: this,
-        })
+        }
     }
     sign(chain: ChainDefinition, transaction: Transaction): Signature {
         const digest = transaction.signingDigest(Checksum256.from(chain.id))

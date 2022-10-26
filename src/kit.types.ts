@@ -63,6 +63,14 @@ export interface WalletPluginLoginOptions {
 }
 
 export interface WalletPlugin {
-    login(options: WalletPluginLoginOptions): Session
-    sign(chainId: ChainDefinition, transaction: Transaction): Signature
+    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
+    sign(chain: ChainDefinition, transaction: Transaction): Signature
 }
+
+export interface WalletPluginLoginResponse {
+    chain: ChainDefinition
+    permissionLevel: PermissionLevel
+    walletPlugin: AbstractWalletPlugin
+}
+
+export abstract class AbstractWalletPlugin {}
