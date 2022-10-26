@@ -1,13 +1,4 @@
-import {
-    Action,
-    API,
-    Asset,
-    Name,
-    PrivateKey,
-    SignedTransaction,
-    Struct,
-    Transaction,
-} from '@greymass/eosio'
+import {Action, API, Asset, Name, Struct, Transaction} from '@greymass/eosio'
 
 @Struct.type('transfer')
 class Transfer extends Struct {
@@ -17,12 +8,7 @@ class Transfer extends Struct {
     @Struct.field('string') memo!: string
 }
 
-export async function makeMockTransaction(
-    info: API.v1.GetInfoResponse,
-    memo?: string
-): Promise<Transaction> {
-    // Assemble transaction header
-    const header = info.getTransactionHeader(90)
+export function makeMockAction(memo?: string): Action {
     // Generate typed data for action data
     const transfer = Transfer.from({
         from: 'wharfkit',
@@ -42,10 +28,22 @@ export async function makeMockTransaction(
         name: 'transfer',
         data: transfer,
     })
+    return action
+}
+
+export function makeMockActions(memo?: string): Action[] {
+    return [makeMockAction(memo)]
+}
+
+export function makeMockTransaction(info: API.v1.GetInfoResponse, memo?: string): Transaction {
+    // Assemble transaction header
+    const header = info.getTransactionHeader(90)
+    // Generate array of actions
+    const actions = makeMockActions(memo)
     // Form and return transaction object
     const transaction = Transaction.from({
         ...header,
-        actions: [action],
+        actions,
     })
     return transaction
 }

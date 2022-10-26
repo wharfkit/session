@@ -4,17 +4,16 @@ import * as lib from '$lib'
 
 import {MockProvider} from './utils/mock-provider'
 import {makeMockTransaction} from './utils/mock-transfer'
+import {SigningRequest} from '$lib'
 
 const jungle = new APIClient({
     provider: new MockProvider(),
 })
 
 class MockHook implements lib.Hook {
-    process(transaction: Transaction): Transaction {
-        const tx = Transaction.from(transaction)
-        tx.actions[0].authorization[0].actor = Name.from('foo')
-        return tx
-    }
+    // process(request: SigningRequest): SigningRequest {
+    //     // modify signing request
+    // }
 }
 
 // suite('hook', function () {

@@ -1,8 +1,15 @@
 import {APIClient, Name, PermissionLevel, Serializer, Transaction} from '@greymass/eosio'
+import {SigningRequest} from 'eosio-signing-request'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
 
-import {AbstractSession, SessionOptions, TransactOptions, TransactResult} from './session.types'
+import {
+    AbstractSession,
+    SessionOptions,
+    TransactArgs,
+    TransactOptions,
+    TransactResult,
+} from './session.types'
 
 export interface SessionContextOptions {
     client: APIClient
@@ -43,10 +50,38 @@ export class Session extends AbstractSession {
         return this.permissionLevel.permission
     }
 
-    async transact(tx: AnyTransaction, options?: TransactOptions): Promise<TransactResult> {
-        let transaction: Transaction = Transaction.from(tx)
+    createRequest(transaction: Transaction): SigningRequest {
+        const serializedTransaction = Serializer.encode({object: transaction})
+        return SigningRequest.fromTransaction(this.chain.id, serializedTransaction)
+    }
+
+    async createTransaction(args: TransactArgs): Promise<Transaction> {
+        if (args.transaction) {
+            return Transaction.from(args.transaction)
+        }
+        const info = await this.context.client.v1.chain.get_info()
+        const header = info.getTransactionHeader()
+        if (args.action) {
+            return Transaction.from({
+                ...header,
+                actions: [args.action],
+            })
+        }
+        if (args.actions) {
+            return Transaction.from({
+                ...header,
+                actions: args.actions,
+            })
+        }
+        throw new Error('Missing transaction, action or actions')
+    }
+
+    async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
+        const transaction = await this.createTransaction(args)
+        let request = this.createRequest(transaction)
         const result: TransactResult = {
             chain: this.chain,
+            request,
             signatures: [],
             signer: this.permissionLevel,
             transaction,
@@ -55,9 +90,9 @@ export class Session extends AbstractSession {
         if (options?.beforeSignHooks) {
             // Use before-sign hooks specified in the options of this sign call
             options.beforeSignHooks.forEach((hook) => {
-                const modifiedTransaction = hook.process(transaction, this.context)
+                const modifiedRequest = hook.process(transaction, this.context)
                 if (options.allowModify) {
-                    transaction = Transaction.from(modifiedTransaction)
+                    request = modifiedRequest
                 }
             })
         } else {
@@ -95,7 +130,7 @@ export class Session extends AbstractSession {
 
         return {
             ...result,
-            transaction, // Pass the transaction that may have been modified by hooks
+            ...request, // Pass the transaction that may have been modified by hooks
         }
     }
 }

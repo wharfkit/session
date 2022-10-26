@@ -13,6 +13,7 @@ import {Hook} from './types'
 
 import {SessionContext} from './session'
 import {ChainDefinition, WalletPlugin} from './kit.types'
+import {SigningRequest} from 'eosio-signing-request'
 
 export abstract class AbstractSession {
     /**
@@ -42,7 +43,7 @@ export interface TransactArgs {
 }
 
 export interface TransactHook extends Hook {
-    process(transaction: Transaction, context: SessionContext): Transaction
+    process(transaction: Transaction, context: SessionContext): SigningRequest
 }
 
 export interface TransactHooks {
@@ -98,11 +99,13 @@ export interface TransactOptions {
 }
 
 /**
- * The result of a [[Session.transact]] call.
+ * The response frmo a [[Session.transact]] call.
  */
 export interface TransactResult {
     /** The chain that was used. */
     chain: ChainDefinition
+    /** The SigningRequest representation of the transaction. */
+    request: SigningRequest
     /** The transaction signatures. */
     signatures: Signature[]
     /** The signer authority. */
