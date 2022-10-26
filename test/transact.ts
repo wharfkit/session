@@ -7,11 +7,13 @@ import {
     Action,
     ChainDefinition,
     PermissionLevel,
+    PrivateKey,
     Serializer,
     Session,
     SessionOptions,
     Signature,
     Transaction,
+    WalletPluginPrivateKey,
 } from '$lib'
 
 const client = makeClient()
@@ -48,6 +50,21 @@ suite('transact', function () {
         transaction = await makeMockTransaction(info)
         // Establish new session before each test
         session = new Session(mockSessionOptions)
+    })
+    test('full untyped example', async function () {
+        const testSession = new Session({
+            chain: {
+                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                url: 'https://jungle3.greymass.com',
+            },
+            client,
+            permissionLevel: 'account@permission',
+            walletPlugin: new WalletPluginPrivateKey({
+                privateKey: '5JnUd2V5nYmRKgK9K2fRQcs3qKoi4mbcGV8Dg8EFqjjqEp9tYP5',
+            }),
+        })
+        const result = await testSession.transact({action})
+        assetValidTransactResponse(result)
     })
     test('handles: action (typed)', async function () {
         const result = await session.transact({action})
