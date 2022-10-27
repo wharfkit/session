@@ -95,6 +95,16 @@ suite('transact', function () {
         const result = await session.transact(transaction)
         assetValidTransactResponse(result)
     })
+    test('handles: transaction (retain headers)', async function () {
+        const result = await session.transact(transaction)
+        assetValidTransactResponse(result)
+        assert.equal(transaction.delay_sec, result.transaction.delay_sec)
+        assert.equal(transaction.expiration, result.transaction.expiration)
+        assert.equal(transaction.ref_block_num, result.transaction.ref_block_num)
+        assert.equal(transaction.ref_block_prefix, result.transaction.ref_block_prefix)
+        assert.equal(transaction.max_net_usage_words, result.transaction.max_net_usage_words)
+        assert.equal(transaction.max_cpu_usage_ms, result.transaction.max_cpu_usage_ms)
+    })
     test('handles: transaction (as untyped param)', async function () {
         const result = await session.transact(Serializer.objectify(transaction))
         assetValidTransactResponse(result)

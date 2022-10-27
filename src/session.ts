@@ -1,5 +1,5 @@
-import {APIClient, Name, PermissionLevel, Transaction} from '@greymass/eosio'
-import {SigningRequest} from 'eosio-signing-request'
+import {ABI, APIClient, Name, PermissionLevel, Transaction} from '@greymass/eosio'
+import {AbiMap, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
@@ -60,12 +60,40 @@ export class Session extends AbstractSession {
         return this.permissionLevel.permission
     }
 
+    upgradeTransaction(args) {
+        // eosjs transact compat: upgrade to transaction if args have any header fields
+        const anyArgs = args as any
+        if (
+            args.actions &&
+            (anyArgs.expiration ||
+                anyArgs.ref_block_num ||
+                anyArgs.ref_block_prefix ||
+                anyArgs.max_net_usage_words ||
+                anyArgs.max_cpu_usage_ms ||
+                anyArgs.delay_sec)
+        ) {
+            return (args = {
+                transaction: {
+                    expiration: '1970-01-01T00:00:00',
+                    ref_block_num: 0,
+                    ref_block_prefix: 0,
+                    max_net_usage_words: 0,
+                    max_cpu_usage_ms: 0,
+                    delay_sec: 0,
+                    ...anyArgs,
+                },
+            })
+        }
+        return args
+    }
+
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
         if (args.request && args.request instanceof SigningRequest) {
             return args.request
         } else if (args.request) {
             return SigningRequest.from(args.request, {zlib})
         } else {
+            args = this.upgradeTransaction(args)
             const request = await SigningRequest.create(
                 {
                     ...args,
@@ -88,6 +116,9 @@ export class Session extends AbstractSession {
             signer: this.permissionLevel,
             transaction,
         }
+
+        // Whether or not the request should be able to be modified by beforeSign hooks
+        const allowModify = options?.allowModify ?? true
 
         // Determine which set of hooks to use, with hooks specified in the options taking priority
         const beforeSignHooks = options?.beforeSignHooks || this.hooks.beforeSign
