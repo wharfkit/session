@@ -11,7 +11,7 @@ class Transfer extends Struct {
 export function makeMockAction(memo?: string): Action {
     // Generate typed data for action data
     const transfer = Transfer.from({
-        from: 'wharfkit',
+        from: 'corecorecore',
         to: 'teamgreymass',
         quantity: '0.1337 EOS',
         memo: memo || 'wharfkit is the best <3',
@@ -20,7 +20,7 @@ export function makeMockAction(memo?: string): Action {
     const action = Action.from({
         authorization: [
             {
-                actor: 'wharfkit',
+                actor: 'corecorecore',
                 permission: 'active',
             },
         ],

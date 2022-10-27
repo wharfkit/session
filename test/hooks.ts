@@ -66,7 +66,7 @@ suite('hook', function () {
             assert.isTrue(Name.from('greymassnoop').equals(noop.account))
             assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
             assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-            assert.isTrue(Name.from('wharfkit').equals(transfer.authorization[0].actor))
+            assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
         } else {
             assert.fail('Expected modified request to be an array.')
         }
@@ -89,7 +89,7 @@ suite('hook', function () {
             assert.isTrue(Name.from('greymassnoop').equals(noop.account))
             assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
             assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-            assert.isTrue(Name.from('wharfkit').equals(transfer.authorization[0].actor))
+            assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
         }
     })
     test('pre-sign: prepend action on `transaction`', async function () {
@@ -112,7 +112,7 @@ suite('hook', function () {
             assert.isTrue(Name.from('greymassnoop').equals(noop.account))
             assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
             assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-            assert.isTrue(Name.from('wharfkit').equals(transfer.authorization[0].actor))
+            assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
         }
     })
     test('post-sign', async function () {})
