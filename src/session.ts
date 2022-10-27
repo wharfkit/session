@@ -108,7 +108,19 @@ export class Session extends AbstractSession {
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         let request: SigningRequest = await this.createRequest(args)
         const transaction: Transaction = request.getRawTransaction()
-        const allowModify = options?.allowModify ?? true
+
+        // TODO: Needs to resolve request with current session
+        // const abis: Map<string, ABI> = new Map()
+        // transaction.actions.forEach(async (action) => {
+        //     const abi = await this.context.client.v1.chain.get_abi(action.account)
+        //     if (abi.abi) {
+        //         abis.set(String(action.account), ABI.from(abi.abi))
+        //     }
+        // })
+        // const resolved = request.resolve(abis, this.permissionLevel)
+        // console.log(resolved)
+
+        // Response to the transact call
         const result: TransactResult = {
             chain: this.chain,
             request,
@@ -127,8 +139,8 @@ export class Session extends AbstractSession {
         const afterBroadcastHooks = options?.afterBroadcastHooks || this.hooks.afterBroadcast
 
         // Run the beforeSign hooks
-        beforeSignHooks.forEach((hook) => {
-            const modifiedRequest = hook.process(request, this.context)
+        beforeSignHooks.forEach(async (hook) => {
+            const modifiedRequest = await hook.process(request, this.context)
             if (allowModify) {
                 request = modifiedRequest
             }
@@ -139,17 +151,17 @@ export class Session extends AbstractSession {
         result.signatures.push(signature)
 
         // Run the afterSign hooks
-        afterSignHooks.forEach((hook) => hook.process(request, this.context))
+        afterSignHooks.forEach(async (hook) => await hook.process(request, this.context))
 
         if (options?.broadcast) {
             // Run the beforeBroadcast hooks
-            beforeBroadcastHooks.forEach((hook) => hook.process(request, this.context))
+            beforeBroadcastHooks.forEach(async (hook) => await hook.process(request, this.context))
 
             // broadcast transaction
             // TODO: Implement broadcast
 
             // Run the afterBroadcast hooks
-            afterBroadcastHooks.forEach((hook) => hook.process(request, this.context))
+            afterBroadcastHooks.forEach(async (hook) => await hook.process(request, this.context))
         }
 
         return {
