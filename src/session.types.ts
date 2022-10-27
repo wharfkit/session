@@ -22,6 +22,17 @@ export abstract class AbstractSession {
     abstract transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult>
 }
 
+export interface SessionContextOptions {
+    client: APIClient
+}
+
+export class SessionContext {
+    client: APIClient
+    constructor(options: SessionContextOptions) {
+        this.client = options.client
+    }
+}
+
 export interface SessionOptions {
     chain: ChainDefinitionType
     client?: APIClient

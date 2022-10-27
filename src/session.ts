@@ -15,23 +15,13 @@ import {ChainDefinition, WalletPlugin} from './kit.types'
 
 import {
     AbstractSession,
+    SessionContext,
     SessionOptions,
     TransactArgs,
     TransactHooks,
     TransactOptions,
     TransactResult,
 } from './session.types'
-
-export interface SessionContextOptions {
-    client: APIClient
-}
-
-export class SessionContext {
-    client: APIClient
-    constructor(options: SessionContextOptions) {
-        this.client = options.client
-    }
-}
 
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
