@@ -11,7 +11,6 @@ import {
 
 import {Hook} from './types'
 
-import {SessionContext} from './session'
 import {ChainDefinition, ChainDefinitionType, WalletPlugin} from './kit.types'
 import {SigningRequest} from 'eosio-signing-request'
 
@@ -30,6 +29,20 @@ export class SessionContext {
     client: APIClient
     constructor(options: SessionContextOptions) {
         this.client = options.client
+    }
+}
+
+export interface TransactContextOptions {
+    client: APIClient
+    session: PermissionLevel
+}
+
+export class TransactContext {
+    client: APIClient
+    session: PermissionLevel
+    constructor(options: TransactContextOptions) {
+        this.client = options.client
+        this.session = options.session
     }
 }
 
@@ -56,7 +69,7 @@ export interface TransactArgs {
 }
 
 export interface TransactHook extends Hook {
-    process(request: SigningRequest, context: SessionContext): SigningRequest
+    process(request: SigningRequest, context: TransactContext): SigningRequest
 }
 
 export interface TransactHooks {

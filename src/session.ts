@@ -18,6 +18,7 @@ import {
     SessionContext,
     SessionOptions,
     TransactArgs,
+    TransactContext,
     TransactHooks,
     TransactOptions,
     TransactResult,
@@ -119,6 +120,12 @@ export class Session extends AbstractSession {
         // const resolved = request.resolve(abis, this.permissionLevel)
         // console.log(resolved)
 
+        // The context for this transaction
+        const context: TransactContext = {
+            client: this.context.client,
+            session: this.permissionLevel,
+        }
+
         // Response to the transact call
         const result: TransactResult = {
             chain: this.chain,
@@ -139,7 +146,7 @@ export class Session extends AbstractSession {
 
         // Run the beforeSign hooks
         beforeSignHooks.forEach(async (hook) => {
-            const modifiedRequest = await hook.process(request, this.context)
+            const modifiedRequest = await hook.process(request, context)
             if (allowModify) {
                 request = modifiedRequest
             }
@@ -150,17 +157,17 @@ export class Session extends AbstractSession {
         result.signatures.push(signature)
 
         // Run the afterSign hooks
-        afterSignHooks.forEach(async (hook) => await hook.process(request, this.context))
+        afterSignHooks.forEach(async (hook) => await hook.process(request, context))
 
         if (options?.broadcast) {
             // Run the beforeBroadcast hooks
-            beforeBroadcastHooks.forEach(async (hook) => await hook.process(request, this.context))
+            beforeBroadcastHooks.forEach(async (hook) => await hook.process(request, context))
 
             // broadcast transaction
             // TODO: Implement broadcast
 
             // Run the afterBroadcast hooks
-            afterBroadcastHooks.forEach(async (hook) => await hook.process(request, this.context))
+            afterBroadcastHooks.forEach(async (hook) => await hook.process(request, context))
         }
 
         return {
