@@ -12,7 +12,7 @@ import {
     TransactContext,
     Transaction,
 } from '$lib'
-import {makeMockAction, makeMockActions, makeMockTransaction} from './utils/mock-transfer'
+import {makeMockAction} from './utils/mock-transfer'
 import {makeClient} from './utils/mock-provider'
 import {makeContext} from './utils/mock-context'
 
