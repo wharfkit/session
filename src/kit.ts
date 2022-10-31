@@ -122,12 +122,18 @@ export class SessionKit extends AbstractSessionKit {
         this.walletPlugins = options.walletPlugins
     }
 
-    getClient(id: Checksum256Type): APIClient {
+    getChain(id: Checksum256Type): ChainDefinition {
         // Find the chain listed in the definitions array
-        const chain = this.chains.find((c) => c.id.equals(Checksum256.from(id)))
+        const chainId = Checksum256.from(id)
+        const chain = this.chains.find((c) => c.id.equals(chainId))
         if (!chain) {
-            throw new Error(`No chain chain found for ${chain}`)
+            throw new Error(`No ChainDefinition found for ${chainId}`)
         }
+        return chain
+    }
+
+    getClient(id: Checksum256Type): APIClient {
+        const chain = this.getChain(id)
         const options: FetchProviderOptions = {
             fetch: this.fetch,
         }
@@ -162,14 +168,15 @@ export class SessionKit extends AbstractSessionKit {
             context,
         }
 
-        // Use the default wallet plugin if none are specified (defaulting to first in list)
+        // Allow overriding of the default wallet plugin by specifying one in the options
         if (options?.walletPlugin) {
             context.walletPlugin = options.walletPlugin
         }
 
-        // Use the default chain if none are specified (defaulting to first in list)
+        // Allow overriding of the default chain definition by specifying one in the options
         if (options?.chain) {
-            context.chain = ChainDefinition.from(options.chain)
+            context.chain = this.getChain(options.chain)
+            context.client = this.getClient(context.chain.id)
         }
 
         // Allow a permission level to be specified via options

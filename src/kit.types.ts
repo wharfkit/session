@@ -47,8 +47,8 @@ export interface LoginHooks {
 export interface LoginOptions {
     afterLoginHooks?: AfterLoginHook[]
     beforeLoginHooks?: BeforeLoginHook[]
-    chain?: ChainDefinitionType
-    permissionLevel?: PermissionLevelType
+    chain?: Checksum256Type
+    permissionLevel?: PermissionLevelType | string
     walletPlugin?: WalletPlugin
 }
 
