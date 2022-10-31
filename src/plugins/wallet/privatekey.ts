@@ -12,18 +12,14 @@ import {
     WalletPluginOptions,
 } from '../../'
 
-interface Options extends WalletPluginOptions {
+export interface WalletPluginPrivateKeyOptions extends WalletPluginOptions {
     privateKey: PrivateKeyType
 }
 
 export class WalletPluginPrivateKey implements WalletPlugin {
     readonly privateKey: PrivateKey
-    constructor(options: Options) {
-        if (options.privateKey) {
-            this.privateKey = PrivateKey.from(options.privateKey)
-        } else {
-            throw new Error('The Private Key wallet plugin must be initialized with a private key.')
-        }
+    constructor(options: WalletPluginPrivateKeyOptions) {
+        this.privateKey = PrivateKey.from(options.privateKey)
     }
     login(options: WalletPluginLoginOptions): WalletPluginLoginResponse {
         return {
