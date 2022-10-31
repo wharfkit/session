@@ -1,7 +1,8 @@
 import {assert} from 'chai'
 import fetch from 'node-fetch'
 
-import {PermissionLevel, Session, SessionKit, SessionKitOptions} from '$lib'
+import {Session, SessionKit, SessionKitOptions} from '$lib'
+import {PermissionLevel} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockLoginHook, MockTransactHook} from '$test/utils/mock-hook'

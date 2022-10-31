@@ -1,17 +1,8 @@
 import {assert} from 'chai'
 import zlib from 'pako'
+import {Action, PermissionLevel, Serializer, Signature, Transaction} from '@greymass/eosio'
 
-import {
-    Action,
-    ChainDefinition,
-    PermissionLevel,
-    Serializer,
-    Session,
-    SessionOptions,
-    Signature,
-    SigningRequest,
-    Transaction,
-} from '$lib'
+import {ChainDefinition, Session, SessionOptions, SigningRequest} from '$lib'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'

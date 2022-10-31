@@ -1,6 +1,7 @@
 import {assert} from 'chai'
 
-import {ChainDefinition, PermissionLevel, Session, SessionOptions} from '$lib'
+import {ChainDefinition, Session, SessionOptions} from '$lib'
+import {PermissionLevel} from '@greymass/eosio'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'

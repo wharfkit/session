@@ -1,16 +1,19 @@
 import {
     ChainDefinition,
+    WalletPlugin,
+    WalletPluginLoginOptions,
+    WalletPluginLoginResponse,
+    WalletPluginOptions,
+} from '../..'
+
+import {
     Checksum256,
     PermissionLevel,
     PrivateKey,
     PrivateKeyType,
     Signature,
     Transaction,
-    WalletPlugin,
-    WalletPluginLoginOptions,
-    WalletPluginLoginResponse,
-    WalletPluginOptions,
-} from '../../'
+} from '@greymass/eosio'
 
 export interface WalletPluginPrivateKeyOptions extends WalletPluginOptions {
     privateKey: PrivateKeyType

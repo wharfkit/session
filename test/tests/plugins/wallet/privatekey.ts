@@ -8,14 +8,16 @@ const defaultWalletOptions: WalletPluginPrivateKeyOptions = {
     privateKey,
 }
 
-suite('plugin - wallet - privatekey', function () {
-    test('construct', function () {
-        const wallet = new WalletPluginPrivateKey(defaultWalletOptions)
-        assert.instanceOf(wallet, WalletPluginPrivateKey)
+export const privateKeyWallet = () => {
+    suite('privatekey', function () {
+        test('construct', function () {
+            const wallet = new WalletPluginPrivateKey(defaultWalletOptions)
+            assert.instanceOf(wallet, WalletPluginPrivateKey)
+        })
+        test('throws error with invalid privatekey', function () {
+            assert.throws(() => {
+                new WalletPluginPrivateKey({privateKey: 'foo'})
+            }, Error)
+        })
     })
-    test('throws error with invalid privatekey', function () {
-        assert.throws(() => {
-            new WalletPluginPrivateKey({privateKey: 'foo'})
-        }, Error)
-    })
-})
+}

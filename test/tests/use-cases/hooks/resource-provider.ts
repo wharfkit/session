@@ -1,15 +1,10 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {
-    Hook,
-    Name,
-    PermissionLevel,
-    Signature,
-    SigningRequest,
-    TransactContext,
-    Transaction,
-} from '$lib'
+import {Name, PermissionLevel, Signature, Transaction} from '@greymass/eosio'
+
+import {Hook, SigningRequest, TransactContext} from '$lib'
+
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeClient} from '$test/utils/mock-provider'
 import {makeContext} from '$test/utils/mock-context'
@@ -87,37 +82,39 @@ class MockHook implements Hook {
     }
 }
 
-suite('hook - resource provider example', function () {
-    test('pre-sign: Resource Provider', async function () {
-        const request = await SigningRequest.create(
-            {
-                action: makeMockAction(),
-            },
-            {zlib}
-        )
-        const hook = new MockHook()
-        const modifiedRequest = await hook.process(request, context)
-        assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
-        const {value} = modifiedRequest.data.req
-        if (value instanceof Transaction) {
-            const {actions} = value
-            const [noop, transfer] = actions
-            assert.instanceOf(actions, Array)
-            assert.equal(actions.length, 2)
-            // Check action data
-            assert.isTrue(Name.from('greymassnoop').equals(noop.account))
-            assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
-            assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-            assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
-            // Check that a signature was appended to the request
-            const signatures = modifiedRequest.getInfoKey('cosig', {
-                type: Signature,
-                array: true,
-            })
-            assert.instanceOf(signatures, Array)
-            assert.instanceOf(signatures[0], Signature)
-        } else {
-            assert.fail('The request did not return a transaction.')
-        }
+export const resourceProviderHooks = () => {
+    suite('resource provider', function () {
+        test('pre-sign', async function () {
+            const request = await SigningRequest.create(
+                {
+                    action: makeMockAction(),
+                },
+                {zlib}
+            )
+            const hook = new MockHook()
+            const modifiedRequest = await hook.process(request, context)
+            assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
+            const {value} = modifiedRequest.data.req
+            if (value instanceof Transaction) {
+                const {actions} = value
+                const [noop, transfer] = actions
+                assert.instanceOf(actions, Array)
+                assert.equal(actions.length, 2)
+                // Check action data
+                assert.isTrue(Name.from('greymassnoop').equals(noop.account))
+                assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
+                assert.isTrue(Name.from('eosio.token').equals(transfer.account))
+                assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
+                // Check that a signature was appended to the request
+                const signatures = modifiedRequest.getInfoKey('cosig', {
+                    type: Signature,
+                    array: true,
+                })
+                assert.instanceOf(signatures, Array)
+                assert.instanceOf(signatures[0], Signature)
+            } else {
+                assert.fail('The request did not return a transaction.')
+            }
+        })
     })
-})
+}
