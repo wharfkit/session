@@ -121,10 +121,10 @@ export class Session extends AbstractSession {
         // console.log(resolved)
 
         // The context for this transaction
-        const context: TransactContext = {
+        const context = new TransactContext({
             client: this.context.client,
             session: this.permissionLevel,
-        }
+        })
 
         // Response to the transact call
         const result: TransactResult = {
