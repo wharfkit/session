@@ -53,29 +53,29 @@ build/docs: $(SRC_FILES) node_modules
 		--includeVersion --hideGenerator --readme none \
 		src/index.ts
 
-build/pages: build/coverage build/docs test/browser.html
+build/pages: build/coverage build/docs build/browser.html
 	@mkdir -p build/pages
 	@cp -r build/docs/* build/pages/
 	@cp -r build/coverage build/pages/coverage
-	@cp test/browser.html build/pages/tests.html
+	@cp build/browser.html build/pages/tests.html
 
 .PHONY: deploy-pages
 deploy-pages: | clean build/pages node_modules
 	@${BIN}/gh-pages -d build/pages
 
-test/browser.html: $(SRC_FILES) $(TEST_FILES) test/rollup.config.js node_modules
+build/browser.html: $(SRC_FILES) $(TEST_FILES) test/rollup.config.js node_modules
 	@${BIN}/rollup -c test/rollup.config.js
 
 .PHONY: browser-test
-browser-test: test/browser.html
-	@open test/browser.html
+browser-test: build/browser.html
+	@open build/browser.html
 
 node_modules:
 	yarn install --non-interactive --frozen-lockfile --ignore-scripts
 
 .PHONY: clean
 clean:
-	rm -rf lib/ build/ test/browser.html
+	rm -rf lib/ build/ build/browser.html
 
 .PHONY: distclean
 distclean: clean
