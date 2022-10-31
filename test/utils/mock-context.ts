@@ -1,5 +1,5 @@
 import {PermissionLevel, TransactContext} from '$lib'
-import {makeClient} from './mock-provider'
+import {makeClient} from '$test/utils/mock-provider'
 
 const client = makeClient()
 

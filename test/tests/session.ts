@@ -1,18 +1,10 @@
 import {assert} from 'chai'
 
-import {makeClient} from '../utils/mock-provider'
-import {makeWallet} from '../utils/mock-wallet'
-import {makeMockTransaction} from '../utils/mock-transfer'
-import {
-    ChainDefinition,
-    Checksum256,
-    PermissionLevel,
-    Session,
-    SessionOptions,
-    Signature,
-    Transaction,
-} from '$lib'
-import {MockTransactHook} from 'test/utils/mock-hook'
+import {ChainDefinition, PermissionLevel, Session, SessionOptions} from '$lib'
+
+import {makeClient} from '$test/utils/mock-provider'
+import {makeWallet} from '$test/utils/mock-wallet'
+import {MockTransactHook} from '$test/utils/mock-hook'
 
 const client = makeClient()
 const wallet = makeWallet()

@@ -6,10 +6,12 @@
         "module": "commonjs",
         "target": "es6",
         "types": ["mocha", "node"],
-        "baseUrl": "..",
+        "baseUrl": "../",
         "paths": {
-            "$lib": ["./src"]
+            "$lib": ["src"],
+            "$test": ["test"],
+            "$test/*": ["test/*"]
         }
     },
-    "include": ["*.ts", "**/*.ts"]
+    "include": ["../src", "tests/**/*.ts"]
 }

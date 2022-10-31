@@ -1,9 +1,6 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {makeClient} from '../utils/mock-provider'
-import {makeWallet} from '../utils/mock-wallet'
-import {makeMockAction, makeMockActions, makeMockTransaction} from '../utils/mock-transfer'
 import {
     Action,
     ChainDefinition,
@@ -14,9 +11,12 @@ import {
     Signature,
     SigningRequest,
     Transaction,
-    WalletPluginPrivateKey,
 } from '$lib'
-import {MockTransactHook} from 'test/utils/mock-hook'
+
+import {makeClient} from '$test/utils/mock-provider'
+import {makeWallet} from '$test/utils/mock-wallet'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
+import {MockTransactHook} from '$test/utils/mock-hook'
 
 const client = makeClient()
 const wallet = makeWallet()

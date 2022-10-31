@@ -2,19 +2,17 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {
-    Action,
     Hook,
     Name,
     PermissionLevel,
-    SessionContext,
     Signature,
     SigningRequest,
     TransactContext,
     Transaction,
 } from '$lib'
-import {makeMockAction} from '../../utils/mock-transfer'
-import {makeClient} from '../../utils/mock-provider'
-import {makeContext} from '../../utils/mock-context'
+import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeClient} from '$test/utils/mock-provider'
+import {makeContext} from '$test/utils/mock-context'
 
 const client = makeClient()
 const context = makeContext()

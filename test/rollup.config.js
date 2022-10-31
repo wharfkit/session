@@ -10,11 +10,21 @@ import resolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 import virtual from '@rollup/plugin-virtual'
 import {terser} from 'rollup-plugin-terser'
+import {typescriptPaths} from 'rollup-plugin-typescript-paths'
 
-const testFiles = fs
-    .readdirSync(__dirname)
-    .filter((f) => f.match(/\.ts$/))
-    .map((f) => path.join(__dirname, f))
+const testFiles = []
+
+const getFiles = (path) => {
+    if (fs.lstatSync(path).isDirectory()) {
+        fs.readdirSync(path).forEach((f) => {
+            getFiles(path + '/' + f)
+        })
+    } else if (path.endsWith('.ts')) {
+        testFiles.push(path)
+    }
+}
+
+getFiles('test/tests')
 
 const template = `
 <!DOCTYPE html>
@@ -79,11 +89,9 @@ export default [
         },
         external: ['chai', 'mocha'],
         plugins: [
+            typescriptPaths(),
             virtual({
                 tests: testFiles.map((f) => `import '${f.slice(0, -3)}'`).join('\n'),
-            }),
-            alias({
-                entries: [{find: '$lib', replacement: '../src'}],
             }),
             typescript({target: 'es6', module: 'es2020', tsconfig: './test/tsconfig.json'}),
             resolve({browser: true}),

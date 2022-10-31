@@ -1,9 +1,8 @@
 import {assert} from 'chai'
-import fetch from 'node-fetch'
 
 import {WalletPluginPrivateKey, WalletPluginPrivateKeyOptions} from '$lib'
 
-import {privateKey} from '../../../utils/mock-wallet'
+import {privateKey} from '$test/utils/mock-wallet'
 
 const defaultWalletOptions: WalletPluginPrivateKeyOptions = {
     privateKey,

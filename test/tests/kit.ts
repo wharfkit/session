@@ -3,8 +3,8 @@ import fetch from 'node-fetch'
 
 import {PermissionLevel, Session, SessionKit, SessionKitOptions} from '$lib'
 
-import {makeWallet} from '../utils/mock-wallet'
-import {MockLoginHook, MockTransactHook} from '../utils/mock-hook'
+import {makeWallet} from '$test/utils/mock-wallet'
+import {MockLoginHook, MockTransactHook} from '$test/utils/mock-hook'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',

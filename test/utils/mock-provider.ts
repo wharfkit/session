@@ -2,11 +2,10 @@ import fetch from 'node-fetch'
 import {join as joinPath} from 'path'
 import {promisify} from 'util'
 import {readFile as _readFile, writeFile as _writeFile} from 'fs'
+import {APIClient, APIProvider, Bytes, Checksum160, FetchProvider} from '@greymass/eosio'
 
 const readFile = promisify(_readFile)
 const writeFile = promisify(_writeFile)
-
-import {APIClient, APIProvider, Bytes, Checksum160, FetchProvider} from '@greymass/eosio'
 
 export class MockProvider implements APIProvider {
     recordProvider = new FetchProvider(this.api, {fetch})
