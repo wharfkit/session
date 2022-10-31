@@ -67,63 +67,65 @@ suite('transact', function () {
         const result = await testSession.transact({action})
         assetValidTransactResponse(result)
     })
-    test('handles: action (typed)', async function () {
-        const result = await session.transact({action})
-        assetValidTransactResponse(result)
-    })
-    test('handles: action (untyped)', async function () {
-        const result = await session.transact({action: Serializer.objectify(action)})
-        assetValidTransactResponse(result)
-    })
-    test('handles: actions (typed)', async function () {
-        const result = await session.transact({actions})
-        assetValidTransactResponse(result)
-    })
-    test('handles: actions (untyped)', async function () {
-        const result = await session.transact({actions: Serializer.objectify(actions)})
-        assetValidTransactResponse(result)
-    })
-    test('handles: transaction (typed)', async function () {
-        const result = await session.transact({transaction})
-        assetValidTransactResponse(result)
-    })
-    test('handles: transaction (untyped)', async function () {
-        const result = await session.transact({transaction: Serializer.objectify(transaction)})
-        assetValidTransactResponse(result)
-    })
-    test('handles: transaction (as typed param)', async function () {
-        const result = await session.transact(transaction)
-        assetValidTransactResponse(result)
-    })
-    test('handles: transaction (retain headers)', async function () {
-        const result = await session.transact(transaction)
-        assetValidTransactResponse(result)
-        assert.equal(transaction.delay_sec, result.transaction.delay_sec)
-        assert.equal(transaction.expiration, result.transaction.expiration)
-        assert.equal(transaction.ref_block_num, result.transaction.ref_block_num)
-        assert.equal(transaction.ref_block_prefix, result.transaction.ref_block_prefix)
-        assert.equal(transaction.max_net_usage_words, result.transaction.max_net_usage_words)
-        assert.equal(transaction.max_cpu_usage_ms, result.transaction.max_cpu_usage_ms)
-    })
-    test('handles: transaction (as untyped param)', async function () {
-        const result = await session.transact(Serializer.objectify(transaction))
-        assetValidTransactResponse(result)
-    })
-    test('handles: ESR Payload (String)', async function () {
-        const result = await session.transact({
-            request:
-                'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+    suite('handles', function () {
+        test('action (typed)', async function () {
+            const result = await session.transact({action})
+            assetValidTransactResponse(result)
         })
-        assetValidTransactResponse(result)
-    })
-    test('handles: ESR Payload (Object)', async function () {
-        const result = await session.transact({
-            request: SigningRequest.from(
-                'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
-                {zlib}
-            ),
+        test('action (untyped)', async function () {
+            const result = await session.transact({action: Serializer.objectify(action)})
+            assetValidTransactResponse(result)
         })
-        assetValidTransactResponse(result)
+        test('actions (typed)', async function () {
+            const result = await session.transact({actions})
+            assetValidTransactResponse(result)
+        })
+        test('actions (untyped)', async function () {
+            const result = await session.transact({actions: Serializer.objectify(actions)})
+            assetValidTransactResponse(result)
+        })
+        test('transaction (typed)', async function () {
+            const result = await session.transact({transaction})
+            assetValidTransactResponse(result)
+        })
+        test('transaction (untyped)', async function () {
+            const result = await session.transact({transaction: Serializer.objectify(transaction)})
+            assetValidTransactResponse(result)
+        })
+        test('transaction (as typed param)', async function () {
+            const result = await session.transact(transaction)
+            assetValidTransactResponse(result)
+        })
+        test('transaction (retain headers)', async function () {
+            const result = await session.transact(transaction)
+            assetValidTransactResponse(result)
+            assert.equal(transaction.delay_sec, result.transaction.delay_sec)
+            assert.equal(transaction.expiration, result.transaction.expiration)
+            assert.equal(transaction.ref_block_num, result.transaction.ref_block_num)
+            assert.equal(transaction.ref_block_prefix, result.transaction.ref_block_prefix)
+            assert.equal(transaction.max_net_usage_words, result.transaction.max_net_usage_words)
+            assert.equal(transaction.max_cpu_usage_ms, result.transaction.max_cpu_usage_ms)
+        })
+        test('transaction (as untyped param)', async function () {
+            const result = await session.transact(Serializer.objectify(transaction))
+            assetValidTransactResponse(result)
+        })
+        test('ESR Payload (String)', async function () {
+            const result = await session.transact({
+                request:
+                    'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+            })
+            assetValidTransactResponse(result)
+        })
+        test('ESR Payload (Object)', async function () {
+            const result = await session.transact({
+                request: SigningRequest.from(
+                    'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+                    {zlib}
+                ),
+            })
+            assetValidTransactResponse(result)
+        })
     })
     test('response - type check', async function () {
         const result = await session.transact(transaction)
