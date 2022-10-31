@@ -1,9 +1,9 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {makeClient} from './utils/mock-provider'
-import {makeWallet} from './utils/mock-wallet'
-import {makeMockAction, makeMockActions, makeMockTransaction} from './utils/mock-transfer'
+import {makeClient} from '../utils/mock-provider'
+import {makeWallet} from '../utils/mock-wallet'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '../utils/mock-transfer'
 import {
     Action,
     ChainDefinition,

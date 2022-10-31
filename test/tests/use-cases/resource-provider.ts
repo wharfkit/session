@@ -12,9 +12,9 @@ import {
     TransactContext,
     Transaction,
 } from '$lib'
-import {makeMockAction} from './utils/mock-transfer'
-import {makeClient} from './utils/mock-provider'
-import {makeContext} from './utils/mock-context'
+import {makeMockAction} from '../../utils/mock-transfer'
+import {makeClient} from '../../utils/mock-provider'
+import {makeContext} from '../../utils/mock-context'
 
 const client = makeClient()
 const context = makeContext()
