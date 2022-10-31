@@ -4,7 +4,7 @@ import {
     WalletPluginLoginOptions,
     WalletPluginLoginResponse,
     WalletPluginOptions,
-} from '../..'
+} from '../../kit.types'
 
 import {
     Checksum256,
