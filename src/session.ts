@@ -15,7 +15,6 @@ import {ChainDefinition, WalletPlugin} from './kit.types'
 
 import {
     AbstractSession,
-    AfterBroadcastHook,
     SessionContext,
     SessionOptions,
     TransactArgs,

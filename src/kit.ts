@@ -12,8 +12,6 @@ import {Session} from './session'
 
 import {
     AbstractSessionKit,
-    AfterLoginHook,
-    BeforeLoginHook,
     ChainDefinition,
     LoginHooks,
     LoginOptions,
