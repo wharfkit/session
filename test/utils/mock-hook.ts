@@ -1,7 +1,13 @@
-import {Hook, SigningRequest} from '$lib'
+import {LoginHook, SessionOptions, SigningRequest, TransactContext, TransactHook} from '$lib'
 
-export class MockHook implements Hook {
-    async process(request: SigningRequest): Promise<SigningRequest> {
+export class MockLoginHook implements LoginHook {
+    async process(context: SessionOptions) {
+        // Mock hook that does nothing
+    }
+}
+
+export class MockTransactHook implements TransactHook {
+    async process(request: SigningRequest, context: TransactContext): Promise<SigningRequest> {
         // Mock hook that does nothing
         return request
     }
