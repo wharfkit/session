@@ -60,7 +60,7 @@ build/pages: build/coverage build/docs build/browser.html
 	@cp build/browser.html build/pages/tests.html
 
 .PHONY: deploy-pages
-deploy-pages: | clean build/pages node_modules
+deploy-pages: | clean lib build/pages node_modules
 	@${BIN}/gh-pages -d build/pages
 
 build/browser.html: $(SRC_FILES) $(TEST_FILES) test/rollup.config.js node_modules
