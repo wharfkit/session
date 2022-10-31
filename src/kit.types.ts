@@ -11,7 +11,7 @@ import {
 } from '@greymass/eosio'
 
 import {Session} from './session'
-import {SessionOptions, TransactHooks} from './session.types'
+import {SessionOptions, TransactOptionsHooks} from './session.types'
 import {Fetch, Hook} from './types'
 
 export abstract class AbstractSessionKit {
@@ -30,12 +30,14 @@ export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
     fetch?: Fetch
-    loginHooks?: LoginHooks
-    transactHooks?: TransactHooks
+    loginHooks?: LoginOptionsHooks
+    transactHooks?: TransactOptionsHooks
     walletPlugins: WalletPlugin[]
 }
 
-export interface LoginHook extends Hook {}
+export interface LoginHook extends Hook {
+    process(context: SessionOptions): void
+}
 export interface BeforeLoginHook extends LoginHook {}
 export interface AfterLoginHook extends LoginHook {}
 
@@ -48,8 +50,14 @@ export interface LoginOptions {
     afterLoginHooks?: AfterLoginHook[]
     beforeLoginHooks?: BeforeLoginHook[]
     chain?: Checksum256Type
+    hooks?: LoginOptionsHooks
     permissionLevel?: PermissionLevelType | string
     walletPlugin?: WalletPlugin
+}
+
+export interface LoginOptionsHooks {
+    afterLogin?: AfterLoginHook[]
+    beforeLogin?: BeforeLoginHook[]
 }
 
 export interface WalletPluginOptions {

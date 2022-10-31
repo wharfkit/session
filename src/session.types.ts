@@ -49,6 +49,7 @@ export class TransactContext {
 export interface SessionOptions {
     chain: ChainDefinitionType
     client?: APIClient
+    hooks?: TransactOptionsHooks
     permissionLevel: PermissionLevelType | string
     walletPlugin: WalletPlugin
 }
@@ -69,7 +70,7 @@ export interface TransactArgs {
 }
 
 export interface TransactHook extends Hook {
-    process(request: SigningRequest, context: TransactContext): SigningRequest
+    process(request: SigningRequest, context: TransactContext): Promise<SigningRequest>
 }
 
 export interface TransactHooks {
@@ -77,6 +78,13 @@ export interface TransactHooks {
     beforeSign: BeforeSignHook[]
     afterBroadcast: AfterBroadcastHook[]
     beforeBroadcast: BeforeBroadcastHook[]
+}
+
+export interface TransactOptionsHooks {
+    afterSign?: AfterSignHook[]
+    beforeSign?: BeforeSignHook[]
+    afterBroadcast?: AfterBroadcastHook[]
+    beforeBroadcast?: BeforeBroadcastHook[]
 }
 
 export interface SignHook extends TransactHook {}
@@ -108,21 +116,9 @@ export interface TransactOptions {
      */
     allowModify?: boolean
     /**
-     * Hooks to execute against a transaction before signing.
+     * Specific hooks to use for this transaction.
      */
-    beforeSignHooks?: BeforeSignHook[]
-    /**
-     * Hooks to execute against a transaction after signing.
-     */
-    afterSignHooks?: AfterSignHook[]
-    /**
-     * Hooks to execute against a transaction before broadcasting.
-     */
-    beforeBroadcastHooks?: BeforeBroadcastHook[]
-    /**
-     * Hooks to execute against a transaction after broadcasting.
-     */
-    afterBroadcastHooks?: AfterBroadcastHook[]
+    hooks?: TransactOptionsHooks
 }
 
 /**

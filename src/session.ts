@@ -15,6 +15,7 @@ import {ChainDefinition, WalletPlugin} from './kit.types'
 
 import {
     AbstractSession,
+    AfterBroadcastHook,
     SessionContext,
     SessionOptions,
     TransactArgs,
@@ -23,6 +24,13 @@ import {
     TransactOptions,
     TransactResult,
 } from './session.types'
+
+const defaultHooks = {
+    afterBroadcast: [],
+    afterSign: [],
+    beforeBroadcast: [],
+    beforeSign: [],
+}
 
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
@@ -38,14 +46,15 @@ export class Session extends AbstractSession {
         if (options.client) {
             client = options.client
         } else {
+            /* istanbul ignore next */
             client = new APIClient({url: this.chain.url})
         }
-        // TODO: Implement passing of default hooks into the session
-        this.hooks = {
-            afterBroadcast: [],
-            afterSign: [],
-            beforeBroadcast: [],
-            beforeSign: [],
+        this.hooks = defaultHooks
+        if (options.hooks) {
+            this.hooks = {
+                ...defaultHooks,
+                ...options.hooks,
+            }
         }
         this.context = new SessionContext({client})
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
@@ -136,13 +145,14 @@ export class Session extends AbstractSession {
         }
 
         // Whether or not the request should be able to be modified by beforeSign hooks
-        const allowModify = options?.allowModify ?? true
+        const allowModify =
+            options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
 
         // Determine which set of hooks to use, with hooks specified in the options taking priority
-        const beforeSignHooks = options?.beforeSignHooks || this.hooks.beforeSign
-        const afterSignHooks = options?.afterSignHooks || this.hooks.afterSign
-        const beforeBroadcastHooks = options?.beforeBroadcastHooks || this.hooks.beforeBroadcast
-        const afterBroadcastHooks = options?.afterBroadcastHooks || this.hooks.afterBroadcast
+        const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
+        const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
+        const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
+        const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
 
         // Run the beforeSign hooks
         beforeSignHooks.forEach(async (hook) => {

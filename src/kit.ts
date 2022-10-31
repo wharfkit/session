@@ -15,12 +15,13 @@ import {
     AfterLoginHook,
     BeforeLoginHook,
     ChainDefinition,
+    LoginHooks,
     LoginOptions,
     SessionKitOptions,
     WalletPlugin,
     WalletPluginLoginOptions,
 } from './kit.types'
-import {SessionOptions} from './session.types'
+import {SessionOptions, TransactHooks} from './session.types'
 import {Fetch} from './types'
 
 /**
@@ -102,12 +103,24 @@ import {Fetch} from './types'
  *    }
  */
 
+const defaultLoginHooks = {
+    afterLogin: [],
+    beforeLogin: [],
+}
+
+const defaultTransactHooks = {
+    afterBroadcast: [],
+    afterSign: [],
+    beforeBroadcast: [],
+    beforeSign: [],
+}
+
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly fetch?: Fetch
-    readonly beforeLoginHooks: BeforeLoginHook[]
-    readonly afterLoginHooks: AfterLoginHook[]
+    readonly loginHooks: LoginHooks
+    readonly transactHooks: TransactHooks
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -117,8 +130,20 @@ export class SessionKit extends AbstractSessionKit {
         if (options.fetch) {
             this.fetch = options.fetch
         }
-        this.beforeLoginHooks = options.loginHooks?.beforeLogin || []
-        this.afterLoginHooks = options.loginHooks?.afterLogin || []
+        this.loginHooks = defaultLoginHooks
+        if (options.loginHooks) {
+            this.loginHooks = {
+                ...defaultLoginHooks,
+                ...options.loginHooks,
+            }
+        }
+        this.transactHooks = defaultTransactHooks
+        if (options.transactHooks) {
+            this.transactHooks = {
+                ...defaultTransactHooks,
+                ...options.transactHooks,
+            }
+        }
         this.walletPlugins = options.walletPlugins
     }
 
@@ -184,22 +209,24 @@ export class SessionKit extends AbstractSessionKit {
             context.permissionLevel = PermissionLevel.from(options.permissionLevel)
         }
 
-        if (options?.beforeLoginHooks) {
-            // Use pre-login hooks specified in the options of this login call
-        } else {
-            // Use pre-login hooks defined within this instance of the SessionKit
-        }
+        // Determine which set of hooks to use, with hooks specified in the options taking priority
+        const afterLoginHooks = options?.hooks?.afterLogin || this.loginHooks.afterLogin
+        const beforeLoginHooks = options?.hooks?.beforeLogin || this.loginHooks.beforeLogin
+
+        // Run the beforeLogin hooks
+        beforeLoginHooks?.forEach(async (hook) => {
+            await hook.process(context)
+        })
 
         // Perform login based on wallet plugin
         const response = await context.walletPlugin.login(walletOptions)
         context.chain = response.chain
         context.permissionLevel = response.permissionLevel
 
-        if (options?.afterLoginHooks) {
-            // Use post-login hooks specified in the options of this login call
-        } else {
-            // Use post-login hooks defined within this instance of the SessionKit
-        }
+        // Run the afterLogin hooks
+        afterLoginHooks?.forEach(async (hook) => {
+            await hook.process(context)
+        })
 
         return new Session(context)
     }
