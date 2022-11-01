@@ -1,6 +1,15 @@
 import {assert} from 'chai'
 import zlib from 'pako'
-import {Action, PermissionLevel, Serializer, Signature, Transaction} from '@greymass/eosio'
+import {
+    ABIDef,
+    Action,
+    Name,
+    PermissionLevel,
+    Serializer,
+    Signature,
+    Transaction,
+} from '@greymass/eosio'
+import {ResolvedSigningRequest, ResolvedTransaction} from 'eosio-signing-request'
 
 import {ChainDefinition, Session, SessionOptions, SigningRequest} from '$lib'
 
@@ -24,10 +33,11 @@ const mockSessionOptions: SessionOptions = {
 
 function assetValidTransactResponse(result) {
     assert.instanceOf(result.chain, ChainDefinition)
+    assert.instanceOf(result.request, SigningRequest)
+    assert.instanceOf(result.resolved, ResolvedSigningRequest)
     assert.instanceOf(result.signatures, Array)
     assert.instanceOf(result.signatures[0], Signature)
     assert.instanceOf(result.signer, PermissionLevel)
-    assert.instanceOf(result.transaction, Transaction)
 }
 
 suite('transact', function () {
@@ -145,15 +155,19 @@ suite('transact', function () {
             test('retain headers', async function () {
                 const result = await session.transact(transaction)
                 assetValidTransactResponse(result)
-                assert.equal(transaction.delay_sec, result.transaction.delay_sec)
-                assert.equal(transaction.expiration, result.transaction.expiration)
-                assert.equal(transaction.ref_block_num, result.transaction.ref_block_num)
-                assert.equal(transaction.ref_block_prefix, result.transaction.ref_block_prefix)
-                assert.equal(
-                    transaction.max_net_usage_words,
-                    result.transaction.max_net_usage_words
-                )
-                assert.equal(transaction.max_cpu_usage_ms, result.transaction.max_cpu_usage_ms)
+                if (result.transaction) {
+                    assert.equal(transaction.delay_sec, result.transaction.delay_sec)
+                    assert.equal(transaction.expiration, result.transaction.expiration)
+                    assert.equal(transaction.ref_block_num, result.transaction.ref_block_num)
+                    assert.equal(transaction.ref_block_prefix, result.transaction.ref_block_prefix)
+                    assert.equal(
+                        transaction.max_net_usage_words,
+                        result.transaction.max_net_usage_words
+                    )
+                    assert.equal(transaction.max_cpu_usage_ms, result.transaction.max_cpu_usage_ms)
+                } else {
+                    assert.fail('Transaction was not returned in result.')
+                }
             })
             test('as untyped param', async function () {
                 const result = await session.transact(Serializer.objectify(transaction))
@@ -225,6 +239,64 @@ suite('transact', function () {
         test('type check', async function () {
             const result = await session.transact(transaction)
             assetValidTransactResponse(result)
+        })
+        test('decoded transaction', async function () {
+            const result = await session.transact({
+                request: SigningRequest.from(
+                    'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+                    {zlib}
+                ),
+            })
+            assert.exists(result.transaction)
+            if (result.transaction) {
+                // Ensure transaction authority was templated
+                assert.equal(
+                    result.transaction.actions[0].authorization[0].actor,
+                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
+                )
+                assert.equal(
+                    result.transaction.actions[0].authorization[0].permission,
+                    PermissionLevel.from(mockSessionOptions.permissionLevel).permission
+                )
+                // Ensure transaction data was templated
+                assert.equal(
+                    result.transaction.actions[0].data.from,
+                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
+                )
+            } else {
+                assert.fail('Decoded transaction was not returned in result.')
+            }
+        })
+        test('resolved request', async function () {
+            const result = await session.transact({
+                request: SigningRequest.from(
+                    'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+                    {zlib}
+                ),
+            })
+            assert.exists(result.resolved)
+            const {resolved} = result
+            // Ensure it returns resolved request with authority templated
+            assert.equal(
+                resolved?.transaction.actions[0].authorization[0].actor,
+                PermissionLevel.from(mockSessionOptions.permissionLevel).actor
+            )
+            assert.equal(
+                resolved?.transaction.actions[0].authorization[0].permission,
+                PermissionLevel.from(mockSessionOptions.permissionLevel).permission
+            )
+        })
+        test('valid signatures', async function () {
+            const result = await session.transact({action})
+            const transaction = result.resolved?.request.getRawTransaction()
+            if (transaction) {
+                const digest = transaction.signingDigest(mockSessionOptions.chain.id)
+                const [signature] = result.signatures
+                const publicKey = signature.recoverDigest(digest)
+                assert.isTrue(publicKey.equals(wallet.privateKey.toPublic()))
+            } else {
+                assert.fail('Transaction was not resolved from request.')
+            }
         })
     })
 })
