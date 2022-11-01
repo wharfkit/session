@@ -7,8 +7,8 @@ import {
     PermissionLevelType,
     Signature,
     Struct,
-    Transaction,
 } from '@greymass/eosio'
+import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {Session} from './session'
 import {SessionOptions, TransactOptionsHooks} from './session.types'
@@ -72,7 +72,7 @@ export interface WalletPluginLoginOptions {
 
 export interface WalletPlugin {
     login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    sign(chain: ChainDefinition, transaction: Transaction): Signature
+    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
 }
 
 export interface WalletPluginLoginResponse {

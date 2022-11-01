@@ -14,6 +14,7 @@ import {
     Signature,
     Transaction,
 } from '@greymass/eosio'
+import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 export interface WalletPluginPrivateKeyOptions extends WalletPluginOptions {
     privateKey: PrivateKeyType
@@ -34,7 +35,8 @@ export class WalletPluginPrivateKey implements WalletPlugin {
             walletPlugin: this,
         }
     }
-    sign(chain: ChainDefinition, transaction: Transaction): Signature {
+    sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Signature {
+        const transaction = Transaction.from(resolved.request.getRawTransaction())
         const digest = transaction.signingDigest(Checksum256.from(chain.id))
         return this.privateKey.signDigest(digest)
     }

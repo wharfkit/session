@@ -1,14 +1,5 @@
-import {
-    //ABI,
-    APIClient,
-    Name,
-    PermissionLevel,
-    Transaction,
-} from '@greymass/eosio'
-import {
-    //AbiMap,
-    SigningRequest,
-} from 'eosio-signing-request'
+import {ABIDef, APIClient, Name, PermissionLevel} from '@greymass/eosio'
+import {AbiProvider, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
 import {ChainDefinition, WalletPlugin} from './kit.types'
@@ -96,10 +87,23 @@ export class Session extends AbstractSession {
     }
 
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
+        const abiProvider: AbiProvider = {
+            getAbi: async (account: Name): Promise<ABIDef> => {
+                const response = await this.context.client.v1.chain.get_abi(account)
+                if (!response.abi) {
+                    throw new Error('could not load abi')
+                }
+                return response.abi
+            },
+        }
+        const options = {
+            abiProvider,
+            zlib,
+        }
         if (args.request && args.request instanceof SigningRequest) {
-            return args.request
+            return SigningRequest.from(String(args.request), options)
         } else if (args.request) {
-            return SigningRequest.from(args.request, {zlib})
+            return SigningRequest.from(args.request, options)
         } else {
             args = this.upgradeTransaction(args)
             const request = await SigningRequest.create(
@@ -107,40 +111,30 @@ export class Session extends AbstractSession {
                     ...args,
                     chainId: this.chain.id,
                 },
-                {zlib}
+                options
             )
             return request
         }
     }
 
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
-        let request: SigningRequest = await this.createRequest(args)
-        const transaction: Transaction = request.getRawTransaction()
-
-        // TODO: Needs to resolve request with current session
-        // const abis: Map<string, ABI> = new Map()
-        // transaction.actions.forEach(async (action) => {
-        //     const abi = await this.context.client.v1.chain.get_abi(action.account)
-        //     if (abi.abi) {
-        //         abis.set(String(action.account), ABI.from(abi.abi))
-        //     }
-        // })
-        // const resolved = request.resolve(abis, this.permissionLevel)
-        // console.log(resolved)
-
         // The context for this transaction
         const context = new TransactContext({
             client: this.context.client,
             session: this.permissionLevel,
         })
 
-        // Response to the transact call
+        // Process TransactArgs and convert to a SigningRequest
+        const request: SigningRequest = await this.createRequest(args)
+
+        // Create response template to this transact call
         const result: TransactResult = {
             chain: this.chain,
             request,
+            resolved: undefined,
             signatures: [],
             signer: this.permissionLevel,
-            transaction,
+            transaction: undefined,
         }
 
         // Whether or not the request should be able to be modified by beforeSign hooks
@@ -153,35 +147,45 @@ export class Session extends AbstractSession {
         const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
         const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
 
-        // Run the beforeSign hooks
+        // Run the `beforeSign` hooks
         beforeSignHooks.forEach(async (hook) => {
-            const modifiedRequest = await hook.process(request, context)
+            // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
+            const modifiedRequest = await hook.process(result.request.clone(), context)
             if (allowModify) {
-                request = modifiedRequest
+                result.request = modifiedRequest
             }
         })
 
+        // Resolve SigningRequest with authority + tapos
+        const info = await context.client.v1.chain.get_info()
+        const expireSeconds = 120 // TODO: Needs to be configurable by parameters
+        const header = info.getTransactionHeader(expireSeconds)
+        const abis = await result.request.fetchAbis() // TODO: ABI Cache Implementation
+        result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
+        result.transaction = result.resolved.resolvedTransaction
+
         // Sign transaction based on wallet plugin
-        const signature = await this.wallet.sign(this.chain, transaction)
+        const signature = await this.wallet.sign(this.chain, result.resolved)
         result.signatures.push(signature)
 
-        // Run the afterSign hooks
-        afterSignHooks.forEach(async (hook) => await hook.process(request, context))
+        // Run the `afterSign` hooks
+        afterSignHooks.forEach(async (hook) => await hook.process(result.request.clone(), context))
 
         if (options?.broadcast) {
-            // Run the beforeBroadcast hooks
-            beforeBroadcastHooks.forEach(async (hook) => await hook.process(request, context))
+            // Run the `beforeBroadcast` hooks
+            beforeBroadcastHooks.forEach(
+                async (hook) => await hook.process(result.request.clone(), context)
+            )
 
             // broadcast transaction
             // TODO: Implement broadcast
 
-            // Run the afterBroadcast hooks
-            afterBroadcastHooks.forEach(async (hook) => await hook.process(request, context))
+            // Run the `afterBroadcast` hooks
+            afterBroadcastHooks.forEach(
+                async (hook) => await hook.process(result.request.clone(), context)
+            )
         }
 
-        return {
-            ...result,
-            request, // Pass the transaction that may have been modified by hooks
-        }
+        return result
     }
 }

@@ -6,13 +6,12 @@ import {
     PermissionLevel,
     PermissionLevelType,
     Signature,
-    Transaction,
 } from '@greymass/eosio'
 
 import {Hook} from './types'
 
 import {ChainDefinition, ChainDefinitionType, WalletPlugin} from './kit.types'
-import {SigningRequest} from 'eosio-signing-request'
+import {ResolvedSigningRequest, ResolvedTransaction, SigningRequest} from 'eosio-signing-request'
 
 export abstract class AbstractSession {
     /**
@@ -122,19 +121,21 @@ export interface TransactOptions {
 }
 
 /**
- * The response frmo a [[Session.transact]] call.
+ * The response from a [[Session.transact]] call.
  */
 export interface TransactResult {
     /** The chain that was used. */
     chain: ChainDefinition
     /** The SigningRequest representation of the transaction. */
     request: SigningRequest
+    /** The ResolvedSigningRequest of the transaction */
+    resolved: ResolvedSigningRequest | undefined
     /** The transaction signatures. */
     signatures: Signature[]
     /** The signer authority. */
     signer: PermissionLevel
     /** The resulting transaction. */
-    transaction: Transaction
+    transaction: ResolvedTransaction | undefined
     /** Push transaction response from api node, only present if transaction was broadcast. */
     processed?: {[key: string]: any}
 }
