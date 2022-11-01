@@ -17,7 +17,8 @@
     },
     "dependencies": {
         "@greymass/eosio": "^0.6.4",
-        "eosio-signing-request": "^2.5.1",
+        "eosio-signing-request": "^2.5.2",
+        "pako": "^2.0.4",
         "tslib": "^2.1.0"
     },
     "devDependencies": {
@@ -25,6 +26,7 @@
         "@rollup/plugin-commonjs": "^22.0.0",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^14.1.0",
+        "@rollup/plugin-replace": "^5.0.1",
         "@rollup/plugin-typescript": "^8.3.2",
         "@rollup/plugin-virtual": "^2.0.3",
         "@types/chai": "^4.3.1",
@@ -38,6 +40,7 @@
         "eslint-plugin-prettier": "^4.0.0",
         "gh-pages": "^4.0.0",
         "mocha": "^10.0.0",
+        "node-fetch": "^2.6.1",
         "nyc": "^15.1.0",
         "prettier": "^2.2.1",
         "rollup": "^2.70.2",
@@ -46,6 +49,7 @@
         "ts-node": "^10.1.0",
         "tsconfig-paths": "^4.0.0",
         "typedoc": "^0.23.14",
+        "typedoc-plugin-mermaid": "^1.9.0",
         "typescript": "^4.1.2"
     }
 }

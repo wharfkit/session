@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 SRC_FILES := $(shell find src -name '*.ts')
-TEST_FILES := $(wildcard test/*.ts)
+TEST_FILES := $(shell find test -name '*.ts')
 BIN := ./node_modules/.bin
 MOCHA_OPTS := -u tdd -r ts-node/register -r tsconfig-paths/register --extension ts
 NYC_OPTS := --temp-dir build/nyc_output --report-dir build/coverage
@@ -11,12 +11,12 @@ lib: ${SRC_FILES} package.json tsconfig.json node_modules rollup.config.js
 .PHONY: test
 test: node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
-		${BIN}/mocha ${MOCHA_OPTS} test/*.ts --grep '$(grep)'
+		${BIN}/mocha ${MOCHA_OPTS} ${TEST_FILES} --grep '$(grep)'
 
 build/coverage: ${SRC_FILES} ${TEST_FILES} node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=html \
-		${BIN}/mocha ${MOCHA_OPTS} -R nyan test/*.ts
+		${BIN}/mocha ${MOCHA_OPTS} -R nyan ${TEST_FILES}
 
 .PHONY: coverage
 coverage: build/coverage
@@ -26,7 +26,7 @@ coverage: build/coverage
 ci-test: node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=text \
-		${BIN}/mocha ${MOCHA_OPTS} -R list test/*.ts
+		${BIN}/mocha ${MOCHA_OPTS} -R list ${TEST_FILES}
 
 .PHONY: check
 check: node_modules
@@ -53,28 +53,29 @@ build/docs: $(SRC_FILES) node_modules
 		--includeVersion --hideGenerator --readme none \
 		src/index.ts
 
-build/pages: build/docs test/browser.html
+build/pages: build/coverage build/docs build/browser.html
 	@mkdir -p build/pages
 	@cp -r build/docs/* build/pages/
-	@cp test/browser.html build/pages/tests.html
+	@cp -r build/coverage build/pages/coverage
+	@cp build/browser.html build/pages/tests.html
 
 .PHONY: deploy-pages
-deploy-pages: | clean build/pages node_modules
+deploy-pages: | clean lib build/pages node_modules
 	@${BIN}/gh-pages -d build/pages
 
-test/browser.html: $(SRC_FILES) $(TEST_FILES) test/rollup.config.js node_modules
+build/browser.html: $(SRC_FILES) $(TEST_FILES) test/rollup.config.js node_modules
 	@${BIN}/rollup -c test/rollup.config.js
 
 .PHONY: browser-test
-browser-test: test/browser.html
-	@open test/browser.html
+browser-test: build/browser.html
+	@open build/browser.html
 
 node_modules:
 	yarn install --non-interactive --frozen-lockfile --ignore-scripts
 
 .PHONY: clean
 clean:
-	rm -rf lib/ build/ test/browser.html
+	rm -rf lib/ build/ build/browser.html
 
 .PHONY: distclean
 distclean: clean

@@ -17,6 +17,7 @@
                 "ignoreDeclarationSort": true
             }
         ],
+        "@typescript-eslint/no-empty-interface": "off", // TODO: This should be removed before PR #1
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-namespace": "off",
