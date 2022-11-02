@@ -2,54 +2,14 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {Hook, SigningRequest} from '$lib'
-import {Action, Name, Transaction} from '@greymass/eosio'
+import {Name, Transaction} from '@greymass/eosio'
 
-import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
+import {MockModifyingTransactHook} from '$test/utils/mock-hook'
 import {makeClient} from '$test/utils/mock-provider'
 import {resourceProviderHooks} from './use-cases/hooks/resource-provider'
+import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
 
 const client = makeClient()
-
-class MockHook implements Hook {
-    async process(request: SigningRequest): Promise<SigningRequest> {
-        // Clone the request for modification
-        const cloned = request.clone()
-        // Couldn't work with normal objects here
-        // Needed to load the ABI and work with an `Action` object
-        const abi = (await client.v1.chain.get_abi('greymassnoop')).abi
-        const newAction = Action.from(
-            {
-                account: 'greymassnoop',
-                name: 'noop',
-                authorization: [
-                    {
-                        actor: 'greymassfuel',
-                        permission: 'cosign',
-                    },
-                ],
-                data: {},
-            },
-            abi
-        )
-        // Needs to do a bunch of conditional logic - shoulnd't be required for a hook
-        if (cloned.data.req.value instanceof Action) {
-            // Overwrite the data
-            cloned.data.req.value = [newAction, cloned.data.req.value]
-            // This needs to be done to indicate it's an `Action[]`
-            cloned.data.req.variantIdx = 1
-        } else if (cloned.data.req.value instanceof Array) {
-            // Prepend the action to the existing array
-            cloned.data.req.value.unshift(newAction)
-        } else if (cloned.data.req.value instanceof Transaction) {
-            // Prepend the action to the existing array of the transaction
-            cloned.data.req.value.actions.unshift(newAction)
-        } else {
-            throw new Error('Unrecognized data type in request.')
-        }
-        // Return the request
-        return cloned
-    }
-}
 
 suite('hook', function () {
     suite('pre-sign', function () {
@@ -60,8 +20,9 @@ suite('hook', function () {
                 },
                 {zlib}
             )
-            const hook = new MockHook()
-            const modifiedRequest = await hook.process(request)
+            const hook = new MockModifyingTransactHook()
+            const response = await hook.process(request)
+            const modifiedRequest = response.request
             assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
             const {value} = modifiedRequest.data.req
             if (value instanceof Array) {
@@ -83,8 +44,9 @@ suite('hook', function () {
                 },
                 {zlib}
             )
-            const hook = new MockHook()
-            const modifiedRequest = await hook.process(request)
+            const hook = new MockModifyingTransactHook()
+            const response = await hook.process(request)
+            const modifiedRequest = response.request
             assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
             const {value} = modifiedRequest.data.req
             if (value instanceof Array) {
@@ -104,8 +66,9 @@ suite('hook', function () {
                 },
                 {zlib}
             )
-            const hook = new MockHook()
-            const modifiedRequest = await hook.process(request)
+            const hook = new MockModifyingTransactHook()
+            const response = await hook.process(request)
+            const modifiedRequest = response.request
             assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
             const {value} = modifiedRequest.data.req
             if (value instanceof Transaction) {

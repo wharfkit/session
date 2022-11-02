@@ -12,7 +12,7 @@ import {makeContext} from '$test/utils/mock-context'
 const client = makeClient()
 const context = makeContext()
 
-class MockHook implements Hook {
+class MockResourceProviderHook implements Hook {
     assertEligible(request: SigningRequest, session: PermissionLevel) {
         if (request.getRawInfoKey('no_modify')) {
             throw new Error('Request cannot be modified.')
@@ -91,7 +91,7 @@ export const resourceProviderHooks = () => {
                 },
                 {zlib}
             )
-            const hook = new MockHook()
+            const hook = new MockResourceProviderHook()
             const modifiedRequest = await hook.process(request, context)
             assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
             const {value} = modifiedRequest.data.req
