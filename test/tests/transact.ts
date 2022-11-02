@@ -16,7 +16,7 @@ import {ChainDefinition, Session, SessionOptions, SigningRequest} from '$lib'
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
-import {MockTransactHook} from '$test/utils/mock-hook'
+import {MockTransactHook, MockModifyingTransactHook} from '$test/utils/mock-hook'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -207,17 +207,53 @@ suite('transact', function () {
                 const result = await session.transact({action}, {allowModify: false})
                 assetValidTransactResponse(result)
             })
-            test('ignores modification from beforeSign hooks', async function () {
+            test('allows modification during transact', async function () {
+                const result = await session.transact(
+                    {action},
+                    {
+                        allowModify: true,
+                        hooks: {
+                            beforeSign: [new MockModifyingTransactHook()],
+                        },
+                    }
+                )
+                assetValidTransactResponse(result)
+                const {resolved, transaction} = result
+                if (transaction) {
+                    assert.lengthOf(transaction?.actions, 2)
+                } else {
+                    assert.fail('Transaction was not returned in result.')
+                }
+                if (resolved) {
+                    const transaction = resolved.request.getRawTransaction()
+                    assert.lengthOf(transaction.actions, 2)
+                } else {
+                    assert.fail('Resolved request was not returned in result.')
+                }
+            })
+            test('prevents modification during transact', async function () {
                 const result = await session.transact(
                     {action},
                     {
                         allowModify: false,
                         hooks: {
-                            beforeSign: [new MockTransactHook()],
+                            beforeSign: [new MockModifyingTransactHook()],
                         },
                     }
                 )
                 assetValidTransactResponse(result)
+                const {resolved, transaction} = result
+                if (transaction) {
+                    assert.lengthOf(transaction?.actions, 1)
+                } else {
+                    assert.fail('Transaction was not returned in result.')
+                }
+                if (resolved) {
+                    const transaction = resolved.request.getRawTransaction()
+                    assert.lengthOf(transaction.actions, 1)
+                } else {
+                    assert.fail('Resolved request was not returned in result.')
+                }
             })
         })
         suite('broadcast', function () {
