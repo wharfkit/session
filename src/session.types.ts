@@ -69,7 +69,12 @@ export interface TransactArgs {
 }
 
 export interface TransactHook extends Hook {
-    process(request: SigningRequest, context: TransactContext): Promise<SigningRequest>
+    process(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
+}
+
+export interface TransactHookResponse {
+    request: SigningRequest
+    signatures?: Signature[]
 }
 
 export interface TransactHooks {

@@ -150,9 +150,9 @@ export class Session extends AbstractSession {
         // Run the `beforeSign` hooks
         beforeSignHooks.forEach(async (hook) => {
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
-            const modifiedRequest = await hook.process(result.request.clone(), context)
+            const response = await hook.process(result.request.clone(), context)
             if (allowModify) {
-                result.request = modifiedRequest
+                result.request = response.request
             }
         })
 
