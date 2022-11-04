@@ -48,7 +48,7 @@ export class TransactContext {
 export interface SessionOptions {
     chain: ChainDefinitionType
     client?: APIClient
-    hooks?: TransactOptionsHooks
+    transactFlow?: TransactFlow
     permissionLevel: PermissionLevelType | string
     walletPlugin: WalletPlugin
 }
@@ -113,6 +113,10 @@ export interface TransactOptions {
      */
     chain?: Checksum256Type
     /**
+     * Hooks to use for this transaction.
+     */
+    transactFlow?: TransactFlow
+    /**
      * Whether to allow the signer to make modifications to the request
      * (e.g. applying a cosigner action to pay for resources).
      *
@@ -123,6 +127,51 @@ export interface TransactOptions {
      * Specific hooks to use for this transaction.
      */
     hooks?: TransactOptionsHooks
+}
+
+export interface TransactFlow {
+    beforeSign(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
+    afterSign(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
+    beforeBroadcast(
+        request: SigningRequest,
+        context: TransactContext
+    ): Promise<TransactHookResponse>
+    afterBroadcast(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
+}
+
+export class BaseTransactFlow implements TransactFlow {
+    async beforeSign(
+        request: SigningRequest
+        // context: TransactContext
+    ): Promise<TransactHookResponse> {
+        return {
+            request,
+        }
+    }
+    async afterSign(
+        request: SigningRequest
+        // context: TransactContext
+    ): Promise<TransactHookResponse> {
+        return {
+            request,
+        }
+    }
+    async beforeBroadcast(
+        request: SigningRequest
+        // context: TransactContext
+    ): Promise<TransactHookResponse> {
+        return {
+            request,
+        }
+    }
+    async afterBroadcast(
+        request: SigningRequest
+        // context: TransactContext
+    ): Promise<TransactHookResponse> {
+        return {
+            request,
+        }
+    }
 }
 
 /**

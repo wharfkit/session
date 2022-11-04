@@ -6,26 +6,20 @@ import {ChainDefinition, WalletPlugin} from './kit.types'
 
 import {
     AbstractSession,
+    BaseTransactFlow,
     SessionContext,
     SessionOptions,
     TransactArgs,
     TransactContext,
-    TransactHooks,
+    TransactFlow,
     TransactOptions,
     TransactResult,
 } from './session.types'
 
-const defaultHooks = {
-    afterBroadcast: [],
-    afterSign: [],
-    beforeBroadcast: [],
-    beforeSign: [],
-}
-
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
     readonly context: SessionContext
-    readonly hooks: TransactHooks
+    readonly transactFlow: TransactFlow
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
@@ -39,12 +33,10 @@ export class Session extends AbstractSession {
             /* istanbul ignore next */
             client = new APIClient({url: this.chain.url})
         }
-        this.hooks = defaultHooks
-        if (options.hooks) {
-            this.hooks = {
-                ...defaultHooks,
-                ...options.hooks,
-            }
+        if (options.transactFlow) {
+            this.transactFlow = options.transactFlow
+        } else {
+            this.transactFlow = new BaseTransactFlow()
         }
         this.context = new SessionContext({client})
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
@@ -141,20 +133,14 @@ export class Session extends AbstractSession {
         const allowModify =
             options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
 
-        // Determine which set of hooks to use, with hooks specified in the options taking priority
-        const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
-        const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
-        const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
-        const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
+        const transactFlow =
+            options && options.transactFlow ? options.transactFlow : this.transactFlow
 
         // Run the `beforeSign` hooks
-        beforeSignHooks.forEach(async (hook) => {
-            // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
-            const response = await hook.process(result.request.clone(), context)
-            if (allowModify) {
-                result.request = response.request
-            }
-        })
+        const response = await transactFlow.beforeSign(request, context)
+        if (allowModify) {
+            result.request = response.request
+        }
 
         // Resolve SigningRequest with authority + tapos
         const info = await context.client.v1.chain.get_info()
@@ -169,21 +155,17 @@ export class Session extends AbstractSession {
         result.signatures.push(signature)
 
         // Run the `afterSign` hooks
-        afterSignHooks.forEach(async (hook) => await hook.process(result.request.clone(), context))
+        await transactFlow.afterSign(request, context)
 
         if (options?.broadcast) {
             // Run the `beforeBroadcast` hooks
-            beforeBroadcastHooks.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
-            )
+            await transactFlow.beforeBroadcast(request, context)
 
             // broadcast transaction
             // TODO: Implement broadcast
 
             // Run the `afterBroadcast` hooks
-            afterBroadcastHooks.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
-            )
+            await transactFlow.afterBroadcast(request, context)
         }
 
         return result

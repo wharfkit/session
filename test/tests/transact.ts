@@ -1,22 +1,14 @@
 import {assert} from 'chai'
 import zlib from 'pako'
-import {
-    ABIDef,
-    Action,
-    Name,
-    PermissionLevel,
-    Serializer,
-    Signature,
-    Transaction,
-} from '@greymass/eosio'
-import {ResolvedSigningRequest, ResolvedTransaction} from 'eosio-signing-request'
+import {Action, PermissionLevel, Serializer, Signature, Transaction} from '@greymass/eosio'
+import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {ChainDefinition, Session, SessionOptions, SigningRequest} from '$lib'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
-import {MockTransactHook, MockModifyingTransactHook} from '$test/utils/mock-hook'
+import {MockModifyingTransactFlow, MockTransactFlow} from '$test/utils/mock-flow'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -53,68 +45,6 @@ suite('transact', function () {
         transaction = await makeMockTransaction(info)
         // Establish new session before each test
         session = new Session(mockSessionOptions)
-    })
-    suite('hooks', function () {
-        test('assign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                        afterSign: [new MockTransactHook()],
-                        beforeBroadcast: [new MockTransactHook()],
-                        beforeSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign afterBroadcast', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    broadcast: true,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign afterSign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        afterSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign beforeBroadcast', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    broadcast: true,
-                    hooks: {
-                        beforeBroadcast: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign beforeSign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        beforeSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
     })
     suite('transact args', function () {
         suite('action', function () {
@@ -212,9 +142,7 @@ suite('transact', function () {
                     {action},
                     {
                         allowModify: true,
-                        hooks: {
-                            beforeSign: [new MockModifyingTransactHook()],
-                        },
+                        transactFlow: new MockModifyingTransactFlow(),
                     }
                 )
                 assetValidTransactResponse(result)
@@ -236,9 +164,7 @@ suite('transact', function () {
                     {action},
                     {
                         allowModify: false,
-                        hooks: {
-                            beforeSign: [new MockModifyingTransactHook()],
-                        },
+                        transactFlow: new MockModifyingTransactFlow(),
                     }
                 )
                 assetValidTransactResponse(result)
@@ -269,6 +195,10 @@ suite('transact', function () {
                 const result = await session.transact({action}, {broadcast: false})
                 assetValidTransactResponse(result)
             })
+        })
+        suite('flow', async function () {
+            const result = await session.transact({action}, {transactFlow: new MockTransactFlow()})
+            assetValidTransactResponse(result)
         })
     })
     suite('response', function () {

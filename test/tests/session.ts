@@ -5,7 +5,6 @@ import {PermissionLevel} from '@greymass/eosio'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
-import {MockTransactHook} from '$test/utils/mock-hook'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -54,72 +53,6 @@ suite('session', function () {
                     walletPlugin: wallet,
                 })
                 assert.instanceOf(testSession, Session)
-            })
-        })
-        suite('hooks', function () {
-            test('assign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                        afterSign: [new MockTransactHook()],
-                        beforeBroadcast: [new MockTransactHook()],
-                        beforeSign: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 1)
-                assert.instanceOf(testSession.hooks.afterBroadcast[0], MockTransactHook)
-                assert.lengthOf(testSession.hooks.afterSign, 1)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 1)
-                assert.lengthOf(testSession.hooks.beforeSign, 1)
-            })
-            test('assign afterBroadcast', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 1)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign afterSign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterSign: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 1)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign beforeBroadcast', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        beforeBroadcast: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 1)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign beforeSign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        beforeSign: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 1)
             })
         })
     })
