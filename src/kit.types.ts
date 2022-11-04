@@ -11,7 +11,7 @@ import {
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {Session} from './session'
-import {SessionOptions, TransactOptionsHooks} from './session.types'
+import {SessionOptions, TransactFlow} from './session.types'
 import {Fetch, Hook} from './types'
 
 export abstract class AbstractSessionKit {
@@ -31,7 +31,7 @@ export interface SessionKitOptions {
     chains: ChainDefinitionType[]
     fetch?: Fetch
     loginHooks?: LoginOptionsHooks
-    transactHooks?: TransactOptionsHooks
+    transactFlow?: TransactFlow
     walletPlugins: WalletPlugin[]
 }
 

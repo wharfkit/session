@@ -19,7 +19,7 @@ import {
     WalletPlugin,
     WalletPluginLoginOptions,
 } from './kit.types'
-import {SessionOptions, TransactHooks} from './session.types'
+import {BaseTransactFlow, SessionOptions, TransactFlow} from './session.types'
 import {Fetch} from './types'
 
 /**
@@ -106,19 +106,12 @@ const defaultLoginHooks = {
     beforeLogin: [],
 }
 
-const defaultTransactHooks = {
-    afterBroadcast: [],
-    afterSign: [],
-    beforeBroadcast: [],
-    beforeSign: [],
-}
-
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly fetch?: Fetch
     readonly loginHooks: LoginHooks
-    readonly transactHooks: TransactHooks
+    readonly transactFlow: TransactFlow
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -135,12 +128,9 @@ export class SessionKit extends AbstractSessionKit {
                 ...options.loginHooks,
             }
         }
-        this.transactHooks = defaultTransactHooks
-        if (options.transactHooks) {
-            this.transactHooks = {
-                ...defaultTransactHooks,
-                ...options.transactHooks,
-            }
+        this.transactFlow = new BaseTransactFlow()
+        if (options.transactFlow) {
+            this.transactFlow = options.transactFlow
         }
         this.walletPlugins = options.walletPlugins
     }
@@ -182,6 +172,7 @@ export class SessionKit extends AbstractSessionKit {
             chain,
             client: this.getClient(chain.id),
             permissionLevel: 'eosio@active',
+            transactFlow: this.transactFlow,
             walletPlugin: this.walletPlugins[0],
         }
 

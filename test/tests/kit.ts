@@ -6,6 +6,7 @@ import {PermissionLevel} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockLoginHook, MockTransactHook} from '$test/utils/mock-hook'
+import {MockTransactFlow} from '$test/utils/mock-flow'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
@@ -25,75 +26,18 @@ suite('kit', function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             assert.instanceOf(sessionKit, SessionKit)
         })
-        test('with all hooks', async function () {
+        test('with transact flow', async function () {
             const sessionKit = new SessionKit({
                 ...defaultSessionKitOptions,
                 loginHooks: {
                     beforeLogin: [new MockLoginHook()],
                     afterLogin: [new MockLoginHook()],
                 },
-                transactHooks: {
-                    afterBroadcast: [new MockTransactHook()],
-                    afterSign: [new MockTransactHook()],
-                    beforeBroadcast: [new MockTransactHook()],
-                    beforeSign: [new MockTransactHook()],
-                },
+                transactFlow: new MockTransactFlow(),
             })
             assert.lengthOf(sessionKit.loginHooks.afterLogin, 1)
             assert.lengthOf(sessionKit.loginHooks.beforeLogin, 1)
-            assert.lengthOf(sessionKit.transactHooks.afterBroadcast, 1)
-            assert.lengthOf(sessionKit.transactHooks.afterSign, 1)
-            assert.lengthOf(sessionKit.transactHooks.beforeBroadcast, 1)
-            assert.lengthOf(sessionKit.transactHooks.beforeSign, 1)
-            const session = await sessionKit.login()
-            assert.instanceOf(session, Session)
-        })
-        test('with partial hooks', async function () {
-            const sessionKit = new SessionKit({
-                ...defaultSessionKitOptions,
-                loginHooks: {
-                    afterLogin: [new MockLoginHook()],
-                },
-                transactHooks: {
-                    afterBroadcast: [new MockTransactHook()],
-                },
-            })
-            assert.lengthOf(sessionKit.loginHooks.afterLogin, 1)
-            assert.lengthOf(sessionKit.loginHooks.beforeLogin, 0)
-            assert.lengthOf(sessionKit.transactHooks.afterBroadcast, 1)
-            assert.lengthOf(sessionKit.transactHooks.afterSign, 0)
-            assert.lengthOf(sessionKit.transactHooks.beforeBroadcast, 0)
-            assert.lengthOf(sessionKit.transactHooks.beforeSign, 0)
-            const session = await sessionKit.login()
-            assert.instanceOf(session, Session)
-        })
-        test('with full loginHooks', async function () {
-            const sessionKit = new SessionKit({
-                ...defaultSessionKitOptions,
-                loginHooks: {
-                    beforeLogin: [new MockLoginHook()],
-                    afterLogin: [new MockLoginHook()],
-                },
-            })
-            assert.lengthOf(sessionKit.loginHooks.afterLogin, 1)
-            assert.lengthOf(sessionKit.loginHooks.beforeLogin, 1)
-            const session = await sessionKit.login()
-            assert.instanceOf(session, Session)
-        })
-        test('with full transactHooks', async function () {
-            const sessionKit = new SessionKit({
-                ...defaultSessionKitOptions,
-                transactHooks: {
-                    afterBroadcast: [new MockTransactHook()],
-                    afterSign: [new MockTransactHook()],
-                    beforeBroadcast: [new MockTransactHook()],
-                    beforeSign: [new MockTransactHook()],
-                },
-            })
-            assert.lengthOf(sessionKit.transactHooks.afterBroadcast, 1)
-            assert.lengthOf(sessionKit.transactHooks.afterSign, 1)
-            assert.lengthOf(sessionKit.transactHooks.beforeBroadcast, 1)
-            assert.lengthOf(sessionKit.transactHooks.beforeSign, 1)
+            assert.instanceOf(sessionKit.transactFlow, MockTransactFlow)
             const session = await sessionKit.login()
             assert.instanceOf(session, Session)
         })
