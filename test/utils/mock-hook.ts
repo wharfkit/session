@@ -5,9 +5,9 @@ import {
     SessionOptions,
     SigningRequest,
     TransactContext,
-    TransactPluginHookResponse,
+    TransactHookResponse,
     TransactHookTypes,
-    TransactPlugin,
+    TransactHook,
     Transaction,
 } from '$lib'
 
@@ -17,11 +17,11 @@ export class MockLoginHook implements LoginHook {
     }
 }
 
-export class MockTransactHook implements TransactPlugin {
+export class MockTransactHook implements TransactHook {
     async process(
         request: SigningRequest,
         context: TransactContext
-    ): Promise<TransactPluginHookResponse> {
+    ): Promise<TransactHookResponse> {
         // Mock hook that does nothing
         return {
             request,
@@ -39,11 +39,11 @@ export class MockTransactPlugin extends AbstractTransactPlugin {
     }
 }
 
-export class MockTransactResourceProviderPresignHook implements TransactPlugin {
+export class MockTransactResourceProviderPresignHook implements TransactHook {
     async process(
         request: SigningRequest,
         context: TransactContext
-    ): Promise<TransactPluginHookResponse> {
+    ): Promise<TransactHookResponse> {
         // Clone the request for modification
         const cloned = request.clone()
         // Couldn't work with normal objects here

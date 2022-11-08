@@ -53,7 +53,7 @@ export class TransactContext {
             plugin.register(this)
         })
     }
-    addHook(t: TransactHookTypes, hook: TransactPlugin) {
+    addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
     }
 }
@@ -81,13 +81,13 @@ export interface TransactArgs {
     request?: SigningRequest | string
 }
 
-export interface TransactPluginHookResponse {
+export interface TransactHookResponse {
     request: SigningRequest
     signatures?: Signature[]
 }
 
-export interface TransactPlugin extends Hook {
-    process(request: SigningRequest, context: TransactContext): Promise<TransactPluginHookResponse>
+export interface TransactHook extends Hook {
+    process(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
 }
 
 export enum TransactHookTypes {
@@ -104,15 +104,19 @@ export interface TransactHooks {
     beforeBroadcast: BeforeBroadcastHook[]
 }
 
-export abstract class AbstractTransactPlugin {
+export abstract class AbstractTransactPlugin implements TransactPlugin {
     public abstract register(context: TransactContext): void
 }
 
-export interface SignHook extends TransactPlugin {}
+export interface TransactPlugin {
+    register: (context: TransactContext) => void
+}
+
+export interface SignHook extends TransactHook {}
 export interface BeforeSignHook extends SignHook {}
 export interface AfterSignHook extends SignHook {}
 
-export interface BroadcastHook extends TransactPlugin {}
+export interface BroadcastHook extends TransactHook {}
 export interface BeforeBroadcastHook extends BroadcastHook {}
 export interface AfterBroadcastHook extends BroadcastHook {}
 
