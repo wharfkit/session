@@ -2,29 +2,25 @@ import {ABIDef, APIClient, Name, PermissionLevel} from '@greymass/eosio'
 import {AbiProvider, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
-import {ChainDefinition, WalletPlugin} from './kit.types'
-
 import {
     AbstractSession,
-    AbstractTransactPlugin,
+    ChainDefinition,
     SessionContext,
     SessionOptions,
     TransactArgs,
     TransactContext,
     TransactOptions,
+    TransactPlugin,
     TransactResult,
-} from './session.types'
+    WalletPlugin,
+} from './types'
 
-export class BaseTransactPlugin extends AbstractTransactPlugin {
-    register() {
-        // console.log('Register hooks via context.addHook')
-    }
-}
+import {BaseTransactPlugin} from './plugins'
 
 export class Session extends AbstractSession {
     readonly chain: ChainDefinition
     readonly context: SessionContext
-    readonly transactPlugins: AbstractTransactPlugin[]
+    readonly transactPlugins: TransactPlugin[]
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 

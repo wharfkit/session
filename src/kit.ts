@@ -8,19 +8,21 @@ import {
     PermissionLevel,
 } from '@greymass/eosio'
 
-import {BaseTransactPlugin, Session} from './session'
-
 import {
     AbstractLoginPlugin,
     AbstractSessionKit,
+    AbstractTransactPlugin,
     ChainDefinition,
+    Fetch,
     LoginOptions,
     SessionKitOptions,
+    SessionOptions,
     WalletPlugin,
     WalletPluginLoginOptions,
-} from './kit.types'
-import {AbstractTransactPlugin, SessionOptions} from './session.types'
-import {Fetch} from './types'
+} from './types'
+
+import {BaseLoginPlugin, BaseTransactPlugin} from './plugins'
+import {Session} from './session'
 
 /**
  * Request a session from an account.
@@ -100,13 +102,6 @@ import {Fetch} from './types'
  *        +WalletPlugin[] walletPlugins
  *    }
  */
-
-export class BaseLoginPlugin extends AbstractLoginPlugin {
-    register() {
-        // console.log('Register hooks via context.addHook')
-    }
-}
-
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]

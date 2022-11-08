@@ -1,12 +1,4 @@
 import {
-    ChainDefinition,
-    WalletPlugin,
-    WalletPluginLoginOptions,
-    WalletPluginLoginResponse,
-    WalletPluginOptions,
-} from '../../kit.types'
-
-import {
     Checksum256,
     PermissionLevel,
     PrivateKey,
@@ -15,6 +7,14 @@ import {
     Transaction,
 } from '@greymass/eosio'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
+
+import {
+    ChainDefinition,
+    WalletPlugin,
+    WalletPluginLoginOptions,
+    WalletPluginLoginResponse,
+    WalletPluginOptions,
+} from '../../types'
 
 export interface WalletPluginPrivateKeyOptions extends WalletPluginOptions {
     privateKey: PrivateKeyType
