@@ -34,21 +34,34 @@ export class SessionContext {
 export interface TransactContextOptions {
     client: APIClient
     session: PermissionLevel
+    transactPlugins?: AbstractTransactPlugin[]
 }
 
 export class TransactContext {
     client: APIClient
+    hooks: TransactHooks = {
+        afterBroadcast: [],
+        afterSign: [],
+        beforeBroadcast: [],
+        beforeSign: [],
+    }
     session: PermissionLevel
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.session = options.session
+        options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
+            plugin.register(this)
+        })
+    }
+    addHook(t: TransactHookTypes, hook: TransactPlugin) {
+        this.hooks[t].push(hook)
     }
 }
 
 export interface SessionOptions {
     chain: ChainDefinitionType
     client?: APIClient
-    hooks?: TransactOptionsHooks
+    transactPlugins?: AbstractTransactPlugin[]
     permissionLevel: PermissionLevelType | string
     walletPlugin: WalletPlugin
 }
@@ -68,8 +81,20 @@ export interface TransactArgs {
     request?: SigningRequest | string
 }
 
-export interface TransactHook extends Hook {
-    process(request: SigningRequest, context: TransactContext): Promise<SigningRequest>
+export interface TransactPluginHookResponse {
+    request: SigningRequest
+    signatures?: Signature[]
+}
+
+export interface TransactPlugin extends Hook {
+    process(request: SigningRequest, context: TransactContext): Promise<TransactPluginHookResponse>
+}
+
+export enum TransactHookTypes {
+    beforeSign = 'beforeSign',
+    afterSign = 'afterSign',
+    beforeBroadcast = 'beforeBroadcast',
+    afterBroadcast = 'afterBroadcast',
 }
 
 export interface TransactHooks {
@@ -79,18 +104,15 @@ export interface TransactHooks {
     beforeBroadcast: BeforeBroadcastHook[]
 }
 
-export interface TransactOptionsHooks {
-    afterSign?: AfterSignHook[]
-    beforeSign?: BeforeSignHook[]
-    afterBroadcast?: AfterBroadcastHook[]
-    beforeBroadcast?: BeforeBroadcastHook[]
+export abstract class AbstractTransactPlugin {
+    public abstract register(context: TransactContext): void
 }
 
-export interface SignHook extends TransactHook {}
+export interface SignHook extends TransactPlugin {}
 export interface BeforeSignHook extends SignHook {}
 export interface AfterSignHook extends SignHook {}
 
-export interface BroadcastHook extends TransactHook {}
+export interface BroadcastHook extends TransactPlugin {}
 export interface BeforeBroadcastHook extends BroadcastHook {}
 export interface AfterBroadcastHook extends BroadcastHook {}
 
@@ -115,9 +137,9 @@ export interface TransactOptions {
      */
     allowModify?: boolean
     /**
-     * Specific hooks to use for this transaction.
+     * Specific transact plugins to use for this transaction.
      */
-    hooks?: TransactOptionsHooks
+    transactPlugins?: AbstractTransactPlugin[]
 }
 
 /**

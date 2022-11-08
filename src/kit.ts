@@ -8,18 +8,18 @@ import {
     PermissionLevel,
 } from '@greymass/eosio'
 
-import {Session} from './session'
+import {BaseTransactPlugin, Session} from './session'
 
 import {
+    AbstractLoginPlugin,
     AbstractSessionKit,
     ChainDefinition,
-    LoginHooks,
     LoginOptions,
     SessionKitOptions,
     WalletPlugin,
     WalletPluginLoginOptions,
 } from './kit.types'
-import {SessionOptions, TransactHooks} from './session.types'
+import {AbstractTransactPlugin, SessionOptions} from './session.types'
 import {Fetch} from './types'
 
 /**
@@ -101,47 +101,42 @@ import {Fetch} from './types'
  *    }
  */
 
-const defaultLoginHooks = {
-    afterLogin: [],
-    beforeLogin: [],
-}
-
-const defaultTransactHooks = {
-    afterBroadcast: [],
-    afterSign: [],
-    beforeBroadcast: [],
-    beforeSign: [],
+export class BaseLoginPlugin extends AbstractLoginPlugin {
+    register() {
+        // console.log('Register hooks via context.addHook')
+    }
 }
 
 export class SessionKit extends AbstractSessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly fetch?: Fetch
-    readonly loginHooks: LoginHooks
-    readonly transactHooks: TransactHooks
+    readonly loginPlugins: AbstractLoginPlugin[]
+    readonly transactPlugins: AbstractTransactPlugin[]
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
         super()
+        // Store options passed on the kit
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
+        // Override fetch if provided
         if (options.fetch) {
             this.fetch = options.fetch
         }
-        this.loginHooks = defaultLoginHooks
-        if (options.loginHooks) {
-            this.loginHooks = {
-                ...defaultLoginHooks,
-                ...options.loginHooks,
-            }
+        // Establish default plugins for login flow
+        if (options.loginPlugins) {
+            this.loginPlugins = options.loginPlugins
+        } else {
+            this.loginPlugins = [new BaseLoginPlugin()]
         }
-        this.transactHooks = defaultTransactHooks
-        if (options.transactHooks) {
-            this.transactHooks = {
-                ...defaultTransactHooks,
-                ...options.transactHooks,
-            }
+        // Establish default plugins for transact flow
+        if (options.transactPlugins) {
+            this.transactPlugins = options.transactPlugins
+        } else {
+            this.transactPlugins = [new BaseTransactPlugin()]
         }
+        // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
     }
 
@@ -182,6 +177,7 @@ export class SessionKit extends AbstractSessionKit {
             chain,
             client: this.getClient(chain.id),
             permissionLevel: 'eosio@active',
+            transactPlugins: options?.transactPlugins || this.transactPlugins,
             walletPlugin: this.walletPlugins[0],
         }
 
@@ -207,24 +203,28 @@ export class SessionKit extends AbstractSessionKit {
             context.permissionLevel = PermissionLevel.from(options.permissionLevel)
         }
 
-        // Determine which set of hooks to use, with hooks specified in the options taking priority
-        const afterLoginHooks = options?.hooks?.afterLogin || this.loginHooks.afterLogin
-        const beforeLoginHooks = options?.hooks?.beforeLogin || this.loginHooks.beforeLogin
+        // TODO: Implement login hooks
 
-        // Run the beforeLogin hooks
-        beforeLoginHooks?.forEach(async (hook) => {
-            await hook.process(context)
-        })
+        // // Determine which set of hooks to use, with hooks specified in the options taking priority
+        // const afterLoginHooks = options?.hooks?.afterLogin || this.loginHooks.afterLogin
+        // const beforeLoginHooks = options?.hooks?.beforeLogin || this.loginHooks.beforeLogin
+
+        // // Run the beforeLogin hooks
+        // beforeLoginHooks?.forEach(async (hook) => {
+        //     await hook.process(context)
+        // })
 
         // Perform login based on wallet plugin
         const response = await context.walletPlugin.login(walletOptions)
         context.chain = response.chain
         context.permissionLevel = response.permissionLevel
 
-        // Run the afterLogin hooks
-        afterLoginHooks?.forEach(async (hook) => {
-            await hook.process(context)
-        })
+        // TODO: Implement login hooks
+
+        // // Run the afterLogin hooks
+        // afterLoginHooks?.forEach(async (hook) => {
+        //     await hook.process(context)
+        // })
 
         return new Session(context)
     }

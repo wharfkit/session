@@ -1,22 +1,14 @@
 import {assert} from 'chai'
 import zlib from 'pako'
-import {
-    ABIDef,
-    Action,
-    Name,
-    PermissionLevel,
-    Serializer,
-    Signature,
-    Transaction,
-} from '@greymass/eosio'
-import {ResolvedSigningRequest, ResolvedTransaction} from 'eosio-signing-request'
+import {PermissionLevel, Serializer, Signature} from '@greymass/eosio'
+import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
-import {ChainDefinition, Session, SessionOptions, SigningRequest} from '$lib'
+import {ChainDefinition, Session, SessionOptions} from '$lib'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
-import {MockTransactHook} from '$test/utils/mock-hook'
+import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -31,6 +23,21 @@ const mockSessionOptions: SessionOptions = {
     walletPlugin: wallet,
 }
 
+async function mockData() {
+    const info = await client.v1.chain.get_info()
+    const action = await makeMockAction()
+    const actions = await makeMockActions()
+    const transaction = await makeMockTransaction(info)
+    const session = new Session(mockSessionOptions)
+    return {
+        action,
+        actions,
+        info,
+        session,
+        transaction,
+    }
+}
+
 function assetValidTransactResponse(result) {
     assert.instanceOf(result.chain, ChainDefinition)
     assert.instanceOf(result.request, SigningRequest)
@@ -41,118 +48,51 @@ function assetValidTransactResponse(result) {
 }
 
 suite('transact', function () {
-    let action: Action
-    let actions: Action[]
-    let transaction: Transaction
-    let session: Session
-    setup(async function () {
-        // Setup mock transaction data
-        const info = await client.v1.chain.get_info()
-        action = await makeMockAction()
-        actions = await makeMockActions()
-        transaction = await makeMockTransaction(info)
-        // Establish new session before each test
-        session = new Session(mockSessionOptions)
-    })
-    suite('hooks', function () {
-        test('assign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                        afterSign: [new MockTransactHook()],
-                        beforeBroadcast: [new MockTransactHook()],
-                        beforeSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign afterBroadcast', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    broadcast: true,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign afterSign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        afterSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign beforeBroadcast', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    broadcast: true,
-                    hooks: {
-                        beforeBroadcast: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-        test('assign beforeSign', async function () {
-            const result = await session.transact(
-                {action},
-                {
-                    hooks: {
-                        beforeSign: [new MockTransactHook()],
-                    },
-                }
-            )
-            assetValidTransactResponse(result)
-        })
-    })
-    suite('transact args', function () {
+    suite('args', function () {
         suite('action', function () {
             test('typed', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
             })
             test('untyped', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact({action: Serializer.objectify(action)})
                 assetValidTransactResponse(result)
             })
         })
         suite('actions', function () {
             test('typed', async function () {
+                const {actions, session} = await mockData()
                 const result = await session.transact({actions})
                 assetValidTransactResponse(result)
             })
             test('untyped', async function () {
+                const {actions, session} = await mockData()
                 const result = await session.transact({actions: Serializer.objectify(actions)})
                 assetValidTransactResponse(result)
             })
         })
         suite('transaction', function () {
             test('typed', async function () {
+                const {session, transaction} = await mockData()
                 const result = await session.transact({transaction})
                 assetValidTransactResponse(result)
             })
             test('untyped', async function () {
+                const {session, transaction} = await mockData()
                 const result = await session.transact({
                     transaction: Serializer.objectify(transaction),
                 })
                 assetValidTransactResponse(result)
             })
             test('as typed param', async function () {
+                const {session, transaction} = await mockData()
                 const result = await session.transact(transaction)
                 assetValidTransactResponse(result)
             })
             test('retain headers', async function () {
+                const {session, transaction} = await mockData()
                 const result = await session.transact(transaction)
                 assetValidTransactResponse(result)
                 if (result.transaction) {
@@ -170,12 +110,14 @@ suite('transact', function () {
                 }
             })
             test('as untyped param', async function () {
+                const {session, transaction} = await mockData()
                 const result = await session.transact(Serializer.objectify(transaction))
                 assetValidTransactResponse(result)
             })
         })
-        suite('signing request', function () {
+        suite('signing request', async function () {
             test('string', async function () {
+                const {session} = await mockData()
                 const result = await session.transact({
                     request:
                         'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
@@ -183,6 +125,7 @@ suite('transact', function () {
                 assetValidTransactResponse(result)
             })
             test('object', async function () {
+                const {session} = await mockData()
                 const result = await session.transact({
                     request: SigningRequest.from(
                         'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
@@ -192,55 +135,133 @@ suite('transact', function () {
                 assetValidTransactResponse(result)
             })
         })
+        suite('invalid', function () {
+            test('no abi for contract', async function () {
+                const {action, session} = await mockData()
+                const data = Serializer.objectify(action)
+                data.account = ''
+                session.transact({action: data}).catch((error) => {
+                    assert.equal(error.message, 'No data for /v1/chain/get_abi')
+                })
+            })
+        })
     })
-    suite('transact options', function () {
+    suite('options', async function () {
         suite('allowModify', function () {
-            test('undefined', async function () {
-                const result = await session.transact({action})
+            test('default: true', async function () {
+                const {action, session} = await mockData()
+                const result = await session.transact(
+                    {action},
+                    {
+                        allowModify: true,
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
                 assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 2)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
             })
             test('true', async function () {
-                const result = await session.transact({action}, {allowModify: true})
+                const {action, session} = await mockData()
+                const result = await session.transact(
+                    {action},
+                    {
+                        allowModify: true,
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
                 assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 2)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
             })
             test('false', async function () {
-                const result = await session.transact({action}, {allowModify: false})
-                assetValidTransactResponse(result)
-            })
-            test('ignores modification from beforeSign hooks', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact(
                     {action},
                     {
                         allowModify: false,
-                        hooks: {
-                            beforeSign: [new MockTransactHook()],
-                        },
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
                     }
                 )
                 assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 1)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
             })
         })
         suite('broadcast', function () {
-            test('undefined', async function () {
+            test('default: true', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
             })
             test('true', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: true})
                 assetValidTransactResponse(result)
             })
             test('false', async function () {
+                const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: false})
+                assetValidTransactResponse(result)
+            })
+        })
+        suite('transactPlugins', function () {
+            test('inherit', async function () {
+                const {action} = await mockData()
+                const session = new Session({
+                    ...mockSessionOptions,
+                    transactPlugins: [new MockTransactResourceProviderPlugin()],
+                })
+                const result = await session.transact({action})
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 2)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('override', async function () {
+                const {action, session} = await mockData()
+                const result = await session.transact(
+                    {action},
+                    {
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 2)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('triggers', async function () {
+                const {action, session} = await mockData()
+                const result = await session.transact(
+                    {action},
+                    {transactPlugins: [new MockTransactPlugin()]}
+                )
                 assetValidTransactResponse(result)
             })
         })
     })
     suite('response', function () {
         test('type check', async function () {
+            const {session, transaction} = await mockData()
             const result = await session.transact(transaction)
             assetValidTransactResponse(result)
         })
         test('decoded transaction', async function () {
+            const {session} = await mockData()
             const result = await session.transact({
                 request: SigningRequest.from(
                     'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
@@ -268,6 +289,7 @@ suite('transact', function () {
             }
         })
         test('resolved request', async function () {
+            const {session} = await mockData()
             const result = await session.transact({
                 request: SigningRequest.from(
                     'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
@@ -287,6 +309,7 @@ suite('transact', function () {
             )
         })
         test('valid signatures', async function () {
+            const {action, session} = await mockData()
             const result = await session.transact({action})
             const transaction = result.resolved?.request.getRawTransaction()
             if (transaction) {

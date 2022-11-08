@@ -11,7 +11,7 @@ import {
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {Session} from './session'
-import {SessionOptions, TransactOptionsHooks} from './session.types'
+import {AbstractTransactPlugin, SessionOptions} from './session.types'
 import {Fetch, Hook} from './types'
 
 export abstract class AbstractSessionKit {
@@ -30,14 +30,21 @@ export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
     fetch?: Fetch
-    loginHooks?: LoginOptionsHooks
-    transactHooks?: TransactOptionsHooks
+    loginPlugins?: AbstractLoginPlugin[]
+    transactPlugins?: AbstractTransactPlugin[]
     walletPlugins: WalletPlugin[]
+}
+
+export interface LoginContext {}
+
+export abstract class AbstractLoginPlugin {
+    public abstract register(context: LoginContext): void
 }
 
 export interface LoginHook extends Hook {
     process(context: SessionOptions): void
 }
+
 export interface BeforeLoginHook extends LoginHook {}
 export interface AfterLoginHook extends LoginHook {}
 
@@ -51,6 +58,7 @@ export interface LoginOptions {
     beforeLoginHooks?: BeforeLoginHook[]
     chain?: Checksum256Type
     hooks?: LoginOptionsHooks
+    transactPlugins?: AbstractTransactPlugin[]
     permissionLevel?: PermissionLevelType | string
     walletPlugin?: WalletPlugin
 }
