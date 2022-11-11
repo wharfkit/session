@@ -3,7 +3,7 @@ import zlib from 'pako'
 
 import {Name, PermissionLevel, Signature, Transaction} from '@greymass/eosio'
 
-import {Hook, SigningRequest, TransactContext} from '$lib'
+import {SigningRequest, TransactContext, TransactHook, TransactHookResponse} from '$lib'
 
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeClient} from '$test/utils/mock-provider'
@@ -12,7 +12,7 @@ import {makeContext} from '$test/utils/mock-context'
 const client = makeClient()
 const context = makeContext()
 
-class MockHook implements Hook {
+class MockHook implements TransactHook {
     assertEligible(request: SigningRequest, session: PermissionLevel) {
         if (request.getRawInfoKey('no_modify')) {
             throw new Error('Request cannot be modified.')
@@ -32,7 +32,10 @@ class MockHook implements Hook {
             throw new Error('Not first authorizer.')
         }
     }
-    async process(request: SigningRequest, context: TransactContext): Promise<SigningRequest> {
+    async process(
+        request: SigningRequest,
+        context: TransactContext
+    ): Promise<TransactHookResponse> {
         this.assertEligible(request, context.session)
         const result: Record<string, any> = await client.call({
             path: '/v1/resource_provider/request_transaction',
@@ -78,7 +81,9 @@ class MockHook implements Hook {
                 {abiProvider: (request as any).abiProvider}
             )
         ).data.req
-        return cloned
+        return {
+            request: cloned,
+        }
     }
 }
 
@@ -93,8 +98,8 @@ export const resourceProviderHooks = () => {
             )
             const hook = new MockHook()
             const modifiedRequest = await hook.process(request, context)
-            assert.notDeepEqual(request.data.req.value, modifiedRequest.data.req.value)
-            const {value} = modifiedRequest.data.req
+            assert.notDeepEqual(request.data.req.value, modifiedRequest.request.data.req.value)
+            const {value} = modifiedRequest.request.data.req
             if (value instanceof Transaction) {
                 const {actions} = value
                 const [noop, transfer] = actions
@@ -106,7 +111,7 @@ export const resourceProviderHooks = () => {
                 assert.isTrue(Name.from('eosio.token').equals(transfer.account))
                 assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
                 // Check that a signature was appended to the request
-                const signatures = modifiedRequest.getInfoKey('cosig', {
+                const signatures = modifiedRequest.request.getInfoKey('cosig', {
                     type: Signature,
                     array: true,
                 })

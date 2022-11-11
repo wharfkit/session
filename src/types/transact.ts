@@ -1,6 +1,7 @@
 import {
     AnyAction,
     AnyTransaction,
+    APIClient,
     Checksum256Type,
     PermissionLevel,
     Signature,
@@ -9,7 +10,43 @@ import {
 import {ResolvedSigningRequest, ResolvedTransaction, SigningRequest} from 'eosio-signing-request'
 
 import {ChainDefinition} from '../types'
-import {AbstractTransactPlugin} from './plugins'
+import {TransactHook, TransactHooks, TransactHookTypes} from './hook'
+
+/**
+ * Options for creating a new context for a [[Session.transact]] call.
+ */
+export interface TransactContextOptions {
+    client: APIClient
+    session: PermissionLevel
+    transactPlugins?: AbstractTransactPlugin[]
+}
+
+/**
+ * Temporary context created for the duration of a [[Session.transact]] call.
+ *
+ * This context is used to store the state of the transact request and
+ * provide a way for plugins to add hooks into the process.
+ */
+export class TransactContext {
+    client: APIClient
+    hooks: TransactHooks = {
+        afterBroadcast: [],
+        afterSign: [],
+        beforeBroadcast: [],
+        beforeSign: [],
+    }
+    session: PermissionLevel
+    constructor(options: TransactContextOptions) {
+        this.client = options.client
+        this.session = options.session
+        options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
+            plugin.register(this)
+        })
+    }
+    addHook(t: TransactHookTypes, hook: TransactHook) {
+        this.hooks[t].push(hook)
+    }
+}
 
 /**
  * Payload accepted by the [[Session.transact]] method.
@@ -70,4 +107,18 @@ export interface TransactResult {
     transaction: ResolvedTransaction | undefined
     /** Push transaction response from api node, only present if transaction was broadcast. */
     processed?: {[key: string]: any}
+}
+
+/**
+ * Interface which a [[Session.transact]] plugin must implement.
+ */
+export interface TransactPlugin {
+    register: (context: TransactContext) => void
+}
+
+/**
+ * Abstract class for [[Session.transact]] plugins to extend.
+ */
+export abstract class AbstractTransactPlugin implements TransactPlugin {
+    public abstract register(context: TransactContext): void
 }

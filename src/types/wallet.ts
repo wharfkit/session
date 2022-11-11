@@ -1,8 +1,8 @@
 import {Name, PermissionLevel, Signature} from '@greymass/eosio'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
-import {ChainDefinition} from '../../types'
+import {ChainDefinition} from '../types'
 
-import {SessionOptions} from '../session'
+import {SessionOptions} from './session'
 
 export interface WalletPluginOptions {
     name?: string

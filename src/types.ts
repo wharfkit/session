@@ -10,6 +10,4 @@ export class ChainDefinition extends Struct {
 
 export type ChainDefinitionType = ChainDefinition | {id: Checksum256Type; url: string}
 
-export interface Hook {}
-
 export * from './types/index'
