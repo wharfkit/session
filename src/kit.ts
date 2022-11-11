@@ -10,7 +10,6 @@ import {
 
 import {
     AbstractLoginPlugin,
-    AbstractSessionKit,
     AbstractTransactPlugin,
     ChainDefinition,
     Fetch,
@@ -102,7 +101,7 @@ import {Session} from './session'
  *        +WalletPlugin[] walletPlugins
  *    }
  */
-export class SessionKit extends AbstractSessionKit {
+export class SessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly fetch?: Fetch
@@ -111,7 +110,6 @@ export class SessionKit extends AbstractSessionKit {
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
-        super()
         // Store options passed on the kit
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))

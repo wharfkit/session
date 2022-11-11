@@ -3,9 +3,7 @@ import {AbiProvider, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
 import {
-    AbstractSession,
     ChainDefinition,
-    SessionContext,
     SessionOptions,
     TransactArgs,
     TransactContext,
@@ -17,29 +15,26 @@ import {
 
 import {BaseTransactPlugin} from './plugins'
 
-export class Session extends AbstractSession {
+export class Session {
     readonly chain: ChainDefinition
-    readonly context: SessionContext
+    readonly client: APIClient
     readonly transactPlugins: TransactPlugin[]
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
-        super()
         this.chain = ChainDefinition.from(options.chain)
-        let client: APIClient
         if (options.client) {
-            client = options.client
+            this.client = options.client
         } else {
             /* istanbul ignore next */
-            client = new APIClient({url: this.chain.url}) // TODO: Better coverage for this
+            this.client = new APIClient({url: this.chain.url}) // TODO: Better coverage for this
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
         } else {
             this.transactPlugins = [new BaseTransactPlugin()]
         }
-        this.context = new SessionContext({client})
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
         this.wallet = options.walletPlugin
     }
@@ -82,7 +77,7 @@ export class Session extends AbstractSession {
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
         const abiProvider: AbiProvider = {
             getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await this.context.client.v1.chain.get_abi(account)
+                const response = await this.client.v1.chain.get_abi(account)
                 if (!response.abi) {
                     /* istanbul ignore next */
                     throw new Error('could not load abi') // TODO: Better coverage for this
@@ -127,7 +122,7 @@ export class Session extends AbstractSession {
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
         const context = new TransactContext({
-            client: this.context.client,
+            client: this.client,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             session: this.permissionLevel,
         })
