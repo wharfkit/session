@@ -13,6 +13,11 @@ test: node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
 		${BIN}/mocha ${MOCHA_OPTS} ${TEST_FILES} --grep '$(grep)'
 
+test/watch: node_modules
+	@TS_NODE_PROJECT='./test/tsconfig.json' \
+		${BIN}/mocha --watch ${MOCHA_OPTS} ${TEST_FILES} --grep '$(grep)'
+
+
 build/coverage: ${SRC_FILES} ${TEST_FILES} node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=html \
