@@ -174,7 +174,7 @@ export class SessionKit {
         const chain = this.chains[0]
         const context: SessionOptions = {
             chain,
-            client: this.getClient(chain.id),
+            client: options?.client || this.getClient(chain.id),
             permissionLevel: 'eosio@active',
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,

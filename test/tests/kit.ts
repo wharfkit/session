@@ -5,7 +5,7 @@ import {BaseTransactPlugin, Session, SessionKit, SessionKitOptions} from '$lib'
 import {PermissionLevel} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
-import {MockLoginHook, MockTransactHook, MockTransactPlugin} from '$test/utils/mock-hook'
+import {MockTransactPlugin} from '$test/utils/mock-hook'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',

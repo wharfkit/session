@@ -1,4 +1,4 @@
-import {Checksum256Type, NameType, PermissionLevelType} from '@greymass/eosio'
+import {APIClient, Checksum256Type, NameType, PermissionLevelType} from '@greymass/eosio'
 
 import {ChainDefinitionType, Fetch} from '../types'
 import {LoginPlugin} from './login'
@@ -7,6 +7,7 @@ import {WalletPlugin} from './wallet'
 
 export interface LoginOptions {
     chain?: Checksum256Type
+    client?: APIClient
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions

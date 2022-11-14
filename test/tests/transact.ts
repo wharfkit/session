@@ -256,7 +256,7 @@ suite('transact', function () {
             })
         })
         suite('transactPluginsOptions', function () {
-            test('during transact', async function () {
+            test('transact', async function () {
                 const {action} = await mockData()
                 const session = new Session({
                     ...mockSessionOptions,
@@ -277,7 +277,7 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
-            test('from session constructor', async function () {
+            test('session constructor', async function () {
                 const {action} = await mockData()
                 const session = new Session({
                     ...mockSessionOptions,
@@ -294,7 +294,7 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
-            test('from kit constructor', async function () {
+            test('kit constructor', async function () {
                 const {action} = await mockData()
                 const sessionKit = new SessionKit({
                     appName: 'demo.app',
@@ -311,7 +311,7 @@ suite('transact', function () {
                     },
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login()
+                const session = await sessionKit.login({client})
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
                 if (result && result.transaction && result.transaction.actions) {
@@ -320,7 +320,7 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
-            test('from kit login options', async function () {
+            test('login', async function () {
                 const {action} = await mockData()
                 const sessionKit = new SessionKit({
                     appName: 'demo.app',
@@ -335,6 +335,7 @@ suite('transact', function () {
                     walletPlugins: [makeWallet()],
                 })
                 const session = await sessionKit.login({
+                    client,
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },
