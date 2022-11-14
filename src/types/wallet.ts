@@ -14,14 +14,17 @@ export interface WalletPluginLoginOptions {
     context: SessionOptions
 }
 
-export interface WalletPlugin {
-    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
-}
-
 export interface WalletPluginLoginResponse {
     chain: ChainDefinition
     permissionLevel: PermissionLevel
 }
 
-export abstract class AbstractWalletPlugin {}
+export interface WalletPlugin {
+    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
+    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+}
+
+export abstract class AbstractWalletPlugin implements WalletPlugin {
+    public abstract login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
+    public abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+}
