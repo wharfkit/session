@@ -22,7 +22,6 @@ export interface WalletPlugin {
 export interface WalletPluginLoginResponse {
     chain: ChainDefinition
     permissionLevel: PermissionLevel
-    walletPlugin: AbstractWalletPlugin
 }
 
 export abstract class AbstractWalletPlugin {}

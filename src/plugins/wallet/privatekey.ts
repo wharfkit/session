@@ -32,7 +32,6 @@ export class WalletPluginPrivateKey implements WalletPlugin {
                 url: options.context.chain.url,
             }),
             permissionLevel: PermissionLevel.from(options.context.permissionLevel),
-            walletPlugin: this,
         }
     }
     sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Signature {
