@@ -22,6 +22,7 @@ import {
 
 import {BaseLoginPlugin, BaseTransactPlugin} from './plugins'
 import {Session} from './session'
+import {TransactPluginsOptions} from './types'
 
 /**
  * Request a session from an account.
@@ -107,6 +108,7 @@ export class SessionKit {
     readonly fetch?: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
     readonly transactPlugins: AbstractTransactPlugin[]
+    readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -128,6 +130,10 @@ export class SessionKit {
             this.transactPlugins = options.transactPlugins
         } else {
             this.transactPlugins = [new BaseTransactPlugin()]
+        }
+        // Establish default options for transact plugins
+        if (options.transactPluginsOptions) {
+            this.transactPluginsOptions = options.transactPluginsOptions
         }
         // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
@@ -171,6 +177,7 @@ export class SessionKit {
             client: this.getClient(chain.id),
             permissionLevel: 'eosio@active',
             transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             walletPlugin: this.walletPlugins[0],
         }
 

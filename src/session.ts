@@ -14,11 +14,13 @@ import {
 } from './types'
 
 import {BaseTransactPlugin} from './plugins'
+import {TransactPluginsOptions} from './types'
 
 export class Session {
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly transactPlugins: TransactPlugin[]
+    readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
@@ -34,6 +36,9 @@ export class Session {
             this.transactPlugins = options.transactPlugins
         } else {
             this.transactPlugins = [new BaseTransactPlugin()]
+        }
+        if (options.transactPluginsOptions) {
+            this.transactPluginsOptions = options.transactPluginsOptions
         }
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
         this.wallet = options.walletPlugin
@@ -124,6 +129,7 @@ export class Session {
         const context = new TransactContext({
             client: this.client,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             session: this.permissionLevel,
         })
 

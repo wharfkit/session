@@ -1,9 +1,11 @@
 import {assert} from 'chai'
 import zlib from 'pako'
+import fetch from 'node-fetch'
+
 import {PermissionLevel, Serializer, Signature} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
-import {ChainDefinition, Session, SessionOptions} from '$lib'
+import SessionKit, {ChainDefinition, Session, SessionOptions} from '$lib'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
@@ -251,6 +253,99 @@ suite('transact', function () {
                     {transactPlugins: [new MockTransactPlugin()]}
                 )
                 assetValidTransactResponse(result)
+            })
+        })
+        suite('transactPluginsOptions', function () {
+            test('during transact', async function () {
+                const {action} = await mockData()
+                const session = new Session({
+                    ...mockSessionOptions,
+                    transactPlugins: [new MockTransactResourceProviderPlugin()],
+                })
+                const result = await session.transact(
+                    {action},
+                    {
+                        transactPluginsOptions: {
+                            disableExamplePlugin: true,
+                        },
+                    }
+                )
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 1)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('from session constructor', async function () {
+                const {action} = await mockData()
+                const session = new Session({
+                    ...mockSessionOptions,
+                    transactPluginsOptions: {
+                        disableExamplePlugin: true,
+                    },
+                    transactPlugins: [new MockTransactResourceProviderPlugin()],
+                })
+                const result = await session.transact({action})
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 1)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('from kit constructor', async function () {
+                const {action} = await mockData()
+                const sessionKit = new SessionKit({
+                    appName: 'demo.app',
+                    chains: [
+                        {
+                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                            url: 'https://jungle3.greymass.com',
+                        },
+                    ],
+                    fetch,
+                    transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    transactPluginsOptions: {
+                        disableExamplePlugin: true,
+                    },
+                    walletPlugins: [makeWallet()],
+                })
+                const session = await sessionKit.login()
+                const result = await session.transact({action})
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 1)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('from kit login options', async function () {
+                const {action} = await mockData()
+                const sessionKit = new SessionKit({
+                    appName: 'demo.app',
+                    chains: [
+                        {
+                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                            url: 'https://jungle3.greymass.com',
+                        },
+                    ],
+                    fetch,
+                    transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    walletPlugins: [makeWallet()],
+                })
+                const session = await sessionKit.login({
+                    transactPluginsOptions: {
+                        disableExamplePlugin: true,
+                    },
+                })
+                const result = await session.transact({action})
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 1)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
             })
         })
     })

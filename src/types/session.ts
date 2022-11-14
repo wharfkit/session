@@ -1,7 +1,7 @@
 import {APIClient, PermissionLevelType} from '@greymass/eosio'
 
 import {ChainDefinitionType} from '../types'
-import {AbstractTransactPlugin} from './transact'
+import {AbstractTransactPlugin, TransactPluginsOptions} from './transact'
 import {WalletPlugin} from './wallet'
 
 /**
@@ -10,7 +10,8 @@ import {WalletPlugin} from './wallet'
 export interface SessionOptions {
     chain: ChainDefinitionType
     client?: APIClient
-    transactPlugins?: AbstractTransactPlugin[]
     permissionLevel: PermissionLevelType | string
+    transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
     walletPlugin: WalletPlugin
 }

@@ -12,6 +12,8 @@ import {ResolvedSigningRequest, ResolvedTransaction, SigningRequest} from 'eosio
 import {ChainDefinition} from '../types'
 import {TransactHook, TransactHooks, TransactHookTypes} from './hook'
 
+export type TransactPluginsOptions = Record<string, unknown>
+
 /**
  * Options for creating a new context for a [[Session.transact]] call.
  */
@@ -19,6 +21,7 @@ export interface TransactContextOptions {
     client: APIClient
     session: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
 }
 
 /**
@@ -36,9 +39,11 @@ export class TransactContext {
         beforeSign: [],
     }
     session: PermissionLevel
+    transactPluginsOptions: TransactPluginsOptions
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.session = options.session
+        this.transactPluginsOptions = options.transactPluginsOptions || {}
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })
@@ -68,6 +73,13 @@ export interface TransactArgs {
  */
 export interface TransactOptions {
     /**
+     * Whether to allow the signer to make modifications to the request
+     * (e.g. applying a cosigner action to pay for resources).
+     *
+     * Defaults to true if [[broadcast]] is true or unspecified; otherwise false.
+     */
+    allowModify?: boolean
+    /**
      * Whether to broadcast the transaction or just return the signature.
      * Defaults to true.
      */
@@ -77,16 +89,13 @@ export interface TransactOptions {
      */
     chain?: Checksum256Type
     /**
-     * Whether to allow the signer to make modifications to the request
-     * (e.g. applying a cosigner action to pay for resources).
-     *
-     * Defaults to true if [[broadcast]] is true or unspecified; otherwise false.
-     */
-    allowModify?: boolean
-    /**
      * Specific transact plugins to use for this transaction.
      */
     transactPlugins?: AbstractTransactPlugin[]
+    /**
+     * Optional parameters passed in to the various transact plugins.
+     */
+    transactPluginsOptions?: TransactPluginsOptions
 }
 
 /**

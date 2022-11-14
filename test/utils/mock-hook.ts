@@ -44,6 +44,16 @@ export class MockTransactResourceProviderPresignHook implements TransactHook {
         request: SigningRequest,
         context: TransactContext
     ): Promise<TransactHookResponse> {
+        // Pull the plugin options from the context
+        const options = context.transactPluginsOptions
+        // If any options this plugin is interested in are set, react to them
+        // In this example, we're just bypassing the plugin w/ a flag.
+        if (options.disableExamplePlugin) {
+            return {
+                request,
+                signatures: [],
+            }
+        }
         // Clone the request for modification
         const cloned = request.clone()
         // Couldn't work with normal objects here
