@@ -1,6 +1,5 @@
 import {Checksum256Type, NameType, PermissionLevelType} from '@greymass/eosio'
 
-import {Session} from '../session'
 import {ChainDefinitionType, Fetch} from '../types'
 import {LoginPlugin} from './login'
 import {TransactPlugin} from './transact'
