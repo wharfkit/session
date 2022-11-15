@@ -22,6 +22,11 @@ TODO
 
 See [unit tests](https://github.com/wharfkit/session/tree/main/test) for usage examples during early development.
 
+## Autodocs
+
+-   [API Documentation](https://wharfkit.github.io/session/)
+-   [Code Coverage Report](https://wharfkit.github.io/session/coverage/)
+
 ## Developing
 
 You need [Make](https://www.gnu.org/software/make/), [node.js](https://nodejs.org/en/) and [yarn](https://classic.yarnpkg.com/en/docs/install) installed.
