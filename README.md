@@ -4,7 +4,7 @@
 
 ###### Antelope blockchain session management.
 
-Authenticate and persist sessions against blockchain accounts for use in web applications. Utilize these sessions to interact with the blockchain as that user.
+Authenticate and persist sessions using blockchain accounts within JavaScript and TypeScript applications. Each session can be used to interact with smart contracts using the authenticated account.
 
 ## Installation
 
