@@ -204,16 +204,19 @@ suite('transact', function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
+                // TODO: complete test and ensure is broadcast
             })
             test('true', async function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: true})
                 assetValidTransactResponse(result)
+                // TODO: complete test and ensure is broadcast
             })
             test('false', async function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: false})
                 assetValidTransactResponse(result)
+                // TODO: complete test and ensure is NOT broadcast
             })
         })
         suite('transactPlugins', function () {
