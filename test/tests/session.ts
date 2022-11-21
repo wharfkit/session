@@ -1,12 +1,7 @@
 import {assert} from 'chai'
 import fetch from 'node-fetch'
 
-import SessionKit, {
-    ChainDefinition,
-    Session,
-    SessionOptions,
-    BaseTransactPlugin as BaseTransactPlugin,
-} from '$lib'
+import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {PermissionLevel} from '@greymass/eosio'
 
 import {makeClient} from '$test/utils/mock-provider'
