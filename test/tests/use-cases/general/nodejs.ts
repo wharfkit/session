@@ -6,6 +6,7 @@ import fetch from 'node-fetch'
 // Required imports from wharfkit/session
 import {SessionOptions, Signature} from '$lib'
 import {Session, WalletPluginPrivateKey} from '$lib'
+import {makeClient} from '$test/utils/mock-provider'
 
 /**
  * Required configuration for manually establishing a session
@@ -35,9 +36,13 @@ if (version < 18) {
     sessionOptions.fetch = fetch
 }
 
+const client = makeClient()
+
 export const nodejsUsage = () => {
     suite('nodejs', function () {
         test('session', async function () {
+            // Force a client for testing purposes, not required for actual usage
+            sessionOptions.client = client
             // Establish a new session
             const session = new Session(sessionOptions)
             // Perform a transaction
