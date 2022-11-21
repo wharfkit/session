@@ -12,6 +12,7 @@ import {PermissionLevel} from '@greymass/eosio'
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
+import {nodejsUsage} from './use-cases/general/nodejs'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -32,6 +33,7 @@ suite('session', function () {
         // Establish new session before each test
         session = new Session(mockSessionOptions)
     })
+    nodejsUsage()
     suite('construct', function () {
         test('instance', function () {
             assert.instanceOf(session, Session)

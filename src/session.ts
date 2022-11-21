@@ -1,4 +1,11 @@
-import {ABIDef, APIClient, Name, PermissionLevel} from '@greymass/eosio'
+import {
+    ABIDef,
+    APIClient,
+    APIClientOptions,
+    FetchProvider,
+    Name,
+    PermissionLevel,
+} from '@greymass/eosio'
 import {AbiProvider, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
@@ -29,8 +36,16 @@ export class Session {
         if (options.client) {
             this.client = options.client
         } else {
-            /* istanbul ignore next */
-            this.client = new APIClient({url: this.chain.url}) // TODO: Better coverage for this
+            const clientOptions: APIClientOptions = {
+                url: this.chain.url,
+            }
+            if (options.fetch) {
+                /* istanbul ignore next */
+                clientOptions.provider = new FetchProvider(this.chain.url, {
+                    fetch: options.fetch,
+                })
+            }
+            this.client = new APIClient(clientOptions)
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
