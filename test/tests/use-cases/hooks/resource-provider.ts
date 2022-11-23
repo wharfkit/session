@@ -1,9 +1,9 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {Name, PermissionLevel, Signature, Transaction} from '@greymass/eosio'
+import {Name, Signature, Transaction} from '@greymass/eosio'
 
-import {SigningRequest, TransactContext, TransactHook, TransactHookResponse} from '$lib'
+import {SigningRequest, TransactContext, TransactHookResponse} from '$lib'
 
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeClient} from '$test/utils/mock-provider'

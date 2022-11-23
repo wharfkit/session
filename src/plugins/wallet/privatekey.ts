@@ -7,14 +7,14 @@ import {
     Transaction,
 } from '@greymass/eosio'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
-
 import {
-    ChainDefinition,
     WalletPlugin,
     WalletPluginLoginOptions,
     WalletPluginLoginResponse,
     WalletPluginOptions,
-} from '../../types'
+} from '../../session'
+
+import {ChainDefinition} from '../../types'
 
 export interface WalletPluginPrivateKeyOptions extends WalletPluginOptions {
     privateKey: PrivateKeyType
