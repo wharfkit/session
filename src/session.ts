@@ -165,14 +165,9 @@ export class Session {
         const allowModify =
             options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
 
+        // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : true
-
-        // Determine which set of hooks to use, with hooks specified in the options taking priority
-        // const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
-        // const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
-        // const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
-        // const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
 
         // Run the `beforeSign` hooks
         context.hooks.beforeSign.forEach(async (hook) => {
