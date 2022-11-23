@@ -5,7 +5,13 @@ import fetch from 'node-fetch'
 import {PermissionLevel, Serializer, Signature} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
-import SessionKit, {ChainDefinition, Session, SessionOptions} from '$lib'
+import SessionKit, {
+    ChainDefinition,
+    Session,
+    SessionOptions,
+    TransactContext,
+    TransactHookTypes,
+} from '$lib'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
@@ -234,12 +240,49 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
-            test('override', async function () {
+            test('override (class)', async function () {
                 const {action, session} = await mockData()
                 const result = await session.transact(
                     {action},
                     {
                         transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
+                assetValidTransactResponse(result)
+                if (result && result.transaction && result.transaction.actions) {
+                    assert.lengthOf(result.transaction.actions, 2)
+                } else {
+                    assert.fail('Transaction with actions was not returned in result.')
+                }
+            })
+            test('override (function)', async function () {
+                const {action, session} = await mockData()
+                // Pass in a simple hook to log after broadcast
+                const debugHook = async (request: SigningRequest, context: TransactContext) => {
+                    // Log the output
+                    if (context.transactPluginsOptions.logging) {
+                        console.log(Serializer.objectify(request.getRawTransaction()))
+                    }
+                    // Return the request and no additional signatures
+                    return {
+                        request,
+                        signatures: [],
+                    }
+                }
+                const debugPlugin = {
+                    register(context) {
+                        context.addHook(TransactHookTypes.beforeSign, debugHook)
+                        context.addHook(TransactHookTypes.afterSign, debugHook)
+                        context.addHook(TransactHookTypes.beforeBroadcast, debugHook)
+                        context.addHook(TransactHookTypes.afterBroadcast, debugHook)
+                    },
+                }
+                // enable logging plugin
+                const result = await session.transact(
+                    {action},
+                    {
+                        transactPlugins: [new MockTransactResourceProviderPlugin(), debugPlugin],
+                        transactPluginsOptions: {logging: false},
                     }
                 )
                 assetValidTransactResponse(result)

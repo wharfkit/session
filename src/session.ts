@@ -177,9 +177,9 @@ export class Session {
         // Run the `beforeSign` hooks
         context.hooks.beforeSign.forEach(async (hook) => {
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
-            const response = await hook.process(result.request.clone(), context)
+            const response = await hook(result.request.clone(), context)
             if (allowModify) {
-                result.request = response.request
+                result.request = response.request.clone()
             }
         })
 
@@ -196,15 +196,13 @@ export class Session {
         result.signatures.push(signature)
 
         // Run the `afterSign` hooks
-        context.hooks.afterSign.forEach(
-            async (hook) => await hook.process(result.request.clone(), context)
-        )
+        context.hooks.afterSign.forEach(async (hook) => await hook(result.request.clone(), context))
 
         // Broadcast transaction if requested
         if (willBroadcast) {
             // Run the `beforeBroadcast` hooks
             context.hooks.beforeBroadcast.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
+                async (hook) => await hook(result.request.clone(), context)
             )
 
             // broadcast transaction
@@ -212,7 +210,7 @@ export class Session {
 
             // Run the `afterBroadcast` hooks
             context.hooks.afterBroadcast.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
+                async (hook) => await hook(result.request.clone(), context)
             )
         }
 

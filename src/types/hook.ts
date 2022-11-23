@@ -9,9 +9,7 @@ export enum LoginHookTypes {
     afterLogin = 'afterLogin',
 }
 
-export interface LoginHook {
-    process(context: SessionOptions): void
-}
+export type LoginHook = (context: SessionOptions) => Promise<void>
 
 export interface LoginHooks {
     afterLogin: LoginHook[]
@@ -25,9 +23,10 @@ export enum TransactHookTypes {
     afterBroadcast = 'afterBroadcast',
 }
 
-export interface TransactHook {
-    process(request: SigningRequest, context: TransactContext): Promise<TransactHookResponse>
-}
+export type TransactHook = (
+    request: SigningRequest,
+    context: TransactContext
+) => Promise<TransactHookResponse>
 
 export interface TransactHooks {
     afterSign: TransactHook[]

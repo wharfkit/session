@@ -6,7 +6,7 @@ import {Name, Transaction} from '@greymass/eosio'
 
 import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
 import {makeClient} from '$test/utils/mock-provider'
-import {MockTransactResourceProviderPresignHook} from '$test/utils/mock-hook'
+import {mockTransactResourceProviderPresignHook} from '$test/utils/mock-hook'
 import {makeContext} from '$test/utils/mock-context'
 
 const client = makeClient()
@@ -21,8 +21,7 @@ export const beforeSignHooks = () => {
                 },
                 {zlib}
             )
-            const hook = new MockTransactResourceProviderPresignHook()
-            const response = await hook.process(request, context)
+            const response = await mockTransactResourceProviderPresignHook(request, context)
             assert.notDeepEqual(request.data.req.value, response.request.data.req.value)
             const {value} = response.request.data.req
             if (value instanceof Array) {
@@ -44,8 +43,7 @@ export const beforeSignHooks = () => {
                 },
                 {zlib}
             )
-            const hook = new MockTransactResourceProviderPresignHook()
-            const response = await hook.process(request, context)
+            const response = await mockTransactResourceProviderPresignHook(request, context)
             assert.notDeepEqual(request.data.req.value, response.request.data.req.value)
             const {value} = response.request.data.req
             if (value instanceof Array) {
@@ -65,8 +63,7 @@ export const beforeSignHooks = () => {
                 },
                 {zlib}
             )
-            const hook = new MockTransactResourceProviderPresignHook()
-            const response = await hook.process(request, context)
+            const response = await mockTransactResourceProviderPresignHook(request, context)
             assert.notDeepEqual(request.data.req.value, response.request.data.req.value)
             const {value} = response.request.data.req
             if (value instanceof Transaction) {
