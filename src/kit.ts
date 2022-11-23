@@ -8,140 +8,59 @@ import {
     PermissionLevel,
 } from '@greymass/eosio'
 
-import {Session} from './session'
-
 import {
-    AbstractSessionKit,
+    AbstractLoginPlugin,
+    AbstractTransactPlugin,
     ChainDefinition,
-    LoginHooks,
+    Fetch,
     LoginOptions,
     SessionKitOptions,
+    SessionOptions,
     WalletPlugin,
     WalletPluginLoginOptions,
-} from './kit.types'
-import {SessionOptions, TransactHooks} from './session.types'
-import {Fetch} from './types'
+} from './types'
+
+import {BaseLoginPlugin, BaseTransactPlugin} from './plugins'
+import {Session} from './session'
+import {TransactPluginsOptions} from './types'
 
 /**
  * Request a session from an account.
- *
- * @mermaid - SessionKit Architecture
- * classDiagram
- *    SessionKit <|-- Session
- *    SessionKitOptions --> SessionKit
- *    LoginHooks --> SessionKitOptions
- *    TransactHooks --> SessionKitOptions
- *    ChainDefinition --> SessionKitOptions
- *    WalletPlugin --> SessionKitOptions
- *    AfterSignHook --> TransactHooks
- *    BeforeSignHook --> TransactHooks
- *    AfterBroadcastHook --> TransactHooks
- *    BeforeBroadcastHook --> TransactHooks
- *    AfterLoginHook --> LoginHooks
- *    BeforeLoginHook --> LoginHooks
- *    class SessionKit {
- *        +Name appName
- *        +ChainDefinition[] chains
- *        +BeforeLoginHook[] beforeLoginHooks
- *        +AfterLoginHook[] afterLoginHooks
- *        +WalletPlugin[] walletPlugins
- *        +login(LoginOptions options) Session
- *    }
- *    class LoginHooks{
- *        <<interface>>
- *        +AfterLoginHook[] afterLogin
- *        +BeforeLoginHook[] beforeLogin
- *    }
- *    class TransactHooks{
- *        <<interface>>
- *        +AfterSignHook[] afterSign
- *        +BeforeSignHook[] beforeSign
- *        +AfterBroadcastHook[] afterBroadcast
- *        +BeforeBroadcastHook[] beforeBroadcast
- *    }
- *    class WalletPlugin{
- *        +login(WalletPluginLoginOptions options)
- *        +sign(ChainDefinition chain, Transaction
- *    }
- *    class WalletPluginLoginOptions{
- *        <<interface>>
- *        +Name appName
- *        +ChainDefinition[] chains
- *        +SessionOptions context
- *    }
- *    class AfterLoginHook{
- *        <<interface>>
- *    }
- *    class BeforeLoginHook{
- *        <<interface>>
- *    }
- *    class AfterSignHook{
- *        <<interface>>
- *    }
- *    class BeforeSignHook{
- *        <<interface>>
- *    }
- *    class AfterBroadcastHook{
- *        <<interface>>
- *    }
- *    class BeforeBroadcastHook{
- *        <<interface>>
- *    }
- *    class ChainDefinition{
- *        +Checksum256 id
- *        +string url
- *    }
- *    class SessionKitOptions{
- *        <<interface>>
- *        +NameType appName
- *        +ChainDefinitionType chains
- *        +LoginHooks loginHooks
- *        +TransactHooks transactHooks
- *        +WalletPlugin[] walletPlugins
- *    }
  */
-
-const defaultLoginHooks = {
-    afterLogin: [],
-    beforeLogin: [],
-}
-
-const defaultTransactHooks = {
-    afterBroadcast: [],
-    afterSign: [],
-    beforeBroadcast: [],
-    beforeSign: [],
-}
-
-export class SessionKit extends AbstractSessionKit {
+export class SessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly fetch?: Fetch
-    readonly loginHooks: LoginHooks
-    readonly transactHooks: TransactHooks
+    readonly loginPlugins: AbstractLoginPlugin[]
+    readonly transactPlugins: AbstractTransactPlugin[]
+    readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
-        super()
+        // Store options passed on the kit
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
+        // Override fetch if provided
         if (options.fetch) {
             this.fetch = options.fetch
         }
-        this.loginHooks = defaultLoginHooks
-        if (options.loginHooks) {
-            this.loginHooks = {
-                ...defaultLoginHooks,
-                ...options.loginHooks,
-            }
+        // Establish default plugins for login flow
+        if (options.loginPlugins) {
+            this.loginPlugins = options.loginPlugins
+        } else {
+            this.loginPlugins = [new BaseLoginPlugin()]
         }
-        this.transactHooks = defaultTransactHooks
-        if (options.transactHooks) {
-            this.transactHooks = {
-                ...defaultTransactHooks,
-                ...options.transactHooks,
-            }
+        // Establish default plugins for transact flow
+        if (options.transactPlugins) {
+            this.transactPlugins = options.transactPlugins
+        } else {
+            this.transactPlugins = [new BaseTransactPlugin()]
         }
+        // Establish default options for transact plugins
+        if (options.transactPluginsOptions) {
+            this.transactPluginsOptions = options.transactPluginsOptions
+        }
+        // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
     }
 
@@ -180,8 +99,10 @@ export class SessionKit extends AbstractSessionKit {
         const chain = this.chains[0]
         const context: SessionOptions = {
             chain,
-            client: this.getClient(chain.id),
+            client: options?.client || this.getClient(chain.id),
             permissionLevel: 'eosio@active',
+            transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             walletPlugin: this.walletPlugins[0],
         }
 
@@ -207,24 +128,28 @@ export class SessionKit extends AbstractSessionKit {
             context.permissionLevel = PermissionLevel.from(options.permissionLevel)
         }
 
-        // Determine which set of hooks to use, with hooks specified in the options taking priority
-        const afterLoginHooks = options?.hooks?.afterLogin || this.loginHooks.afterLogin
-        const beforeLoginHooks = options?.hooks?.beforeLogin || this.loginHooks.beforeLogin
+        // TODO: Implement login hooks
 
-        // Run the beforeLogin hooks
-        beforeLoginHooks?.forEach(async (hook) => {
-            await hook.process(context)
-        })
+        // // Determine which set of hooks to use, with hooks specified in the options taking priority
+        // const afterLoginHooks = options?.hooks?.afterLogin || this.loginHooks.afterLogin
+        // const beforeLoginHooks = options?.hooks?.beforeLogin || this.loginHooks.beforeLogin
+
+        // // Run the beforeLogin hooks
+        // beforeLoginHooks?.forEach(async (hook) => {
+        //     await hook.process(context)
+        // })
 
         // Perform login based on wallet plugin
         const response = await context.walletPlugin.login(walletOptions)
         context.chain = response.chain
         context.permissionLevel = response.permissionLevel
 
-        // Run the afterLogin hooks
-        afterLoginHooks?.forEach(async (hook) => {
-            await hook.process(context)
-        })
+        // TODO: Implement login hooks
+
+        // // Run the afterLogin hooks
+        // afterLoginHooks?.forEach(async (hook) => {
+        //     await hook.process(context)
+        // })
 
         return new Session(context)
     }

@@ -4,53 +4,53 @@ import {
     APIClient,
     Checksum256Type,
     PermissionLevel,
-    PermissionLevelType,
     Signature,
 } from '@greymass/eosio'
 
-import {Hook} from './types'
-
-import {ChainDefinition, ChainDefinitionType, WalletPlugin} from './kit.types'
 import {ResolvedSigningRequest, ResolvedTransaction, SigningRequest} from 'eosio-signing-request'
 
-export abstract class AbstractSession {
-    /**
-     * Transact using this session. See [[Session.transact]].
-     */
-    abstract transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult>
-}
+import {ChainDefinition} from '../types'
+import {TransactHook, TransactHooks, TransactHookTypes} from './hook'
 
-export interface SessionContextOptions {
-    client: APIClient
-}
+export type TransactPluginsOptions = Record<string, unknown>
 
-export class SessionContext {
-    client: APIClient
-    constructor(options: SessionContextOptions) {
-        this.client = options.client
-    }
-}
-
+/**
+ * Options for creating a new context for a [[Session.transact]] call.
+ */
 export interface TransactContextOptions {
     client: APIClient
     session: PermissionLevel
+    transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
 }
 
+/**
+ * Temporary context created for the duration of a [[Session.transact]] call.
+ *
+ * This context is used to store the state of the transact request and
+ * provide a way for plugins to add hooks into the process.
+ */
 export class TransactContext {
     client: APIClient
+    hooks: TransactHooks = {
+        afterBroadcast: [],
+        afterSign: [],
+        beforeBroadcast: [],
+        beforeSign: [],
+    }
     session: PermissionLevel
+    transactPluginsOptions: TransactPluginsOptions
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.session = options.session
+        this.transactPluginsOptions = options.transactPluginsOptions || {}
+        options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
+            plugin.register(this)
+        })
     }
-}
-
-export interface SessionOptions {
-    chain: ChainDefinitionType
-    client?: APIClient
-    hooks?: TransactOptionsHooks
-    permissionLevel: PermissionLevelType | string
-    walletPlugin: WalletPlugin
+    addHook(t: TransactHookTypes, hook: TransactHook) {
+        this.hooks[t].push(hook)
+    }
 }
 
 /**
@@ -68,36 +68,17 @@ export interface TransactArgs {
     request?: SigningRequest | string
 }
 
-export interface TransactHook extends Hook {
-    process(request: SigningRequest, context: TransactContext): Promise<SigningRequest>
-}
-
-export interface TransactHooks {
-    afterSign: AfterSignHook[]
-    beforeSign: BeforeSignHook[]
-    afterBroadcast: AfterBroadcastHook[]
-    beforeBroadcast: BeforeBroadcastHook[]
-}
-
-export interface TransactOptionsHooks {
-    afterSign?: AfterSignHook[]
-    beforeSign?: BeforeSignHook[]
-    afterBroadcast?: AfterBroadcastHook[]
-    beforeBroadcast?: BeforeBroadcastHook[]
-}
-
-export interface SignHook extends TransactHook {}
-export interface BeforeSignHook extends SignHook {}
-export interface AfterSignHook extends SignHook {}
-
-export interface BroadcastHook extends TransactHook {}
-export interface BeforeBroadcastHook extends BroadcastHook {}
-export interface AfterBroadcastHook extends BroadcastHook {}
-
 /**
  * Options for the [[Session.transact]] method.
  */
 export interface TransactOptions {
+    /**
+     * Whether to allow the signer to make modifications to the request
+     * (e.g. applying a cosigner action to pay for resources).
+     *
+     * Defaults to true if [[broadcast]] is true or unspecified; otherwise false.
+     */
+    allowModify?: boolean
     /**
      * Whether to broadcast the transaction or just return the signature.
      * Defaults to true.
@@ -108,16 +89,13 @@ export interface TransactOptions {
      */
     chain?: Checksum256Type
     /**
-     * Whether to allow the signer to make modifications to the request
-     * (e.g. applying a cosigner action to pay for resources).
-     *
-     * Defaults to true if [[broadcast]] is true or unspecified; otherwise false.
+     * Specific transact plugins to use for this transaction.
      */
-    allowModify?: boolean
+    transactPlugins?: AbstractTransactPlugin[]
     /**
-     * Specific hooks to use for this transaction.
+     * Optional parameters passed in to the various transact plugins.
      */
-    hooks?: TransactOptionsHooks
+    transactPluginsOptions?: TransactPluginsOptions
 }
 
 /**
@@ -138,4 +116,18 @@ export interface TransactResult {
     transaction: ResolvedTransaction | undefined
     /** Push transaction response from api node, only present if transaction was broadcast. */
     processed?: {[key: string]: any}
+}
+
+/**
+ * Interface which a [[Session.transact]] plugin must implement.
+ */
+export interface TransactPlugin {
+    register: (context: TransactContext) => void
+}
+
+/**
+ * Abstract class for [[Session.transact]] plugins to extend.
+ */
+export abstract class AbstractTransactPlugin implements TransactPlugin {
+    public abstract register(context: TransactContext): void
 }

@@ -1,11 +1,13 @@
 import {assert} from 'chai'
+import fetch from 'node-fetch'
 
-import {ChainDefinition, Session, SessionOptions} from '$lib'
+import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {PermissionLevel} from '@greymass/eosio'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
-import {MockTransactHook} from '$test/utils/mock-hook'
+import {MockTransactPlugin} from '$test/utils/mock-hook'
+import {nodejsUsage} from './use-cases/general/nodejs'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -26,100 +28,93 @@ suite('session', function () {
         // Establish new session before each test
         session = new Session(mockSessionOptions)
     })
+    nodejsUsage()
     suite('construct', function () {
         test('instance', function () {
             assert.instanceOf(session, Session)
         })
         suite('options', function () {
-            test('typed', async function () {
-                const testSession = new Session({
-                    chain: ChainDefinition.from({
-                        id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                        url: 'https://jungle3.greymass.com',
-                    }),
-                    client,
-                    permissionLevel: PermissionLevel.from('account@permission'),
-                    walletPlugin: wallet,
+            suite('passed as', function () {
+                test('typed', async function () {
+                    const testSession = new Session({
+                        chain: ChainDefinition.from({
+                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                            url: 'https://jungle3.greymass.com',
+                        }),
+                        client,
+                        permissionLevel: PermissionLevel.from('account@permission'),
+                        walletPlugin: wallet,
+                    })
+                    assert.instanceOf(testSession, Session)
                 })
-                assert.instanceOf(testSession, Session)
+                test('untyped', async function () {
+                    const testSession = new Session({
+                        chain: {
+                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                            url: 'https://jungle3.greymass.com',
+                        },
+                        client,
+                        permissionLevel: 'account@permission',
+                        walletPlugin: wallet,
+                    })
+                    assert.instanceOf(testSession, Session)
+                })
             })
-            test('untyped', async function () {
-                const testSession = new Session({
-                    chain: {
-                        id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                        url: 'https://jungle3.greymass.com',
-                    },
-                    client,
-                    permissionLevel: 'account@permission',
-                    walletPlugin: wallet,
+            suite('transactPlugins', function () {
+                test('default', async function () {
+                    const sessionKit = new SessionKit({
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                                url: 'https://jungle3.greymass.com',
+                            },
+                        ],
+                        fetch,
+                        walletPlugins: [makeWallet()],
+                    })
+                    const session = await sessionKit.login()
+                    assert.instanceOf(session, Session)
+                    assert.lengthOf(session.transactPlugins, 1)
+                    assert.instanceOf(session.transactPlugins[0], BaseTransactPlugin)
                 })
-                assert.instanceOf(testSession, Session)
-            })
-        })
-        suite('hooks', function () {
-            test('assign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                        afterSign: [new MockTransactHook()],
-                        beforeBroadcast: [new MockTransactHook()],
-                        beforeSign: [new MockTransactHook()],
-                    },
+                test('inherit', async function () {
+                    const sessionKit = new SessionKit({
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                                url: 'https://jungle3.greymass.com',
+                            },
+                        ],
+                        fetch,
+                        transactPlugins: [new MockTransactPlugin()],
+                        walletPlugins: [makeWallet()],
+                    })
+                    const session = await sessionKit.login()
+                    assert.instanceOf(session, Session)
+                    assert.lengthOf(session.transactPlugins, 1)
+                    assert.instanceOf(session.transactPlugins[0], MockTransactPlugin)
                 })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 1)
-                assert.instanceOf(testSession.hooks.afterBroadcast[0], MockTransactHook)
-                assert.lengthOf(testSession.hooks.afterSign, 1)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 1)
-                assert.lengthOf(testSession.hooks.beforeSign, 1)
-            })
-            test('assign afterBroadcast', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterBroadcast: [new MockTransactHook()],
-                    },
+                test('override', async function () {
+                    const sessionKit = new SessionKit({
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                                url: 'https://jungle3.greymass.com',
+                            },
+                        ],
+                        fetch,
+                        walletPlugins: [makeWallet()],
+                    })
+                    const session = await sessionKit.login({
+                        transactPlugins: [new MockTransactPlugin()],
+                    })
+                    assert.instanceOf(session, Session)
+                    assert.lengthOf(session.transactPlugins, 1)
+                    assert.instanceOf(session.transactPlugins[0], MockTransactPlugin)
                 })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 1)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign afterSign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        afterSign: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 1)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign beforeBroadcast', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        beforeBroadcast: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 1)
-                assert.lengthOf(testSession.hooks.beforeSign, 0)
-            })
-            test('assign beforeSign', function () {
-                const testSession = new Session({
-                    ...mockSessionOptions,
-                    hooks: {
-                        beforeSign: [new MockTransactHook()],
-                    },
-                })
-                assert.lengthOf(testSession.hooks.afterBroadcast, 0)
-                assert.lengthOf(testSession.hooks.afterSign, 0)
-                assert.lengthOf(testSession.hooks.beforeBroadcast, 0)
-                assert.lengthOf(testSession.hooks.beforeSign, 1)
             })
         })
     })

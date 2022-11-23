@@ -1,52 +1,60 @@
-import {ABIDef, APIClient, Name, PermissionLevel} from '@greymass/eosio'
+import {
+    ABIDef,
+    APIClient,
+    APIClientOptions,
+    FetchProvider,
+    Name,
+    PermissionLevel,
+} from '@greymass/eosio'
 import {AbiProvider, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 
-import {ChainDefinition, WalletPlugin} from './kit.types'
-
 import {
-    AbstractSession,
-    SessionContext,
+    ChainDefinition,
     SessionOptions,
     TransactArgs,
     TransactContext,
-    TransactHooks,
     TransactOptions,
+    TransactPlugin,
     TransactResult,
-} from './session.types'
+    WalletPlugin,
+} from './types'
 
-const defaultHooks = {
-    afterBroadcast: [],
-    afterSign: [],
-    beforeBroadcast: [],
-    beforeSign: [],
-}
+import {BaseTransactPlugin} from './plugins'
+import {TransactPluginsOptions} from './types'
 
-export class Session extends AbstractSession {
+export class Session {
     readonly chain: ChainDefinition
-    readonly context: SessionContext
-    readonly hooks: TransactHooks
+    readonly client: APIClient
+    readonly transactPlugins: TransactPlugin[]
+    readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
-        super()
         this.chain = ChainDefinition.from(options.chain)
-        let client: APIClient
         if (options.client) {
-            client = options.client
+            this.client = options.client
         } else {
-            /* istanbul ignore next */
-            client = new APIClient({url: this.chain.url})
-        }
-        this.hooks = defaultHooks
-        if (options.hooks) {
-            this.hooks = {
-                ...defaultHooks,
-                ...options.hooks,
+            const clientOptions: APIClientOptions = {
+                url: this.chain.url,
             }
+            if (options.fetch) {
+                /* istanbul ignore next */
+                clientOptions.provider = new FetchProvider(this.chain.url, {
+                    fetch: options.fetch,
+                })
+            }
+            this.client = new APIClient(clientOptions)
         }
-        this.context = new SessionContext({client})
+        if (options.transactPlugins) {
+            this.transactPlugins = options.transactPlugins
+        } else {
+            this.transactPlugins = [new BaseTransactPlugin()]
+        }
+        if (options.transactPluginsOptions) {
+            this.transactPluginsOptions = options.transactPluginsOptions
+        }
         this.permissionLevel = PermissionLevel.from(options.permissionLevel)
         this.wallet = options.walletPlugin
     }
@@ -89,9 +97,10 @@ export class Session extends AbstractSession {
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
         const abiProvider: AbiProvider = {
             getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await this.context.client.v1.chain.get_abi(account)
+                const response = await this.client.v1.chain.get_abi(account)
                 if (!response.abi) {
-                    throw new Error('could not load abi')
+                    /* istanbul ignore next */
+                    throw new Error('could not load abi') // TODO: Better coverage for this
                 }
                 return response.abi
             },
@@ -117,10 +126,25 @@ export class Session extends AbstractSession {
         }
     }
 
+    /**
+     * Perform a transaction using this session.
+     *
+     * @mermaid - Transaction sequence diagram
+     * flowchart LR
+     *   A((Transact)) --> B{{"Hook(s): beforeSign"}}
+     *   B --> C[Wallet Plugin]
+     *   C --> D{{"Hook(s): afterSign"}}
+     *   D --> E{{"Hook(s): beforeBroadcast"}}
+     *   E --> F[Broadcast Plugin]
+     *   F --> G{{"Hook(s): afterBroadcast"}}
+     *   G --> H[TransactResult]
+     */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
         const context = new TransactContext({
-            client: this.context.client,
+            client: this.client,
+            transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             session: this.permissionLevel,
         })
 
@@ -141,18 +165,21 @@ export class Session extends AbstractSession {
         const allowModify =
             options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
 
+        const willBroadcast =
+            options && typeof options.broadcast !== 'undefined' ? options.broadcast : true
+
         // Determine which set of hooks to use, with hooks specified in the options taking priority
-        const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
-        const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
-        const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
-        const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
+        // const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
+        // const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
+        // const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
+        // const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
 
         // Run the `beforeSign` hooks
-        beforeSignHooks.forEach(async (hook) => {
+        context.hooks.beforeSign.forEach(async (hook) => {
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
-            const modifiedRequest = await hook.process(result.request.clone(), context)
+            const response = await hook(result.request.clone(), context)
             if (allowModify) {
-                result.request = modifiedRequest
+                result.request = response.request.clone()
             }
         })
 
@@ -169,20 +196,21 @@ export class Session extends AbstractSession {
         result.signatures.push(signature)
 
         // Run the `afterSign` hooks
-        afterSignHooks.forEach(async (hook) => await hook.process(result.request.clone(), context))
+        context.hooks.afterSign.forEach(async (hook) => await hook(result.request.clone(), context))
 
-        if (options?.broadcast) {
+        // Broadcast transaction if requested
+        if (willBroadcast) {
             // Run the `beforeBroadcast` hooks
-            beforeBroadcastHooks.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
+            context.hooks.beforeBroadcast.forEach(
+                async (hook) => await hook(result.request.clone(), context)
             )
 
             // broadcast transaction
             // TODO: Implement broadcast
 
             // Run the `afterBroadcast` hooks
-            afterBroadcastHooks.forEach(
-                async (hook) => await hook.process(result.request.clone(), context)
+            context.hooks.afterBroadcast.forEach(
+                async (hook) => await hook(result.request.clone(), context)
             )
         }
 
