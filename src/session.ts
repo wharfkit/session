@@ -1,27 +1,213 @@
 import {
     ABIDef,
+    AnyAction,
+    AnyTransaction,
     APIClient,
     APIClientOptions,
+    Checksum256Type,
     FetchProvider,
     Name,
     PermissionLevel,
+    PermissionLevelType,
+    Signature,
 } from '@greymass/eosio'
-import {AbiProvider, SigningRequest} from 'eosio-signing-request'
+import {
+    AbiProvider,
+    ResolvedSigningRequest,
+    ResolvedTransaction,
+    SigningRequest,
+} from 'eosio-signing-request'
 import zlib from 'pako'
 
-import {
-    ChainDefinition,
-    SessionOptions,
-    TransactArgs,
-    TransactContext,
-    TransactOptions,
-    TransactPlugin,
-    TransactResult,
-    WalletPlugin,
-} from './types'
+import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 
-import {BaseTransactPlugin} from './plugins'
-import {TransactPluginsOptions} from './types'
+export type TransactPluginsOptions = Record<string, unknown>
+
+export enum TransactHookTypes {
+    beforeSign = 'beforeSign',
+    afterSign = 'afterSign',
+    beforeBroadcast = 'beforeBroadcast',
+    afterBroadcast = 'afterBroadcast',
+}
+
+export type TransactHook = (
+    request: SigningRequest,
+    context: TransactContext
+) => Promise<TransactHookResponse>
+
+export interface TransactHooks {
+    afterSign: TransactHook[]
+    beforeSign: TransactHook[]
+    afterBroadcast: TransactHook[]
+    beforeBroadcast: TransactHook[]
+}
+
+export interface TransactHookResponse {
+    request: SigningRequest
+    signatures?: Signature[]
+}
+
+export interface WalletPluginOptions {
+    name?: string
+}
+
+export interface WalletPluginLoginOptions {
+    appName: Name
+    chains: ChainDefinition[]
+    context: SessionOptions
+}
+
+export interface WalletPluginLoginResponse {
+    chain: ChainDefinition
+    permissionLevel: PermissionLevel
+}
+
+export interface WalletPlugin {
+    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
+    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+}
+
+export abstract class AbstractWalletPlugin implements WalletPlugin {
+    public abstract login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
+    public abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+}
+
+/**
+ * Options for creating a new context for a [[Session.transact]] call.
+ */
+export interface TransactContextOptions {
+    client: APIClient
+    session: PermissionLevel
+    transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+}
+
+/**
+ * Temporary context created for the duration of a [[Session.transact]] call.
+ *
+ * This context is used to store the state of the transact request and
+ * provide a way for plugins to add hooks into the process.
+ */
+export class TransactContext {
+    client: APIClient
+    hooks: TransactHooks = {
+        afterBroadcast: [],
+        afterSign: [],
+        beforeBroadcast: [],
+        beforeSign: [],
+    }
+    session: PermissionLevel
+    transactPluginsOptions: TransactPluginsOptions
+    constructor(options: TransactContextOptions) {
+        this.client = options.client
+        this.session = options.session
+        this.transactPluginsOptions = options.transactPluginsOptions || {}
+        options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
+            plugin.register(this)
+        })
+    }
+    addHook(t: TransactHookTypes, hook: TransactHook) {
+        this.hooks[t].push(hook)
+    }
+}
+
+/**
+ * Payload accepted by the [[Session.transact]] method.
+ * Note that one of `action`, `actions` or `transaction` must be set.
+ */
+export interface TransactArgs {
+    /** Full transaction to sign. */
+    transaction?: AnyTransaction
+    /** Action to sign. */
+    action?: AnyAction
+    /** Actions to sign. */
+    actions?: AnyAction[]
+    /** An ESR payload */
+    request?: SigningRequest | string
+}
+
+/**
+ * Options for the [[Session.transact]] method.
+ */
+export interface TransactOptions {
+    /**
+     * Whether to allow the signer to make modifications to the request
+     * (e.g. applying a cosigner action to pay for resources).
+     *
+     * Defaults to true if [[broadcast]] is true or unspecified; otherwise false.
+     */
+    allowModify?: boolean
+    /**
+     * Whether to broadcast the transaction or just return the signature.
+     * Defaults to true.
+     */
+    broadcast?: boolean
+    /**
+     * Chain to use when configured with multiple chains.
+     */
+    chain?: Checksum256Type
+    /**
+     * Specific transact plugins to use for this transaction.
+     */
+    transactPlugins?: AbstractTransactPlugin[]
+    /**
+     * Optional parameters passed in to the various transact plugins.
+     */
+    transactPluginsOptions?: TransactPluginsOptions
+}
+
+/**
+ * The response from a [[Session.transact]] call.
+ */
+export interface TransactResult {
+    /** The chain that was used. */
+    chain: ChainDefinition
+    /** The SigningRequest representation of the transaction. */
+    request: SigningRequest
+    /** The ResolvedSigningRequest of the transaction */
+    resolved: ResolvedSigningRequest | undefined
+    /** The transaction signatures. */
+    signatures: Signature[]
+    /** The signer authority. */
+    signer: PermissionLevel
+    /** The resulting transaction. */
+    transaction: ResolvedTransaction | undefined
+    /** Push transaction response from api node, only present if transaction was broadcast. */
+    processed?: {[key: string]: any}
+}
+
+/**
+ * Interface which a [[Session.transact]] plugin must implement.
+ */
+export interface TransactPlugin {
+    register: (context: TransactContext) => void
+}
+
+/**
+ * Abstract class for [[Session.transact]] plugins to extend.
+ */
+export abstract class AbstractTransactPlugin implements TransactPlugin {
+    public abstract register(context: TransactContext): void
+}
+
+export class BaseTransactPlugin extends AbstractTransactPlugin {
+    register() {
+        // console.log('Register hooks via context.addHook')
+    }
+}
+
+/**
+ * Options for creating a new instance of a [[Session]].
+ */
+export interface SessionOptions {
+    chain: ChainDefinitionType
+    client?: APIClient
+    fetch?: Fetch
+    permissionLevel: PermissionLevelType | string
+    transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+    walletPlugin: WalletPlugin
+}
 
 export class Session {
     readonly chain: ChainDefinition
@@ -165,14 +351,9 @@ export class Session {
         const allowModify =
             options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
 
+        // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : true
-
-        // Determine which set of hooks to use, with hooks specified in the options taking priority
-        // const afterBroadcastHooks = options?.hooks?.afterBroadcast || this.hooks.afterBroadcast
-        // const afterSignHooks = options?.hooks?.afterBroadcast || this.hooks.afterSign
-        // const beforeBroadcastHooks = options?.hooks?.beforeBroadcast || this.hooks.beforeBroadcast
-        // const beforeSignHooks = options?.hooks?.beforeSign || this.hooks.beforeSign
 
         // Run the `beforeSign` hooks
         context.hooks.beforeSign.forEach(async (hook) => {

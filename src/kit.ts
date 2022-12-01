@@ -5,24 +5,106 @@ import {
     FetchProvider,
     FetchProviderOptions,
     Name,
+    NameType,
     PermissionLevel,
+    PermissionLevelType,
 } from '@greymass/eosio'
 
+import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+
 import {
-    AbstractLoginPlugin,
     AbstractTransactPlugin,
-    ChainDefinition,
-    Fetch,
-    LoginOptions,
-    SessionKitOptions,
+    BaseTransactPlugin,
+    Session,
     SessionOptions,
+    TransactPlugin,
+    TransactPluginsOptions,
     WalletPlugin,
     WalletPluginLoginOptions,
-} from './types'
+} from './session'
 
-import {BaseLoginPlugin, BaseTransactPlugin} from './plugins'
-import {Session} from './session'
-import {TransactPluginsOptions} from './types'
+export enum LoginHookTypes {
+    beforeLogin = 'beforeLogin',
+    afterLogin = 'afterLogin',
+}
+
+export type LoginHook = (context: SessionOptions) => Promise<void>
+
+export interface LoginHooks {
+    afterLogin: LoginHook[]
+    beforeLogin: LoginHook[]
+}
+
+/**
+ * Options for creating a new context for a [[Kit.login]] call.
+ */
+export interface LoginContextOptions {
+    client: APIClient
+    loginPlugins?: AbstractLoginPlugin[]
+}
+
+/**
+ * Temporary context created for the duration of a [[Kit.login]] call.
+ *
+ * This context is used to store the state of the login request and
+ * provide a way for plugins to add hooks into the process.
+ */
+export class LoginContext {
+    client: APIClient
+    hooks: LoginHooks = {
+        afterLogin: [],
+        beforeLogin: [],
+    }
+    constructor(options: LoginContextOptions) {
+        this.client = options.client
+        options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
+            plugin.register(this)
+        })
+    }
+    addHook(t: LoginHookTypes, hook: LoginHook) {
+        this.hooks[t].push(hook)
+    }
+}
+
+/**
+ * Payload accepted by the [[Kit.login]] method.
+ */
+export interface LoginPlugin {
+    register: (context: LoginContext) => void
+}
+
+/**
+ * Abstract class for [[Kit.login]] plugins to extend.
+ */
+export abstract class AbstractLoginPlugin implements LoginPlugin {
+    public abstract register(context: LoginContext): void
+}
+
+export class BaseLoginPlugin extends AbstractLoginPlugin {
+    register() {
+        // console.log('Register hooks via context.addHook')
+    }
+}
+
+export interface LoginOptions {
+    chain?: Checksum256Type
+    client?: APIClient
+    loginPlugins?: LoginPlugin[]
+    transactPlugins?: TransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+    permissionLevel?: PermissionLevelType | string
+    walletPlugin?: WalletPlugin
+}
+
+export interface SessionKitOptions {
+    appName: NameType
+    chains: ChainDefinitionType[]
+    fetch?: Fetch
+    loginPlugins?: LoginPlugin[]
+    transactPlugins?: TransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+    walletPlugins: WalletPlugin[]
+}
 
 /**
  * Request a session from an account.
