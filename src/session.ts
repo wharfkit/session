@@ -369,8 +369,8 @@ export class Session {
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
 
         // Run the `beforeSign` hooks
-        for (const fn of context.hooks.beforeSign) {
-            const response = await fn(result.request.clone(), context)
+        for (const hook of context.hooks.beforeSign) {
+            const response = await hook(result.request.clone(), context)
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
             if (allowModify) {
                 result.request = response.request.clone()
