@@ -368,13 +368,13 @@ export class Session {
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
 
         // Run the `beforeSign` hooks
-        context.hooks.beforeSign.forEach(async (hook) => {
+        for (const fn of context.hooks.beforeSign) {
+            const response = await fn(result.request.clone(), context)
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
-            const response = await hook(result.request.clone(), context)
             if (allowModify) {
                 result.request = response.request.clone()
             }
-        })
+        }
 
         // Resolve SigningRequest with authority + tapos
         const info = await context.client.v1.chain.get_info()
@@ -389,22 +389,20 @@ export class Session {
         result.signatures.push(signature)
 
         // Run the `afterSign` hooks
-        context.hooks.afterSign.forEach(async (hook) => await hook(result.request.clone(), context))
+        for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
 
         // Broadcast transaction if requested
         if (willBroadcast) {
             // Run the `beforeBroadcast` hooks
-            context.hooks.beforeBroadcast.forEach(
-                async (hook) => await hook(result.request.clone(), context)
-            )
+            for (const hook of context.hooks.beforeBroadcast)
+                await hook(result.request.clone(), context)
 
             // broadcast transaction
             // TODO: Implement broadcast
 
             // Run the `afterBroadcast` hooks
-            context.hooks.afterBroadcast.forEach(
-                async (hook) => await hook(result.request.clone(), context)
-            )
+            for (const hook of context.hooks.afterBroadcast)
+                await hook(result.request.clone(), context)
         }
 
         return result
