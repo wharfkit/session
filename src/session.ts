@@ -10,6 +10,7 @@ import {
     PermissionLevel,
     PermissionLevelType,
     Signature,
+    SignedTransaction,
 } from '@greymass/eosio'
 import {
     AbiProvider,
@@ -166,14 +167,14 @@ export interface TransactResult {
     request: SigningRequest
     /** The ResolvedSigningRequest of the transaction */
     resolved: ResolvedSigningRequest | undefined
+    /** The response from the API after sending the transaction, only present if transaction was broadcast. */
+    response?: {[key: string]: any}
     /** The transaction signatures. */
     signatures: Signature[]
     /** The signer authority. */
     signer: PermissionLevel
     /** The resulting transaction. */
     transaction: ResolvedTransaction | undefined
-    /** Push transaction response from api node, only present if transaction was broadcast. */
-    processed?: {[key: string]: any}
 }
 
 /**
@@ -381,6 +382,8 @@ export class Session {
         const expireSeconds = 120 // TODO: Needs to be configurable by parameters
         const header = info.getTransactionHeader(expireSeconds)
         const abis = await result.request.fetchAbis() // TODO: ABI Cache Implementation
+
+        // Resolve the request and
         result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
         result.transaction = result.resolved.resolvedTransaction
 
@@ -397,8 +400,14 @@ export class Session {
             for (const hook of context.hooks.beforeBroadcast)
                 await hook(result.request.clone(), context)
 
-            // broadcast transaction
-            // TODO: Implement broadcast
+            // Assemble the signed transaction to broadcast
+            const signed = SignedTransaction.from({
+                ...result.resolved.transaction,
+                signatures: result.signatures,
+            })
+
+            // Broadcast the signed transaction
+            result.response = await context.client.v1.chain.send_transaction(signed)
 
             // Run the `afterBroadcast` hooks
             for (const hook of context.hooks.afterBroadcast)
