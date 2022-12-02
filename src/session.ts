@@ -383,7 +383,7 @@ export class Session {
         const header = info.getTransactionHeader(expireSeconds)
         const abis = await result.request.fetchAbis() // TODO: ABI Cache Implementation
 
-        // Resolve the request and
+        // Resolve the request and get the resolved transaction
         result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
         result.transaction = result.resolved.resolvedTransaction
 
