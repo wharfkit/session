@@ -10,7 +10,7 @@ const writeFile = promisify(_writeFile)
 export class MockProvider implements APIProvider {
     recordProvider = new FetchProvider(this.api, {fetch})
 
-    constructor(private api: string = 'https://jungle3.greymass.com') {}
+    constructor(private api: string = 'https://jungle4.greymass.com') {}
 
     getFilename(path: string, params?: unknown) {
         const digest = Checksum160.hash(

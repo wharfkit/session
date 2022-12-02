@@ -21,7 +21,7 @@ export function makeMockAction(memo?: string): Action {
         authorization: [
             {
                 actor: 'corecorecore',
-                permission: 'active',
+                permission: 'test',
             },
         ],
         account: 'eosio.token',

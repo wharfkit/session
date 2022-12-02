@@ -1,0 +1,38 @@
+{
+    "headers": {
+        "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "access-control-allow-origin": "*",
+        "connection": "close",
+        "content-length": "964",
+        "content-type": "application/json",
+        "date": "Fri, 02 Dec 2022 02:29:51 GMT",
+        "host": "jungle4.greymass.com",
+        "server": "nginx/1.18.0 (Ubuntu)",
+        "x-cached": "MISS"
+    },
+    "status": 200,
+    "json": {
+        "server_version": "9efc569a",
+        "chain_id": "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+        "head_block_num": 48473524,
+        "last_irreversible_block_num": 48473193,
+        "last_irreversible_block_id": "02e3a469f12cd6e3128a7a597d3b7183389e168d780adb7a3b99bf24a4d751c9",
+        "head_block_id": "02e3a5b4761b7a99cbeeb842ccddb2eefeb754a268d1f580d68020b27eed12fa",
+        "head_block_time": "2022-12-02T02:29:51.000",
+        "head_block_producer": "gorillapower",
+        "virtual_block_cpu_limit": 200000000,
+        "virtual_block_net_limit": 1048576000,
+        "block_cpu_limit": 200000,
+        "block_net_limit": 1048576,
+        "server_version_string": "v3.2.0",
+        "fork_db_head_block_num": 48473524,
+        "fork_db_head_block_id": "02e3a5b4761b7a99cbeeb842ccddb2eefeb754a268d1f580d68020b27eed12fa",
+        "server_full_version_string": "v3.2.0-9efc569ae5eed75a6dd6c6ada67ef80eb3bbf366",
+        "total_cpu_weight": "120460591281655",
+        "total_net_weight": "117529133993355",
+        "earliest_available_block_num": 48419247,
+        "last_irreversible_block_time": "2022-12-02T02:27:05.500"
+    },
+    "text": "{\"server_version\":\"9efc569a\",\"chain_id\":\"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d\",\"head_block_num\":48473524,\"last_irreversible_block_num\":48473193,\"last_irreversible_block_id\":\"02e3a469f12cd6e3128a7a597d3b7183389e168d780adb7a3b99bf24a4d751c9\",\"head_block_id\":\"02e3a5b4761b7a99cbeeb842ccddb2eefeb754a268d1f580d68020b27eed12fa\",\"head_block_time\":\"2022-12-02T02:29:51.000\",\"head_block_producer\":\"gorillapower\",\"virtual_block_cpu_limit\":200000000,\"virtual_block_net_limit\":1048576000,\"block_cpu_limit\":200000,\"block_net_limit\":1048576,\"server_version_string\":\"v3.2.0\",\"fork_db_head_block_num\":48473524,\"fork_db_head_block_id\":\"02e3a5b4761b7a99cbeeb842ccddb2eefeb754a268d1f580d68020b27eed12fa\",\"server_full_version_string\":\"v3.2.0-9efc569ae5eed75a6dd6c6ada67ef80eb3bbf366\",\"total_cpu_weight\":\"120460591281655\",\"total_net_weight\":\"117529133993355\",\"earliest_available_block_num\":48419247,\"last_irreversible_block_time\":\"2022-12-02T02:27:05.500\"}"
+}

@@ -6,20 +6,27 @@ import {PermissionLevel} from '@greymass/eosio'
 
 import {makeClient} from '$test/utils/mock-provider'
 import {makeWallet} from '$test/utils/mock-wallet'
-import {MockTransactPlugin} from '$test/utils/mock-hook'
+import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
 import {nodejsUsage} from './use-cases/general/nodejs'
+import {makeMockAction} from '$test/utils/mock-transfer'
 
 const client = makeClient()
 const wallet = makeWallet()
+const action = makeMockAction()
 
 const mockSessionOptions: SessionOptions = {
+    broadcast: false, // Disable broadcasting by default for tests, enable when required.
     chain: ChainDefinition.from({
-        id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-        url: 'https://jungle3.greymass.com',
+        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+        url: 'https://jungle4.greymass.com',
     }),
     client,
-    permissionLevel: PermissionLevel.from('wharfkit@session'),
+    permissionLevel: PermissionLevel.from('corecorecore@test'),
     walletPlugin: wallet,
+}
+
+const mockTransactOptions = {
+    transactPlugins: [new MockTransactResourceProviderPlugin()],
 }
 
 suite('session', function () {
@@ -34,12 +41,77 @@ suite('session', function () {
             assert.instanceOf(session, Session)
         })
         suite('options', function () {
-            suite('passed as', function () {
-                test('typed', async function () {
+            suite('allowModify', function () {
+                test('default: true', async function () {
+                    const result = await session.transact({action}, mockTransactOptions)
+                    if (result && result.transaction && result.transaction.actions) {
+                        assert.lengthOf(result.transaction.actions, 2)
+                    } else {
+                        assert.fail('Transaction with actions was not returned in result.')
+                    }
+                })
+                test('true', async function () {
+                    const testSession = new Session({
+                        ...mockSessionOptions,
+                        allowModify: true,
+                    })
+                    const result = await testSession.transact({action}, mockTransactOptions)
+                    if (result && result.transaction && result.transaction.actions) {
+                        assert.lengthOf(result.transaction.actions, 2)
+                    } else {
+                        assert.fail('Transaction with actions was not returned in result.')
+                    }
+                })
+                test('false', async function () {
+                    const testSession = new Session({
+                        ...mockSessionOptions,
+                        allowModify: false,
+                    })
+                    const result = await testSession.transact({action}, mockTransactOptions)
+                    if (result && result.transaction && result.transaction.actions) {
+                        assert.lengthOf(result.transaction.actions, 1)
+                    } else {
+                        assert.fail('Transaction with actions was not returned in result.')
+                    }
+                })
+            })
+            suite('broadcast', function () {
+                test('default: true', async function () {
                     const testSession = new Session({
                         chain: ChainDefinition.from({
-                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                            url: 'https://jungle3.greymass.com',
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
+                        }),
+                        client,
+                        permissionLevel: PermissionLevel.from('corecorecore@test'),
+                        walletPlugin: wallet,
+                    })
+                    const result = await testSession.transact({action})
+                    assert.isDefined(result.response)
+                })
+                test('true', async function () {
+                    const testSession = new Session({
+                        ...mockSessionOptions,
+                        broadcast: true,
+                    })
+                    const result = await testSession.transact({action}, {broadcast: true})
+                    assert.isDefined(result.response)
+                })
+                test('false', async function () {
+                    const testSession = new Session({
+                        ...mockSessionOptions,
+                        broadcast: false,
+                    })
+                    const result = await testSession.transact({action}, {broadcast: false})
+                    assert.isUndefined(result.response)
+                })
+            })
+            suite('passed as', function () {
+                test('typed values', async function () {
+                    const testSession = new Session({
+                        chain: ChainDefinition.from({
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
                         }),
                         client,
                         permissionLevel: PermissionLevel.from('account@permission'),
@@ -47,11 +119,11 @@ suite('session', function () {
                     })
                     assert.instanceOf(testSession, Session)
                 })
-                test('untyped', async function () {
+                test('untyped values', async function () {
                     const testSession = new Session({
                         chain: {
-                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                            url: 'https://jungle3.greymass.com',
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
                         },
                         client,
                         permissionLevel: 'account@permission',
@@ -66,8 +138,8 @@ suite('session', function () {
                         appName: 'demo.app',
                         chains: [
                             {
-                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                                url: 'https://jungle3.greymass.com',
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
                             },
                         ],
                         fetch,
@@ -83,8 +155,8 @@ suite('session', function () {
                         appName: 'demo.app',
                         chains: [
                             {
-                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                                url: 'https://jungle3.greymass.com',
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
                             },
                         ],
                         fetch,
@@ -101,8 +173,8 @@ suite('session', function () {
                         appName: 'demo.app',
                         chains: [
                             {
-                                id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                                url: 'https://jungle3.greymass.com',
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
                             },
                         ],
                         fetch,

@@ -16,10 +16,10 @@ import {makeClient} from '$test/utils/mock-provider'
  */
 const sessionOptions: SessionOptions = {
     chain: {
-        id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-        url: 'https://jungle3.greymass.com',
+        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+        url: 'https://jungle4.greymass.com',
     },
-    permissionLevel: 'wharfkit@session',
+    permissionLevel: 'corecorecore@test',
     walletPlugin: new WalletPluginPrivateKey({
         privateKey: '5JnUd2V5nYmRKgK9K2fRQcs3qKoi4mbcGV8Dg8EFqjjqEp9tYP5',
     }),
@@ -51,7 +51,7 @@ export const nodejsUsage = () => {
                     authorization: [
                         {
                             actor: 'corecorecore',
-                            permission: 'active',
+                            permission: 'test',
                         },
                     ],
                     account: 'eosio.token',
