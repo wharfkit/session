@@ -200,6 +200,8 @@ export class BaseTransactPlugin extends AbstractTransactPlugin {
  * Options for creating a new instance of a [[Session]].
  */
 export interface SessionOptions {
+    allowModify?: boolean
+    broadcast?: boolean
     chain: ChainDefinitionType
     client?: APIClient
     fetch?: Fetch
@@ -210,6 +212,8 @@ export interface SessionOptions {
 }
 
 export class Session {
+    readonly allowModify: boolean = true
+    readonly broadcast: boolean = true
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly transactPlugins: TransactPlugin[]
@@ -219,6 +223,12 @@ export class Session {
 
     constructor(options: SessionOptions) {
         this.chain = ChainDefinition.from(options.chain)
+        if (options.allowModify !== undefined) {
+            this.allowModify = options.allowModify
+        }
+        if (options.broadcast !== undefined) {
+            this.broadcast = options.broadcast
+        }
         if (options.client) {
             this.client = options.client
         } else {
@@ -349,11 +359,13 @@ export class Session {
 
         // Whether or not the request should be able to be modified by beforeSign hooks
         const allowModify =
-            options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
+            options && typeof options.allowModify !== 'undefined'
+                ? options.allowModify
+                : this.allowModify
 
         // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
-            options && typeof options.broadcast !== 'undefined' ? options.broadcast : true
+            options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
 
         // Run the `beforeSign` hooks
         context.hooks.beforeSign.forEach(async (hook) => {
