@@ -4,6 +4,7 @@ import {
     LoginHook,
     SessionOptions,
     SigningRequest,
+    Struct,
     TransactContext,
     TransactHookResponse,
     TransactHookTypes,
@@ -47,23 +48,23 @@ export async function mockTransactResourceProviderPresignHook(
     }
     // Clone the request for modification
     const cloned = request.clone()
-    // Couldn't work with normal objects here
     // Needed to load the ABI and work with an `Action` object
-    const abi = (await context.client.v1.chain.get_abi('greymassnoop')).abi
-    const newAction = Action.from(
-        {
-            account: 'greymassnoop',
-            name: 'noop',
-            authorization: [
-                {
-                    actor: 'greymassfuel',
-                    permission: 'cosign',
-                },
-            ],
-            data: {},
-        },
-        abi
-    )
+    class noop extends Struct {
+        static abiName = 'noop'
+        static abiFields = []
+    }
+    const newAction = Action.from({
+        account: 'greymassnoop',
+        name: 'noop',
+        authorization: [
+            {
+                actor: 'greymassfuel',
+                permission: 'cosign',
+            },
+        ],
+        data: noop.from({}),
+    })
+    // TODO: Couldn't work with normal objects here
     // Needs to do a bunch of conditional logic - shoulnd't be required for a hook
     if (cloned.data.req.value instanceof Action) {
         // Overwrite the data

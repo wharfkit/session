@@ -39,7 +39,7 @@ export const beforeSignHooks = () => {
             const request = await SigningRequest.create(
                 {
                     actions: [makeMockAction(), makeMockAction()],
-                    chainId: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                    chainId: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                 },
                 {zlib}
             )
@@ -59,7 +59,7 @@ export const beforeSignHooks = () => {
             const request = await SigningRequest.create(
                 {
                     transaction: makeMockTransaction(await client.v1.chain.get_info()),
-                    chainId: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
+                    chainId: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                 },
                 {zlib}
             )

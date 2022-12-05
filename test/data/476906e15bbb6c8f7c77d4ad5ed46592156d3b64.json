@@ -5,10 +5,10 @@
         "access-control-allow-origin": "*",
         "access-control-request-method": "*",
         "connection": "close",
-        "content-length": "741",
-        "date": "Thu, 27 Oct 2022 22:11:23 GMT",
-        "host": "jungle3.greymass.com",
-        "server": "nginx"
+        "content-length": "740",
+        "date": "Fri, 02 Dec 2022 02:31:09 GMT",
+        "host": "jungle4.greymass.com",
+        "server": "nginx/1.18.0 (Ubuntu)"
     },
     "status": 200,
     "json": {
@@ -17,9 +17,9 @@
             "request": [
                 "transaction",
                 {
-                    "expiration": "2022-10-27T22:16:23",
-                    "ref_block_num": 20147,
-                    "ref_block_prefix": 319727917,
+                    "expiration": "2022-12-02T02:36:10",
+                    "ref_block_num": 42245,
+                    "ref_block_prefix": 2718870972,
                     "max_net_usage_words": 0,
                     "max_cpu_usage_ms": 5,
                     "delay_sec": 0,
@@ -42,7 +42,7 @@
                             "authorization": [
                                 {
                                     "actor": "corecorecore",
-                                    "permission": "active"
+                                    "permission": "test"
                                 }
                             ],
                             "data": "a02e45ea52a42e4580b1915e5d268dca390500000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
@@ -52,10 +52,10 @@
                 }
             ],
             "signatures": [
-                "SIG_K1_K5ZV99k2PU4HD9KdJuaBYvSrX1XhFr2bumJK8PEhWpneGykvn9ZNJhtAHmD9JVZsNZFXsnDDZ7fYRaaZQ2x49ydJ1PLd3J"
+                "SIG_K1_JwsMVHZ3mM36iAb2nxFmEDyYNJCBCwcx2YaCbSfHncX3kRBKsyaAYH9k99RS6tcSLJ1mL15zQiRHrotA9QhgbLXFTPgdF5"
             ],
             "version": null
         }
     },
-    "text": "{\"code\":200,\"data\":{\"request\":[\"transaction\",{\"expiration\":\"2022-10-27T22:16:23\",\"ref_block_num\":20147,\"ref_block_prefix\":319727917,\"max_net_usage_words\":0,\"max_cpu_usage_ms\":5,\"delay_sec\":0,\"context_free_actions\":[],\"actions\":[{\"account\":\"greymassnoop\",\"name\":\"noop\",\"authorization\":[{\"actor\":\"greymassfuel\",\"permission\":\"cosign\"}],\"data\":\"\"},{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"corecorecore\",\"permission\":\"active\"}],\"data\":\"a02e45ea52a42e4580b1915e5d268dca390500000000000004454f53000000001777686172666b6974206973207468652062657374203c33\"}],\"transaction_extensions\":[]}],\"signatures\":[\"SIG_K1_K5ZV99k2PU4HD9KdJuaBYvSrX1XhFr2bumJK8PEhWpneGykvn9ZNJhtAHmD9JVZsNZFXsnDDZ7fYRaaZQ2x49ydJ1PLd3J\"],\"version\":null}}"
+    "text": "{\"code\":200,\"data\":{\"request\":[\"transaction\",{\"expiration\":\"2022-12-02T02:36:10\",\"ref_block_num\":42245,\"ref_block_prefix\":2718870972,\"max_net_usage_words\":0,\"max_cpu_usage_ms\":5,\"delay_sec\":0,\"context_free_actions\":[],\"actions\":[{\"account\":\"greymassnoop\",\"name\":\"noop\",\"authorization\":[{\"actor\":\"greymassfuel\",\"permission\":\"cosign\"}],\"data\":\"\"},{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"corecorecore\",\"permission\":\"test\"}],\"data\":\"a02e45ea52a42e4580b1915e5d268dca390500000000000004454f53000000001777686172666b6974206973207468652062657374203c33\"}],\"transaction_extensions\":[]}],\"signatures\":[\"SIG_K1_JwsMVHZ3mM36iAb2nxFmEDyYNJCBCwcx2YaCbSfHncX3kRBKsyaAYH9k99RS6tcSLJ1mL15zQiRHrotA9QhgbLXFTPgdF5\"],\"version\":null}}"
 }

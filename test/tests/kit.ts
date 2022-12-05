@@ -11,8 +11,8 @@ const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
     chains: [
         {
-            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-            url: 'https://jungle3.greymass.com',
+            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+            url: 'https://jungle4.greymass.com',
         },
     ],
     fetch,
@@ -59,14 +59,14 @@ suite('kit', function () {
         test('specify permission (typed)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: PermissionLevel.from('wharfkit@session'),
+                permissionLevel: PermissionLevel.from('corecorecore@test'),
             })
             assert.instanceOf(session, Session)
         })
         test('specify permission (untyped)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: 'wharfkit@session',
+                permissionLevel: 'corecorecore@test',
             })
             assert.instanceOf(session, Session)
         })

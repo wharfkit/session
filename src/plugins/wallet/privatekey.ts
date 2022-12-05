@@ -35,7 +35,7 @@ export class WalletPluginPrivateKey implements WalletPlugin {
         }
     }
     sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Signature {
-        const transaction = Transaction.from(resolved.request.getRawTransaction())
+        const transaction = Transaction.from(resolved.transaction)
         const digest = transaction.signingDigest(Checksum256.from(chain.id))
         return this.privateKey.signDigest(digest)
     }

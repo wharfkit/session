@@ -22,12 +22,13 @@ const client = makeClient()
 const wallet = makeWallet()
 
 const mockSessionOptions: SessionOptions = {
+    broadcast: false, // Disable broadcasting by default for tests, enable when required.
     chain: ChainDefinition.from({
-        id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-        url: 'https://jungle3.greymass.com',
+        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+        url: 'https://jungle4.greymass.com',
     }),
     client,
-    permissionLevel: PermissionLevel.from('wharfkit@session'),
+    permissionLevel: PermissionLevel.from('corecorecore@test'),
     walletPlugin: wallet,
 }
 
@@ -207,22 +208,31 @@ suite('transact', function () {
         })
         suite('broadcast', function () {
             test('default: true', async function () {
-                const {action, session} = await mockData()
+                const {action} = await mockData()
+                const session = new Session({
+                    chain: ChainDefinition.from({
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    }),
+                    client,
+                    permissionLevel: PermissionLevel.from('corecorecore@test'),
+                    walletPlugin: wallet,
+                })
                 const result = await session.transact({action})
+                assert.isDefined(result.response)
                 assetValidTransactResponse(result)
-                // TODO: complete test and ensure is broadcast
             })
             test('true', async function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: true})
+                assert.isDefined(result.response)
                 assetValidTransactResponse(result)
-                // TODO: complete test and ensure is broadcast
             })
             test('false', async function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action}, {broadcast: false})
+                assert.isUndefined(result.response)
                 assetValidTransactResponse(result)
-                // TODO: complete test and ensure is NOT broadcast
             })
         })
         suite('transactPlugins', function () {
@@ -346,8 +356,8 @@ suite('transact', function () {
                     appName: 'demo.app',
                     chains: [
                         {
-                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                            url: 'https://jungle3.greymass.com',
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
                         },
                     ],
                     fetch,
@@ -372,8 +382,8 @@ suite('transact', function () {
                     appName: 'demo.app',
                     chains: [
                         {
-                            id: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                            url: 'https://jungle3.greymass.com',
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
                         },
                     ],
                     fetch,
@@ -399,7 +409,7 @@ suite('transact', function () {
     suite('response', function () {
         test('type check', async function () {
             const {session, transaction} = await mockData()
-            const result = await session.transact(transaction)
+            const result = await session.transact(transaction, {broadcast: false})
             assetValidTransactResponse(result)
         })
         test('decoded transaction', async function () {
@@ -453,7 +463,7 @@ suite('transact', function () {
         test('valid signatures', async function () {
             const {action, session} = await mockData()
             const result = await session.transact({action})
-            const transaction = result.resolved?.request.getRawTransaction()
+            const transaction = result.resolved?.transaction
             if (transaction) {
                 const digest = transaction.signingDigest(mockSessionOptions.chain.id)
                 const [signature] = result.signatures

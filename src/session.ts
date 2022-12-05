@@ -10,6 +10,7 @@ import {
     PermissionLevel,
     PermissionLevelType,
     Signature,
+    SignedTransaction,
 } from '@greymass/eosio'
 import {
     AbiProvider,
@@ -166,14 +167,14 @@ export interface TransactResult {
     request: SigningRequest
     /** The ResolvedSigningRequest of the transaction */
     resolved: ResolvedSigningRequest | undefined
+    /** The response from the API after sending the transaction, only present if transaction was broadcast. */
+    response?: {[key: string]: any}
     /** The transaction signatures. */
     signatures: Signature[]
     /** The signer authority. */
     signer: PermissionLevel
     /** The resulting transaction. */
     transaction: ResolvedTransaction | undefined
-    /** Push transaction response from api node, only present if transaction was broadcast. */
-    processed?: {[key: string]: any}
 }
 
 /**
@@ -200,6 +201,8 @@ export class BaseTransactPlugin extends AbstractTransactPlugin {
  * Options for creating a new instance of a [[Session]].
  */
 export interface SessionOptions {
+    allowModify?: boolean
+    broadcast?: boolean
     chain: ChainDefinitionType
     client?: APIClient
     fetch?: Fetch
@@ -210,6 +213,8 @@ export interface SessionOptions {
 }
 
 export class Session {
+    readonly allowModify: boolean = true
+    readonly broadcast: boolean = true
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly transactPlugins: TransactPlugin[]
@@ -219,6 +224,12 @@ export class Session {
 
     constructor(options: SessionOptions) {
         this.chain = ChainDefinition.from(options.chain)
+        if (options.allowModify !== undefined) {
+            this.allowModify = options.allowModify
+        }
+        if (options.broadcast !== undefined) {
+            this.broadcast = options.broadcast
+        }
         if (options.client) {
             this.client = options.client
         } else {
@@ -349,26 +360,30 @@ export class Session {
 
         // Whether or not the request should be able to be modified by beforeSign hooks
         const allowModify =
-            options && typeof options.allowModify !== 'undefined' ? options.allowModify : true
+            options && typeof options.allowModify !== 'undefined'
+                ? options.allowModify
+                : this.allowModify
 
         // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
-            options && typeof options.broadcast !== 'undefined' ? options.broadcast : true
+            options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
 
         // Run the `beforeSign` hooks
-        context.hooks.beforeSign.forEach(async (hook) => {
-            // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
+        for (const hook of context.hooks.beforeSign) {
             const response = await hook(result.request.clone(), context)
+            // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
             if (allowModify) {
                 result.request = response.request.clone()
             }
-        })
+        }
 
         // Resolve SigningRequest with authority + tapos
         const info = await context.client.v1.chain.get_info()
         const expireSeconds = 120 // TODO: Needs to be configurable by parameters
         const header = info.getTransactionHeader(expireSeconds)
         const abis = await result.request.fetchAbis() // TODO: ABI Cache Implementation
+
+        // Resolve the request and get the resolved transaction
         result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
         result.transaction = result.resolved.resolvedTransaction
 
@@ -377,22 +392,26 @@ export class Session {
         result.signatures.push(signature)
 
         // Run the `afterSign` hooks
-        context.hooks.afterSign.forEach(async (hook) => await hook(result.request.clone(), context))
+        for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
 
         // Broadcast transaction if requested
         if (willBroadcast) {
             // Run the `beforeBroadcast` hooks
-            context.hooks.beforeBroadcast.forEach(
-                async (hook) => await hook(result.request.clone(), context)
-            )
+            for (const hook of context.hooks.beforeBroadcast)
+                await hook(result.request.clone(), context)
 
-            // broadcast transaction
-            // TODO: Implement broadcast
+            // Assemble the signed transaction to broadcast
+            const signed = SignedTransaction.from({
+                ...result.resolved.transaction,
+                signatures: result.signatures,
+            })
+
+            // Broadcast the signed transaction
+            result.response = await context.client.v1.chain.send_transaction(signed)
 
             // Run the `afterBroadcast` hooks
-            context.hooks.afterBroadcast.forEach(
-                async (hook) => await hook(result.request.clone(), context)
-            )
+            for (const hook of context.hooks.afterBroadcast)
+                await hook(result.request.clone(), context)
         }
 
         return result

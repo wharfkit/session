@@ -4,10 +4,10 @@
         "access-control-allow-methods": "GET, POST, OPTIONS",
         "access-control-allow-origin": "*",
         "connection": "close",
-        "content-length": "239",
+        "content-length": "238",
         "content-type": "application/json",
-        "date": "Tue, 08 Nov 2022 02:54:09 GMT",
-        "server": "nginx"
+        "date": "Fri, 02 Dec 2022 02:29:52 GMT",
+        "server": "nginx/1.18.0 (Ubuntu)"
     },
     "status": 500,
     "json": {
@@ -21,11 +21,11 @@
                 {
                     "message": "unknown key (eosio::chain::name): ",
                     "file": "http_plugin.cpp",
-                    "line_number": 1019,
+                    "line_number": 518,
                     "method": "handle_exception"
                 }
             ]
         }
     },
-    "text": "{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":0,\"name\":\"exception\",\"what\":\"unspecified\",\"details\":[{\"message\":\"unknown key (eosio::chain::name): \",\"file\":\"http_plugin.cpp\",\"line_number\":1019,\"method\":\"handle_exception\"}]}}"
+    "text": "{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":0,\"name\":\"exception\",\"what\":\"unspecified\",\"details\":[{\"message\":\"unknown key (eosio::chain::name): \",\"file\":\"http_plugin.cpp\",\"line_number\":518,\"method\":\"handle_exception\"}]}}"
 }
