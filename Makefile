@@ -85,3 +85,7 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -rf node_modules/
+
+.PHONY: accounts
+accounts: node_modules
+	${BIN}/ts-node --project test/utils/setup/tsconfig.json test/utils/setup/accounts.ts
