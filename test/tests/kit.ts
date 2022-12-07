@@ -5,7 +5,7 @@ import {PermissionLevel} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
-import {MockFetchProvider} from '$test/utils/mock-provider'
+import {mockFetch} from '$test/utils/mock-fetch'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
@@ -15,7 +15,7 @@ const defaultSessionKitOptions: SessionKitOptions = {
             url: 'https://jungle4.greymass.com',
         },
     ],
-    fetchProvider: new MockFetchProvider(), // Required for unit tests
+    fetch: mockFetch, // Required for unit tests
     walletPlugins: [makeWallet()],
 }
 

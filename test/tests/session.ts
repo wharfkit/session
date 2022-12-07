@@ -1,16 +1,14 @@
 import {assert} from 'chai'
-import fetch from 'node-fetch'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {PermissionLevel} from '@greymass/eosio'
 
-import {makeClient, MockFetchProvider} from '$test/utils/mock-provider'
-import {makeWallet} from '$test/utils/mock-wallet'
+import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
 import {nodejsUsage} from './use-cases/general/nodejs'
 import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeWallet} from '$test/utils/mock-wallet'
 
-const client = makeClient()
 const wallet = makeWallet()
 const action = makeMockAction()
 
@@ -20,7 +18,7 @@ const mockSessionOptions: SessionOptions = {
         id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
         url: 'https://jungle4.greymass.com',
     }),
-    fetchProvider: new MockFetchProvider(), // Required for unit tests
+    fetch: mockFetch, // Required for unit tests
     permissionLevel: PermissionLevel.from('corecorecore@test'),
     walletPlugin: wallet,
 }
@@ -82,7 +80,7 @@ suite('session', function () {
                             id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                             url: 'https://jungle4.greymass.com',
                         }),
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         permissionLevel: PermissionLevel.from('corecorecore@test'),
                         walletPlugin: wallet,
                     })
@@ -113,7 +111,7 @@ suite('session', function () {
                             id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                             url: 'https://jungle4.greymass.com',
                         }),
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         permissionLevel: PermissionLevel.from('account@permission'),
                         walletPlugin: wallet,
                     })
@@ -125,7 +123,7 @@ suite('session', function () {
                             id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                             url: 'https://jungle4.greymass.com',
                         },
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         permissionLevel: 'account@permission',
                         walletPlugin: wallet,
                     })
@@ -142,7 +140,7 @@ suite('session', function () {
                                 url: 'https://jungle4.greymass.com',
                             },
                         ],
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         walletPlugins: [makeWallet()],
                     })
                     const session = await sessionKit.login()
@@ -159,7 +157,7 @@ suite('session', function () {
                                 url: 'https://jungle4.greymass.com',
                             },
                         ],
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         transactPlugins: [new MockTransactPlugin()],
                         walletPlugins: [makeWallet()],
                     })
@@ -177,7 +175,7 @@ suite('session', function () {
                                 url: 'https://jungle4.greymass.com',
                             },
                         ],
-                        fetchProvider: new MockFetchProvider(), // Required for unit tests
+                        fetch: mockFetch, // Required for unit tests
                         walletPlugins: [makeWallet()],
                     })
                     const session = await sessionKit.login({

@@ -11,8 +11,8 @@ import {assert} from 'chai'
 
 import {Session, Signature, WalletPluginPrivateKey} from '$lib'
 
-import {MockFetchProvider} from '$test/utils/mock-provider'
 import {mockChainId, mockPermissionLevel, mockPrivateKey, mockUrl} from '$test/utils/mock-config'
+import {mockFetch} from '$test/utils/mock-fetch'
 
 /**
  * Required configuration for manually establishing a session.
@@ -33,7 +33,7 @@ const sessionOptions = {
      * NOT required for normal usage of wharfkit/session
      * This is only required to execute sucessfully in a unit test environment.
      */
-    fetchProvider: new MockFetchProvider(mockUrl),
+    fetch: mockFetch,
 }
 
 export const nodejsUsage = () => {
