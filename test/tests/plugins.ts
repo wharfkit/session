@@ -3,7 +3,7 @@ import {privateKeyWallet} from './plugins/wallet/privatekey'
 
 suite('plugins', function () {
     suite('transact', function () {
-        // resourceProviderPlugin()
+        resourceProviderPlugin()
     })
     suite('wallet', function () {
         privateKeyWallet()
