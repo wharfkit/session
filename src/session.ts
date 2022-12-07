@@ -77,7 +77,8 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
-    fetchProvider: FetchProvider
+    client: APIClient
+    fetch: Fetch
     session: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -90,7 +91,8 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    readonly fetchProvider: FetchProvider
+    readonly client: APIClient
+    readonly fetch: Fetch
     readonly hooks: TransactHooks = {
         afterBroadcast: [],
         afterSign: [],
@@ -100,18 +102,13 @@ export class TransactContext {
     readonly session: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
     constructor(options: TransactContextOptions) {
-        this.fetchProvider = options.fetchProvider
+        this.client = options.client
+        this.fetch = options.fetch
         this.session = options.session
         this.transactPluginsOptions = options.transactPluginsOptions || {}
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })
-    }
-    get fetch(): Fetch {
-        return this.fetchProvider.fetch
-    }
-    get client(): APIClient {
-        return new APIClient({provider: this.fetchProvider})
     }
     addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
@@ -211,7 +208,6 @@ export interface SessionOptions {
     broadcast?: boolean
     chain: ChainDefinitionType
     fetch?: Fetch
-    fetchProvider?: FetchProvider
     permissionLevel: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -222,7 +218,7 @@ export class Session {
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
-    readonly fetchProvider: FetchProvider
+    readonly fetch: Fetch
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly permissionLevel: PermissionLevel
@@ -236,12 +232,10 @@ export class Session {
         if (options.broadcast !== undefined) {
             this.broadcast = options.broadcast
         }
-        if (options.fetchProvider) {
-            this.fetchProvider = options.fetchProvider
+        if (options.fetch) {
+            this.fetch = options.fetch
         } else {
-            this.fetchProvider = new FetchProvider(this.chain.url, {
-                fetch: getFetch(options),
-            })
+            this.fetch = getFetch(options)
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
@@ -261,6 +255,10 @@ export class Session {
 
     get permission(): Name {
         return this.permissionLevel.permission
+    }
+
+    get client(): APIClient {
+        return new APIClient({provider: new FetchProvider(this.chain.url, {fetch: this.fetch})})
     }
 
     upgradeTransaction(args) {
@@ -293,8 +291,7 @@ export class Session {
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
         const abiProvider: AbiProvider = {
             getAbi: async (account: Name): Promise<ABIDef> => {
-                const client = new APIClient({provider: this.fetchProvider})
-                const response = await client.v1.chain.get_abi(account)
+                const response = await this.client.v1.chain.get_abi(account)
                 if (!response.abi) {
                     /* istanbul ignore next */
                     throw new Error('could not load abi') // TODO: Better coverage for this
@@ -339,7 +336,8 @@ export class Session {
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
         const context = new TransactContext({
-            fetchProvider: this.fetchProvider,
+            client: this.client,
+            fetch: this.fetch,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             session: this.permissionLevel,
