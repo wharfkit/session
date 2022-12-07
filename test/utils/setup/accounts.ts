@@ -222,8 +222,7 @@ async function createAccount(
     return result
 }
 
-async function createTestPermission(account: AccountDefinition) {
-    //: Promise<TransactResult>
+async function createTestPermission(account: AccountDefinition): Promise<TransactResult> {
     const session = new Session({
         chain: {
             id,
