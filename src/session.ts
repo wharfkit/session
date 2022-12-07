@@ -3,7 +3,6 @@ import {
     AnyAction,
     AnyTransaction,
     APIClient,
-    APIClientOptions,
     Checksum256Type,
     FetchProvider,
     Name,
@@ -21,6 +20,7 @@ import {
 import zlib from 'pako'
 
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {getFetch} from './utils'
 
 export type TransactPluginsOptions = Record<string, unknown>
 
@@ -77,7 +77,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
-    client: APIClient
+    fetchProvider: FetchProvider
     session: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -90,22 +90,28 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    client: APIClient
-    hooks: TransactHooks = {
+    readonly fetchProvider: FetchProvider
+    readonly hooks: TransactHooks = {
         afterBroadcast: [],
         afterSign: [],
         beforeBroadcast: [],
         beforeSign: [],
     }
-    session: PermissionLevel
-    transactPluginsOptions: TransactPluginsOptions
+    readonly session: PermissionLevel
+    readonly transactPluginsOptions: TransactPluginsOptions
     constructor(options: TransactContextOptions) {
-        this.client = options.client
+        this.fetchProvider = options.fetchProvider
         this.session = options.session
         this.transactPluginsOptions = options.transactPluginsOptions || {}
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })
+    }
+    get fetch(): Fetch {
+        return this.fetchProvider.fetch
+    }
+    get client(): APIClient {
+        return new APIClient({provider: this.fetchProvider})
     }
     addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
@@ -204,8 +210,8 @@ export interface SessionOptions {
     allowModify?: boolean
     broadcast?: boolean
     chain: ChainDefinitionType
-    client?: APIClient
     fetch?: Fetch
+    fetchProvider?: FetchProvider
     permissionLevel: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -216,7 +222,7 @@ export class Session {
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
-    readonly client: APIClient
+    readonly fetchProvider: FetchProvider
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly permissionLevel: PermissionLevel
@@ -230,19 +236,12 @@ export class Session {
         if (options.broadcast !== undefined) {
             this.broadcast = options.broadcast
         }
-        if (options.client) {
-            this.client = options.client
+        if (options.fetchProvider) {
+            this.fetchProvider = options.fetchProvider
         } else {
-            const clientOptions: APIClientOptions = {
-                url: this.chain.url,
-            }
-            if (options.fetch) {
-                /* istanbul ignore next */
-                clientOptions.provider = new FetchProvider(this.chain.url, {
-                    fetch: options.fetch,
-                })
-            }
-            this.client = new APIClient(clientOptions)
+            this.fetchProvider = new FetchProvider(this.chain.url, {
+                fetch: getFetch(options),
+            })
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
@@ -294,7 +293,8 @@ export class Session {
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
         const abiProvider: AbiProvider = {
             getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await this.client.v1.chain.get_abi(account)
+                const client = new APIClient({provider: this.fetchProvider})
+                const response = await client.v1.chain.get_abi(account)
                 if (!response.abi) {
                     /* istanbul ignore next */
                     throw new Error('could not load abi') // TODO: Better coverage for this
@@ -339,7 +339,7 @@ export class Session {
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
         const context = new TransactContext({
-            client: this.client,
+            fetchProvider: this.fetchProvider,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             session: this.permissionLevel,
@@ -374,6 +374,10 @@ export class Session {
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
             if (allowModify) {
                 result.request = response.request.clone()
+            }
+            // If signatures were returned, append them
+            if (response.signatures) {
+                result.signatures = [...result.signatures, ...response.signatures]
             }
         }
 

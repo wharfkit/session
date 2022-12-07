@@ -3,14 +3,13 @@ import {
     Checksum256,
     Checksum256Type,
     FetchProvider,
-    FetchProviderOptions,
     Name,
     NameType,
     PermissionLevel,
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {ChainDefinition, ChainDefinitionType} from './types'
 
 import {
     AbstractTransactPlugin,
@@ -88,7 +87,6 @@ export class BaseLoginPlugin extends AbstractLoginPlugin {
 
 export interface LoginOptions {
     chain?: Checksum256Type
-    client?: APIClient
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -99,7 +97,7 @@ export interface LoginOptions {
 export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
-    fetch?: Fetch
+    fetchProvider?: FetchProvider
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -112,7 +110,7 @@ export interface SessionKitOptions {
 export class SessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
-    readonly fetch?: Fetch
+    readonly fetchProvider?: FetchProvider
     readonly loginPlugins: AbstractLoginPlugin[]
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
@@ -122,9 +120,9 @@ export class SessionKit {
         // Store options passed on the kit
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
-        // Override fetch if provided
-        if (options.fetch) {
-            this.fetch = options.fetch
+        // Override fetchProvider if provided
+        if (options.fetchProvider) {
+            this.fetchProvider = options.fetchProvider
         }
         // Establish default plugins for login flow
         if (options.loginPlugins) {
@@ -156,16 +154,6 @@ export class SessionKit {
         return chain
     }
 
-    getClient(id: Checksum256Type): APIClient {
-        const chain = this.getChain(id)
-        const options: FetchProviderOptions = {
-            fetch: this.fetch,
-        }
-        const provider = new FetchProvider(chain.url, options)
-        const client = new APIClient({provider})
-        return client
-    }
-
     /**
      * Request a session from an account.
      *
@@ -181,7 +169,7 @@ export class SessionKit {
         const chain = this.chains[0]
         const context: SessionOptions = {
             chain,
-            client: options?.client || this.getClient(chain.id),
+            fetchProvider: this.fetchProvider,
             permissionLevel: 'eosio@active',
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
@@ -202,7 +190,9 @@ export class SessionKit {
         // Allow overriding of the default chain definition by specifying one in the options
         if (options?.chain) {
             context.chain = this.getChain(options.chain)
-            context.client = this.getClient(context.chain.id)
+            context.fetchProvider = new FetchProvider(context.chain.url, {
+                fetch: this.fetchProvider?.fetch,
+            })
         }
 
         // Allow a permission level to be specified via options

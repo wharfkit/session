@@ -85,6 +85,8 @@ async function mockHook(
 export const resourceProviderHooks = () => {
     suite('resource provider', function () {
         test('pre-sign', async function () {
+            // Ensure the test runs regardless of how slow the requests are
+            this.slow(10000)
             const request = await SigningRequest.create(
                 {
                     action: makeMockAction(),
