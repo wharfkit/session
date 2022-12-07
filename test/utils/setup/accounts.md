@@ -12,3 +12,5 @@
 | wharfkit1123@test  | ❌     | ✅  | ❌  | ✅  |
 | wharfkit1124@test  | ❌     | ✅  | ✅  | ❌  |
 | wharfkit1125@test  | ❌     | ❌  | ❌  | ❌  |
+| wharfkit1131@test  | ✅     | ❌  | ❌  | ✅  |
+| wharfkit1132@test  | ❌     | ❌  | ❌  | ✅  |

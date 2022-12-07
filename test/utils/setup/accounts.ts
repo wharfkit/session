@@ -117,6 +117,20 @@ const accounts: AccountDefinition[] = [
         netStake: undefined,
         ramBytes: undefined,
     },
+    {
+        name: 'wharfkit1131',
+        balance: '5.0000 EOS',
+        cpuStake: undefined,
+        netStake: undefined,
+        ramBytes: 10000,
+    },
+    {
+        name: 'wharfkit1132',
+        balance: undefined,
+        cpuStake: undefined,
+        netStake: undefined,
+        ramBytes: 10000,
+    },
 ]
 
 async function createAccount(
