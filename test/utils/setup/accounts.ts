@@ -2,6 +2,7 @@ import fetch from 'node-fetch'
 import {
     Action,
     AssetType,
+    Name,
     NameType,
     PermissionLevel,
     Session,
@@ -332,12 +333,10 @@ async function run() {
     // Create accounts
     for (const account of accounts) {
         // Check if account exists
-        const existingAccount = await masterSession.fetch.call('/v1/chain/get_account', {
-            account_name: account.name,
-        })
-        if (existingAccount.status === 200) {
+        try {
+            await masterSession.client.v1.chain.get_account(Name.from(account.name))
             console.log(`account ${account.name} already exists`)
-        } else {
+        } catch (e) {
             // Create account
             const result = await createAccount(masterSession, account)
             console.log(`created ${account.name} ${result.resolved?.transaction.id}`)
@@ -346,11 +345,11 @@ async function run() {
 
     // Create test permissions
     for (const account of accounts) {
-        const existingPermission = await masterSession.fetch.call('/v1/chain/get_account', {
-            account_name: account.name,
-        })
-        const hasTestPermission = existingPermission.json.permissions.some((permission) => {
-            return permission.perm_name === 'test'
+        const existingPermission = await masterSession.client.v1.chain.get_account(
+            Name.from(account.name)
+        )
+        const hasTestPermission = existingPermission.permissions.some((permission) => {
+            return String(permission.perm_name) === 'test'
         })
         if (hasTestPermission) {
             console.log(`account ${account.name} already has test permission...`)
