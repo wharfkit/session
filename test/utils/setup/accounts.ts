@@ -2,7 +2,6 @@ import fetch from 'node-fetch'
 import {
     Action,
     AssetType,
-    FetchProvider,
     NameType,
     PermissionLevel,
     Session,
@@ -11,8 +10,8 @@ import {
 } from '$lib'
 import {Buyrambytes, Delegatebw, Linkauth, Newaccount, Transfer, Updateauth} from './structs'
 
-// MockFetchProvider for debugging/testing
-// import {MockFetchProvider} from '../mock-provider'
+// Mock of Fetch for debugging/testing
+// import {mockFetch} from '../mock-fetch'
 
 /**
  * THIS INFORMATION NEEDS TO BE POPULATED
@@ -228,8 +227,8 @@ async function createTestPermission(account: AccountDefinition): Promise<Transac
             id,
             url,
         },
-        // fetchProvider: new MockFetchProvider(url), // To record for debug
-        fetchProvider: new FetchProvider(url, {fetch}),
+        // fetch: mockFetch, // To record for debug
+        fetch,
         permissionLevel: `${account.name}@active`,
         walletPlugin: new WalletPluginPrivateKey({
             privateKey,
@@ -308,8 +307,8 @@ async function run() {
             id,
             url,
         },
-        // fetchProvider: new MockFetchProvider(url), // To record for debug
-        fetchProvider: new FetchProvider(url, {fetch}),
+        // fetch: mockFetch, // To record for debug
+        fetch,
         permissionLevel,
         walletPlugin: new WalletPluginPrivateKey({
             privateKey,
@@ -319,7 +318,7 @@ async function run() {
     // Create accounts
     for (const account of accounts) {
         // Check if account exists
-        const existingAccount = await masterSession.fetchProvider.call('/v1/chain/get_account', {
+        const existingAccount = await masterSession.fetch.call('/v1/chain/get_account', {
             account_name: account.name,
         })
         if (existingAccount.status === 200) {
@@ -333,7 +332,7 @@ async function run() {
 
     // Create test permissions
     for (const account of accounts) {
-        const existingPermission = await masterSession.fetchProvider.call('/v1/chain/get_account', {
+        const existingPermission = await masterSession.fetch.call('/v1/chain/get_account', {
             account_name: account.name,
         })
         const hasTestPermission = existingPermission.json.permissions.some((permission) => {
