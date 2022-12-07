@@ -11,7 +11,14 @@ import {assert} from 'chai'
 
 import {Session, Signature, WalletPluginPrivateKey} from '$lib'
 
-import {mockChainId, mockPermissionLevel, mockPrivateKey, mockUrl} from '$test/utils/mock-config'
+import {
+    mockAccountName,
+    mockChainId,
+    mockPermissionLevel,
+    mockPermissionName,
+    mockPrivateKey,
+    mockUrl,
+} from '$test/utils/mock-config'
 import {mockFetch} from '$test/utils/mock-fetch'
 
 /**
@@ -48,14 +55,14 @@ export const nodejsUsage = () => {
                 action: {
                     authorization: [
                         {
-                            actor: 'corecorecore',
-                            permission: 'test',
+                            actor: mockAccountName,
+                            permission: mockPermissionName,
                         },
                     ],
                     account: 'eosio.token',
                     name: 'transfer',
                     data: {
-                        from: 'corecorecore',
+                        from: mockAccountName,
                         to: 'teamgreymass',
                         quantity: '0.1337 EOS',
                         memo: 'wharfkit is the best <3',

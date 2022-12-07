@@ -43,6 +43,10 @@ export async function mockFetch(path, params) {
             filename,
             JSON.stringify(
                 {
+                    request: {
+                        path,
+                        params,
+                    },
                     headers: Object.fromEntries(response.headers.entries()),
                     status: response.status,
                     json,

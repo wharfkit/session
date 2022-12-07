@@ -6,6 +6,7 @@ import {PermissionLevel} from '@greymass/eosio'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {mockFetch} from '$test/utils/mock-fetch'
+import {mockPermissionLevel} from '$test/utils/mock-config'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
@@ -59,14 +60,14 @@ suite('kit', function () {
         test('specify permission (typed)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: PermissionLevel.from('corecorecore@test'),
+                permissionLevel: PermissionLevel.from(mockPermissionLevel),
             })
             assert.instanceOf(session, Session)
         })
         test('specify permission (untyped)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: 'corecorecore@test',
+                permissionLevel: mockPermissionLevel,
             })
             assert.instanceOf(session, Session)
         })

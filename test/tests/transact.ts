@@ -17,6 +17,7 @@ import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
+import {mockPermissionLevel} from '$test/utils/mock-config'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -28,7 +29,7 @@ const mockSessionOptions: SessionOptions = {
         url: 'https://jungle4.greymass.com',
     }),
     fetch: mockFetch, // Required for unit tests
-    permissionLevel: PermissionLevel.from('corecorecore@test'),
+    permissionLevel: PermissionLevel.from(mockPermissionLevel),
     walletPlugin: wallet,
 }
 
@@ -215,7 +216,7 @@ suite('transact', function () {
                         url: 'https://jungle4.greymass.com',
                     }),
                     fetch: mockFetch, // Required for unit tests
-                    permissionLevel: PermissionLevel.from('corecorecore@test'),
+                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
                     walletPlugin: wallet,
                 })
                 const result = await session.transact({action})

@@ -1,4 +1,11 @@
 {
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/chain/get_abi",
+        "params": {
+            "method": "POST",
+            "body": "{\"account_name\":\"\"}"
+        }
+    },
     "headers": {
         "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
         "access-control-allow-methods": "GET, POST, OPTIONS",
@@ -6,7 +13,7 @@
         "connection": "close",
         "content-length": "238",
         "content-type": "application/json",
-        "date": "Wed, 07 Dec 2022 21:30:38 GMT",
+        "date": "Wed, 07 Dec 2022 22:38:16 GMT",
         "server": "nginx/1.18.0 (Ubuntu)"
     },
     "status": 500,

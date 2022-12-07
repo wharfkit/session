@@ -1,4 +1,5 @@
 import {Action, API, Asset, Name, Struct, Transaction} from '@greymass/eosio'
+import {mockAccountName, mockPermissionName} from './mock-config'
 
 @Struct.type('transfer')
 class Transfer extends Struct {
@@ -11,7 +12,7 @@ class Transfer extends Struct {
 export function makeMockAction(memo?: string): Action {
     // Generate typed data for action data
     const transfer = Transfer.from({
-        from: 'corecorecore',
+        from: mockAccountName,
         to: 'teamgreymass',
         quantity: '0.1337 EOS',
         memo: memo || 'wharfkit is the best <3',
@@ -20,8 +21,8 @@ export function makeMockAction(memo?: string): Action {
     const action = Action.from({
         authorization: [
             {
-                actor: 'corecorecore',
-                permission: 'test',
+                actor: mockAccountName,
+                permission: mockPermissionName,
             },
         ],
         account: 'eosio.token',
