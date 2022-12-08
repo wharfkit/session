@@ -1,4 +1,4 @@
-import {makeClient} from '$test/utils/mock-provider'
+import {makeClient} from '$test/utils/mock-client'
 
 const client = makeClient()
 

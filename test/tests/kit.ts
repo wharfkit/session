@@ -1,11 +1,12 @@
 import {assert} from 'chai'
-import fetch from 'node-fetch'
 
 import {BaseTransactPlugin, Session, SessionKit, SessionKitOptions} from '$lib'
 import {PermissionLevel} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
+import {mockFetch} from '$test/utils/mock-fetch'
+import {mockPermissionLevel} from '$test/utils/mock-config'
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
@@ -15,7 +16,7 @@ const defaultSessionKitOptions: SessionKitOptions = {
             url: 'https://jungle4.greymass.com',
         },
     ],
-    fetch,
+    fetch: mockFetch, // Required for unit tests
     walletPlugins: [makeWallet()],
 }
 
@@ -52,21 +53,21 @@ suite('kit', function () {
         test('specify chain id', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                chain: defaultSessionKitOptions.chains[0].id,
+                chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
             })
             assert.instanceOf(session, Session)
         })
         test('specify permission (typed)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: PermissionLevel.from('corecorecore@test'),
+                permissionLevel: PermissionLevel.from(mockPermissionLevel),
             })
             assert.instanceOf(session, Session)
         })
         test('specify permission (untyped)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
             const session = await sessionKit.login({
-                permissionLevel: 'corecorecore@test',
+                permissionLevel: mockPermissionLevel,
             })
             assert.instanceOf(session, Session)
         })
@@ -76,16 +77,6 @@ suite('kit', function () {
                 walletPlugin: makeWallet(),
             })
             assert.instanceOf(session, Session)
-        })
-    })
-    suite('getClient', function () {
-        test('throws on getClient with invalid chain', function () {
-            const sessionKit = new SessionKit(defaultSessionKitOptions)
-            assert.throws(() =>
-                sessionKit.getClient(
-                    'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
-                )
-            )
         })
     })
 })

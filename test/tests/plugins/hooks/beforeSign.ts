@@ -4,10 +4,11 @@ import zlib from 'pako'
 import {SigningRequest} from '$lib'
 import {Name, Transaction} from '@greymass/eosio'
 
-import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
-import {makeClient} from '$test/utils/mock-provider'
-import {mockTransactResourceProviderPresignHook} from '$test/utils/mock-hook'
+import {makeClient} from '$test/utils/mock-client'
 import {makeContext} from '$test/utils/mock-context'
+import {mockTransactResourceProviderPresignHook} from '$test/utils/mock-hook'
+import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
+import {mockAccountName} from '$test/utils/mock-config'
 
 const client = makeClient()
 const context = makeContext()
@@ -30,7 +31,7 @@ export const beforeSignHooks = () => {
                 assert.isTrue(Name.from('greymassnoop').equals(noop.account))
                 assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
                 assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-                assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
+                assert.isTrue(Name.from(mockAccountName).equals(transfer.authorization[0].actor))
             } else {
                 assert.fail('Expected modified request to be an array.')
             }
@@ -52,7 +53,7 @@ export const beforeSignHooks = () => {
                 assert.isTrue(Name.from('greymassnoop').equals(noop.account))
                 assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
                 assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-                assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
+                assert.isTrue(Name.from(mockAccountName).equals(transfer.authorization[0].actor))
             }
         })
         test('prepend action on `transaction`', async function () {
@@ -74,7 +75,7 @@ export const beforeSignHooks = () => {
                 assert.isTrue(Name.from('greymassnoop').equals(noop.account))
                 assert.isTrue(Name.from('greymassfuel').equals(noop.authorization[0].actor))
                 assert.isTrue(Name.from('eosio.token').equals(transfer.account))
-                assert.isTrue(Name.from('corecorecore').equals(transfer.authorization[0].actor))
+                assert.isTrue(Name.from(mockAccountName).equals(transfer.authorization[0].actor))
             }
         })
     })

@@ -1,7 +1,9 @@
 import {PrivateKey} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '$lib'
 
-export const privateKey = PrivateKey.from('5JnUd2V5nYmRKgK9K2fRQcs3qKoi4mbcGV8Dg8EFqjjqEp9tYP5')
+import {mockPrivateKey} from './mock-config'
+
+export const privateKey = PrivateKey.from(mockPrivateKey)
 
 export function makeWallet() {
     return new WalletPluginPrivateKey({

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 SRC_FILES := $(shell find src -name '*.ts')
-TEST_FILES := $(shell find test -name '*.ts')
+TEST_FILES := $(shell find test/tests -name '*.ts')
 BIN := ./node_modules/.bin
 MOCHA_OPTS := -u tdd -r ts-node/register -r tsconfig-paths/register --extension ts
 NYC_OPTS := --temp-dir build/nyc_output --report-dir build/coverage
@@ -11,12 +11,11 @@ lib: ${SRC_FILES} package.json tsconfig.json node_modules rollup.config.js
 .PHONY: test
 test: node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
-		${BIN}/mocha ${MOCHA_OPTS} ${TEST_FILES} --grep '$(grep)'
+		${BIN}/mocha ${MOCHA_OPTS} ${TEST_FILES} --no-timeout --grep '$(grep)'
 
 test/watch: node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
-		${BIN}/mocha --watch ${MOCHA_OPTS} ${TEST_FILES} --grep '$(grep)'
-
+		${BIN}/mocha --watch ${MOCHA_OPTS} ${TEST_FILES} --no-timeout --grep '$(grep)'
 
 build/coverage: ${SRC_FILES} ${TEST_FILES} node_modules
 	@TS_NODE_PROJECT='./test/tsconfig.json' \
@@ -85,3 +84,7 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -rf node_modules/
+
+.PHONY: accounts
+accounts: node_modules
+	${BIN}/ts-node --project test/utils/setup/tsconfig.json test/utils/setup/accounts.ts

@@ -1,4 +1,11 @@
 {
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/chain/get_abi",
+        "params": {
+            "method": "POST",
+            "body": "{\"account_name\":\"greymassnoop\"}"
+        }
+    },
     "headers": {
         "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
         "access-control-allow-methods": "GET, POST, OPTIONS",
@@ -6,7 +13,7 @@
         "connection": "close",
         "content-length": "327",
         "content-type": "application/json",
-        "date": "Fri, 02 Dec 2022 02:29:51 GMT",
+        "date": "Wed, 07 Dec 2022 22:38:14 GMT",
         "host": "jungle4.greymass.com",
         "server": "nginx/1.18.0 (Ubuntu)"
     },

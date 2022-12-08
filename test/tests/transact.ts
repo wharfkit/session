@@ -1,6 +1,5 @@
 import {assert} from 'chai'
 import zlib from 'pako'
-import fetch from 'node-fetch'
 
 import {PermissionLevel, Serializer, Signature} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
@@ -13,10 +12,12 @@ import SessionKit, {
     TransactHookTypes,
 } from '$lib'
 
-import {makeClient} from '$test/utils/mock-provider'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
+import {makeClient} from '$test/utils/mock-client'
+import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
+import {makeWallet} from '$test/utils/mock-wallet'
+import {mockPermissionLevel} from '$test/utils/mock-config'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -27,8 +28,8 @@ const mockSessionOptions: SessionOptions = {
         id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
         url: 'https://jungle4.greymass.com',
     }),
-    client,
-    permissionLevel: PermissionLevel.from('corecorecore@test'),
+    fetch: mockFetch, // Required for unit tests
+    permissionLevel: PermissionLevel.from(mockPermissionLevel),
     walletPlugin: wallet,
 }
 
@@ -214,8 +215,8 @@ suite('transact', function () {
                         id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                         url: 'https://jungle4.greymass.com',
                     }),
-                    client,
-                    permissionLevel: PermissionLevel.from('corecorecore@test'),
+                    fetch: mockFetch, // Required for unit tests
+                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
                     walletPlugin: wallet,
                 })
                 const result = await session.transact({action})
@@ -360,14 +361,14 @@ suite('transact', function () {
                             url: 'https://jungle4.greymass.com',
                         },
                     ],
-                    fetch,
+                    fetch: mockFetch, // Required for unit tests
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login({client})
+                const session = await sessionKit.login()
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
                 if (result && result.transaction && result.transaction.actions) {
@@ -386,12 +387,11 @@ suite('transact', function () {
                             url: 'https://jungle4.greymass.com',
                         },
                     ],
-                    fetch,
+                    fetch: mockFetch, // Required for unit tests
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                     walletPlugins: [makeWallet()],
                 })
                 const session = await sessionKit.login({
-                    client,
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },

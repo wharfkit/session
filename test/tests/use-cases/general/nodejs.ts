@@ -1,48 +1,53 @@
+/**
+ * When replicating this use case in your own scripts, the only import required
+ * will be the Session abd WalletPluginPrivateKey class, e.g.
+ *
+ * import {Session, WalletPluginPrivateKey} from 'wharfkit/session'
+ *
+ * The rest of the imports are only required for this unit test.
+ */
+
 import {assert} from 'chai'
 
-// A fetch implementation is required for anything less than nodejs v18
-import fetch from 'node-fetch'
+import {Session, Signature, WalletPluginPrivateKey} from '$lib'
 
-// Required imports from wharfkit/session
-import {SessionOptions, Signature} from '$lib'
-import {Session, WalletPluginPrivateKey} from '$lib'
-import {makeClient} from '$test/utils/mock-provider'
+import {
+    mockAccountName,
+    mockChainId,
+    mockPermissionLevel,
+    mockPermissionName,
+    mockPrivateKey,
+    mockUrl,
+} from '$test/utils/mock-config'
+import {mockFetch} from '$test/utils/mock-fetch'
 
 /**
- * Required configuration for manually establishing a session
+ * Required configuration for manually establishing a session.
  *
  * This session utilizes the WalletPluginPrivateKey plugin to sign transactions without
  * the need for an external wallet.
  */
-const sessionOptions: SessionOptions = {
+const sessionOptions = {
     chain: {
-        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-        url: 'https://jungle4.greymass.com',
+        id: mockChainId,
+        url: mockUrl,
     },
-    permissionLevel: 'corecorecore@test',
+    permissionLevel: mockPermissionLevel,
     walletPlugin: new WalletPluginPrivateKey({
-        privateKey: '5JnUd2V5nYmRKgK9K2fRQcs3qKoi4mbcGV8Dg8EFqjjqEp9tYP5',
+        privateKey: mockPrivateKey,
     }),
-}
-
-/**
- * Detect the version of nodejs in use.
- */
-const version = parseInt(process.versions.node.split('.')[0])
-if (version < 18) {
     /**
-     * If the version is less than 18, we need to pass in a Fetch instance
+     * NOT required for normal usage of wharfkit/session
+     * This is only required to execute sucessfully in a unit test environment.
      */
-    sessionOptions.fetch = fetch
+    fetch: mockFetch,
 }
-
-const client = makeClient()
 
 export const nodejsUsage = () => {
     suite('nodejs', function () {
         test('session', async function () {
-            // Force a client for testing purposes, not required for actual usage
-            sessionOptions.client = client
+            // Ensure the test runs regardless of how slow the requests are
+            this.slow(10000)
             // Establish a new session
             const session = new Session(sessionOptions)
             // Perform a transaction
@@ -50,14 +55,14 @@ export const nodejsUsage = () => {
                 action: {
                     authorization: [
                         {
-                            actor: 'corecorecore',
-                            permission: 'test',
+                            actor: mockAccountName,
+                            permission: mockPermissionName,
                         },
                     ],
                     account: 'eosio.token',
                     name: 'transfer',
                     data: {
-                        from: 'corecorecore',
+                        from: mockAccountName,
                         to: 'teamgreymass',
                         quantity: '0.1337 EOS',
                         memo: 'wharfkit is the best <3',

@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import {makeClient} from '$test/utils/mock-provider'
+import {makeClient} from '$test/utils/mock-client'
 import {makeContext} from '$test/utils/mock-context'
 
 const client = makeClient()

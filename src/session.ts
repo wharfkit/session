@@ -3,7 +3,6 @@ import {
     AnyAction,
     AnyTransaction,
     APIClient,
-    APIClientOptions,
     Checksum256Type,
     FetchProvider,
     Name,
@@ -21,6 +20,7 @@ import {
 import zlib from 'pako'
 
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {getFetch} from './utils'
 
 export type TransactPluginsOptions = Record<string, unknown>
 
@@ -78,6 +78,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  */
 export interface TransactContextOptions {
     client: APIClient
+    fetch: Fetch
     session: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
@@ -90,17 +91,19 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    client: APIClient
-    hooks: TransactHooks = {
+    readonly client: APIClient
+    readonly fetch: Fetch
+    readonly hooks: TransactHooks = {
         afterBroadcast: [],
         afterSign: [],
         beforeBroadcast: [],
         beforeSign: [],
     }
-    session: PermissionLevel
-    transactPluginsOptions: TransactPluginsOptions
+    readonly session: PermissionLevel
+    readonly transactPluginsOptions: TransactPluginsOptions
     constructor(options: TransactContextOptions) {
         this.client = options.client
+        this.fetch = options.fetch
         this.session = options.session
         this.transactPluginsOptions = options.transactPluginsOptions || {}
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
@@ -204,7 +207,6 @@ export interface SessionOptions {
     allowModify?: boolean
     broadcast?: boolean
     chain: ChainDefinitionType
-    client?: APIClient
     fetch?: Fetch
     permissionLevel: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
@@ -216,7 +218,7 @@ export class Session {
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
-    readonly client: APIClient
+    readonly fetch: Fetch
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly permissionLevel: PermissionLevel
@@ -230,19 +232,10 @@ export class Session {
         if (options.broadcast !== undefined) {
             this.broadcast = options.broadcast
         }
-        if (options.client) {
-            this.client = options.client
+        if (options.fetch) {
+            this.fetch = options.fetch
         } else {
-            const clientOptions: APIClientOptions = {
-                url: this.chain.url,
-            }
-            if (options.fetch) {
-                /* istanbul ignore next */
-                clientOptions.provider = new FetchProvider(this.chain.url, {
-                    fetch: options.fetch,
-                })
-            }
-            this.client = new APIClient(clientOptions)
+            this.fetch = getFetch(options)
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
@@ -262,6 +255,10 @@ export class Session {
 
     get permission(): Name {
         return this.permissionLevel.permission
+    }
+
+    get client(): APIClient {
+        return new APIClient({provider: new FetchProvider(this.chain.url, {fetch: this.fetch})})
     }
 
     upgradeTransaction(args) {
@@ -340,6 +337,7 @@ export class Session {
         // The context for this transaction
         const context = new TransactContext({
             client: this.client,
+            fetch: this.fetch,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
             session: this.permissionLevel,
@@ -374,6 +372,10 @@ export class Session {
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
             if (allowModify) {
                 result.request = response.request.clone()
+            }
+            // If signatures were returned, append them
+            if (response.signatures) {
+                result.signatures = [...result.signatures, ...response.signatures]
             }
         }
 
