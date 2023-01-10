@@ -3,18 +3,27 @@
 import fs from 'fs'
 import path from 'path'
 
+import {terser} from 'rollup-plugin-terser'
 import alias from '@rollup/plugin-alias'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
+import replace from '@rollup/plugin-replace'
 import resolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 import virtual from '@rollup/plugin-virtual'
-import {terser} from 'rollup-plugin-terser'
+
+const mockData = Object.fromEntries(
+    fs
+        .readdirSync(path.join(__dirname, 'data'))
+        .map((f) => path.join(__dirname, 'data', f))
+        .map((f) => [path.basename(f), JSON.parse(fs.readFileSync(f))])
+)
 
 const testFiles = fs
-    .readdirSync(__dirname)
+    .readdirSync(path.join(__dirname, 'tests'))
     .filter((f) => f.match(/\.ts$/))
-    .map((f) => path.join(__dirname, f))
+    .map((f) => path.join(__dirname, 'tests', f))
+    .sort()
 
 const template = `
 <!DOCTYPE html>
@@ -33,7 +42,7 @@ const template = `
       mocha.setup('tdd');
       mocha.checkLeaks();
     </script>
-    %%tests%%
+    <script>%%tests%%</script>
     <script class="mocha-exec">
       mocha.run();
     </script>
@@ -41,20 +50,14 @@ const template = `
 </html>
 `
 
-function testBundler() {
+function inline() {
     return {
-        name: 'Test Bundler',
+        name: 'Inliner',
         generateBundle(opts, bundle) {
             const file = path.basename(opts.file)
             const output = bundle[file]
             delete bundle[file]
-            const code = [
-                '<script>',
-                output.code,
-                `//# sourceMappingURL=${output.map.toUrl()}`,
-                '//# sourceURL=tests.ts',
-                '</script>',
-            ].join('\n')
+            const code = `${output.code}`
             this.emitFile({
                 type: 'asset',
                 fileName: file,
@@ -67,25 +70,31 @@ function testBundler() {
 /** @type {import('rollup').RollupOptions} */
 export default [
     {
-        input: 'tests',
+        input: 'tests.ts',
         output: {
-            file: 'test/browser.html',
+            file: 'build/browser.html',
             format: 'iife',
             sourcemap: true,
             globals: {
                 chai: 'chai',
                 mocha: 'mocha',
+                util: 'undefined',
+                crypto: 'undefined',
             },
         },
-        external: ['chai', 'mocha'],
+        external: ['chai', 'mocha', 'crypto', 'util'],
         plugins: [
             virtual({
-                tests: testFiles.map((f) => `import '${f.slice(0, -3)}'`).join('\n'),
+                'tests.ts': testFiles.map((f) => `import '${f.slice(0, -3)}'`).join('\n'),
             }),
             alias({
-                entries: [{find: '$lib', replacement: '../src'}],
+                entries: [
+                    {find: '$lib', replacement: path.join(__dirname, '..', 'lib/session.m.js')},
+                    {find: './utils/mock-provider', replacement: './utils/browser-provider.ts'},
+                ],
             }),
-            typescript({target: 'es6', module: 'es2020', tsconfig: './test/tsconfig.json'}),
+            typescript({target: 'es6', module: 'esnext', tsconfig: './test/tsconfig.json'}),
+            replace({'global.MOCK_DATA': JSON.stringify(mockData), preventAssignment: true}),
             resolve({browser: true}),
             commonjs(),
             json(),
@@ -96,7 +105,7 @@ export default [
                 },
                 compress: false,
             }),
-            testBundler(),
+            inline(),
         ],
     },
 ]
