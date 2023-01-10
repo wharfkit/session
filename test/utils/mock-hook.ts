@@ -27,7 +27,6 @@ export class MockTransactPlugin extends AbstractTransactPlugin {
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactHook)
         context.addHook(TransactHookTypes.afterSign, mockTransactHook)
-        context.addHook(TransactHookTypes.beforeBroadcast, mockTransactHook)
         context.addHook(TransactHookTypes.afterBroadcast, mockTransactHook)
     }
 }

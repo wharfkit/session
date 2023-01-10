@@ -1,4 +1,5 @@
 import {
+    ABI,
     ABIDef,
     AnyAction,
     AnyTransaction,
@@ -16,6 +17,7 @@ import {
     ResolvedSigningRequest,
     ResolvedTransaction,
     SigningRequest,
+    SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 import zlib from 'pako'
 
@@ -27,7 +29,6 @@ export type TransactPluginsOptions = Record<string, unknown>
 export enum TransactHookTypes {
     beforeSign = 'beforeSign',
     afterSign = 'afterSign',
-    beforeBroadcast = 'beforeBroadcast',
     afterBroadcast = 'afterBroadcast',
 }
 
@@ -40,7 +41,6 @@ export interface TransactHooks {
     afterSign: TransactHook[]
     beforeSign: TransactHook[]
     afterBroadcast: TransactHook[]
-    beforeBroadcast: TransactHook[]
 }
 
 export interface TransactHookResponse {
@@ -96,11 +96,11 @@ export class TransactContext {
     readonly hooks: TransactHooks = {
         afterBroadcast: [],
         afterSign: [],
-        beforeBroadcast: [],
         beforeSign: [],
     }
     readonly session: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
+
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.fetch = options.fetch
@@ -110,6 +110,27 @@ export class TransactContext {
             plugin.register(this)
         })
     }
+
+    get abiProvider(): AbiProvider {
+        return {
+            getAbi: async (account: Name): Promise<ABIDef> => {
+                const response = await this.client.v1.chain.get_abi(account)
+                if (!response.abi) {
+                    /* istanbul ignore next */
+                    throw new Error('could not load abi') // TODO: Better coverage for this
+                }
+                return ABI.from(response.abi)
+            },
+        }
+    }
+
+    get esrOptions(): SigningRequestEncodingOptions {
+        return {
+            abiProvider: this.abiProvider,
+            zlib,
+        }
+    }
+
     addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
     }
@@ -328,10 +349,9 @@ export class Session {
      *   A((Transact)) --> B{{"Hook(s): beforeSign"}}
      *   B --> C[Wallet Plugin]
      *   C --> D{{"Hook(s): afterSign"}}
-     *   D --> E{{"Hook(s): beforeBroadcast"}}
-     *   E --> F[Broadcast Plugin]
-     *   F --> G{{"Hook(s): afterBroadcast"}}
-     *   G --> H[TransactResult]
+     *   D --> F[Broadcast Plugin]
+     *   E --> G{{"Hook(s): afterBroadcast"}}
+     *   F --> H[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
@@ -398,10 +418,6 @@ export class Session {
 
         // Broadcast transaction if requested
         if (willBroadcast) {
-            // Run the `beforeBroadcast` hooks
-            for (const hook of context.hooks.beforeBroadcast)
-                await hook(result.request.clone(), context)
-
             // Assemble the signed transaction to broadcast
             const signed = SignedTransaction.from({
                 ...result.resolved.transaction,
