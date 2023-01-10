@@ -284,7 +284,6 @@ suite('transact', function () {
                     register(context) {
                         context.addHook(TransactHookTypes.beforeSign, debugHook)
                         context.addHook(TransactHookTypes.afterSign, debugHook)
-                        context.addHook(TransactHookTypes.beforeBroadcast, debugHook)
                         context.addHook(TransactHookTypes.afterBroadcast, debugHook)
                     },
                 }

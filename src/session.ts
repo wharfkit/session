@@ -27,7 +27,6 @@ export type TransactPluginsOptions = Record<string, unknown>
 export enum TransactHookTypes {
     beforeSign = 'beforeSign',
     afterSign = 'afterSign',
-    beforeBroadcast = 'beforeBroadcast',
     afterBroadcast = 'afterBroadcast',
 }
 
@@ -40,7 +39,6 @@ export interface TransactHooks {
     afterSign: TransactHook[]
     beforeSign: TransactHook[]
     afterBroadcast: TransactHook[]
-    beforeBroadcast: TransactHook[]
 }
 
 export interface TransactHookResponse {
@@ -96,7 +94,6 @@ export class TransactContext {
     readonly hooks: TransactHooks = {
         afterBroadcast: [],
         afterSign: [],
-        beforeBroadcast: [],
         beforeSign: [],
     }
     readonly session: PermissionLevel
@@ -328,10 +325,9 @@ export class Session {
      *   A((Transact)) --> B{{"Hook(s): beforeSign"}}
      *   B --> C[Wallet Plugin]
      *   C --> D{{"Hook(s): afterSign"}}
-     *   D --> E{{"Hook(s): beforeBroadcast"}}
-     *   E --> F[Broadcast Plugin]
-     *   F --> G{{"Hook(s): afterBroadcast"}}
-     *   G --> H[TransactResult]
+     *   D --> F[Broadcast Plugin]
+     *   E --> G{{"Hook(s): afterBroadcast"}}
+     *   F --> H[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         // The context for this transaction
@@ -398,10 +394,6 @@ export class Session {
 
         // Broadcast transaction if requested
         if (willBroadcast) {
-            // Run the `beforeBroadcast` hooks
-            for (const hook of context.hooks.beforeBroadcast)
-                await hook(result.request.clone(), context)
-
             // Assemble the signed transaction to broadcast
             const signed = SignedTransaction.from({
                 ...result.resolved.transaction,
