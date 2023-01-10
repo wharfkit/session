@@ -125,25 +125,10 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         response: ResourceProviderResponse,
         context: TransactContext
     ): Promise<SigningRequest> {
-        // Establish an AbiProvider based on the session context.
-        const abiProvider: AbiProvider = {
-            getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await context.client.v1.chain.get_abi(account)
-                if (!response.abi) {
-                    /* istanbul ignore next */
-                    throw new Error('could not load abi') // TODO: Better coverage for this
-                }
-                return response.abi
-            },
-        }
-
         // Create a new signing request based on the response to return to the session's transact flow.
         const request = await SigningRequest.create(
             {transaction: response.data.request[1]},
-            {
-                abiProvider,
-                zlib,
-            }
+            context.esrOptions
         )
 
         // Set the required fee onto the request itself for wallets to process.

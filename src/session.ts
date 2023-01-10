@@ -1,4 +1,5 @@
 import {
+    ABI,
     ABIDef,
     AnyAction,
     AnyTransaction,
@@ -16,6 +17,7 @@ import {
     ResolvedSigningRequest,
     ResolvedTransaction,
     SigningRequest,
+    SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 import zlib from 'pako'
 
@@ -98,6 +100,7 @@ export class TransactContext {
     }
     readonly session: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
+
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.fetch = options.fetch
@@ -107,6 +110,27 @@ export class TransactContext {
             plugin.register(this)
         })
     }
+
+    get abiProvider(): AbiProvider {
+        return {
+            getAbi: async (account: Name): Promise<ABIDef> => {
+                const response = await this.client.v1.chain.get_abi(account)
+                if (!response.abi) {
+                    /* istanbul ignore next */
+                    throw new Error('could not load abi') // TODO: Better coverage for this
+                }
+                return ABI.from(response.abi)
+            },
+        }
+    }
+
+    get esrOptions(): SigningRequestEncodingOptions {
+        return {
+            abiProvider: this.abiProvider,
+            zlib,
+        }
+    }
+
     addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
     }
