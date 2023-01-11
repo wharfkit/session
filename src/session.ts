@@ -111,6 +111,14 @@ export class TransactContext {
         })
     }
 
+    get accountName(): Name {
+        return this.permissionLevel.actor
+    }
+
+    get permissionName(): Name {
+        return this.permissionLevel.permission
+    }
+
     get abiProvider(): AbiProvider {
         return {
             getAbi: async (account: Name): Promise<ABIDef> => {
