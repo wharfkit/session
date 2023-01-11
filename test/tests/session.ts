@@ -1,17 +1,20 @@
-import {assert} from 'chai'
+import { assert } from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import { Account } from '@wharfkit/account'
 
-import {mockFetch} from '$test/utils/mock-fetch'
-import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
-import {nodejsUsage} from './use-cases/general/nodejs'
-import {makeMockAction} from '$test/utils/mock-transfer'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
+import { mockFetch } from '$test/utils/mock-fetch'
+import { MockTransactPlugin, MockTransactResourceProviderPlugin } from '$test/utils/mock-hook'
+import { nodejsUsage } from './use-cases/general/nodejs'
+import { makeMockAction } from '$test/utils/mock-transfer'
+import { makeWallet } from '$test/utils/mock-wallet'
+import { mockPermissionLevel } from '$test/utils/mock-config'
 
 const wallet = makeWallet()
 const action = makeMockAction()
+
+const mockApiClient = {} // import mocApiClient here
 
 const mockSessionOptions: SessionOptions = {
     broadcast: false, // Disable broadcasting by default for tests, enable when required.
@@ -42,7 +45,7 @@ suite('session', function () {
         suite('options', function () {
             suite('allowModify', function () {
                 test('default: true', async function () {
-                    const result = await session.transact({action}, mockTransactOptions)
+                    const result = await session.transact({ action }, mockTransactOptions)
                     if (result && result.transaction && result.transaction.actions) {
                         assert.lengthOf(result.transaction.actions, 2)
                     } else {
@@ -54,7 +57,7 @@ suite('session', function () {
                         ...mockSessionOptions,
                         allowModify: true,
                     })
-                    const result = await testSession.transact({action}, mockTransactOptions)
+                    const result = await testSession.transact({ action }, mockTransactOptions)
                     if (result && result.transaction && result.transaction.actions) {
                         assert.lengthOf(result.transaction.actions, 2)
                     } else {
@@ -66,7 +69,7 @@ suite('session', function () {
                         ...mockSessionOptions,
                         allowModify: false,
                     })
-                    const result = await testSession.transact({action}, mockTransactOptions)
+                    const result = await testSession.transact({ action }, mockTransactOptions)
                     if (result && result.transaction && result.transaction.actions) {
                         assert.lengthOf(result.transaction.actions, 1)
                     } else {
@@ -85,7 +88,7 @@ suite('session', function () {
                         permissionLevel: PermissionLevel.from(mockPermissionLevel),
                         walletPlugin: wallet,
                     })
-                    const result = await testSession.transact({action})
+                    const result = await testSession.transact({ action })
                     assert.isDefined(result.response)
                 })
                 test('true', async function () {
@@ -93,7 +96,7 @@ suite('session', function () {
                         ...mockSessionOptions,
                         broadcast: true,
                     })
-                    const result = await testSession.transact({action}, {broadcast: true})
+                    const result = await testSession.transact({ action }, { broadcast: true })
                     assert.isDefined(result.response)
                 })
                 test('false', async function () {
@@ -101,7 +104,7 @@ suite('session', function () {
                         ...mockSessionOptions,
                         broadcast: false,
                     })
-                    const result = await testSession.transact({action}, {broadcast: false})
+                    const result = await testSession.transact({ action }, { broadcast: false })
                     assert.isUndefined(result.response)
                 })
             })
@@ -307,5 +310,13 @@ suite('session', function () {
         // Ensure transaction authority was templated
         assert.isTrue(session.actor.equals(expectedPermission.actor))
         assert.isTrue(session.permission.equals(expectedPermission.permission))
+        assert.instanceOf(
+            session.account,
+            Account
+        )
+        assert.equal(
+            session.permission,
+            PermissionLevel.from(mockSessionOptions.permissionLevel!).permission
+        )
     })
 })

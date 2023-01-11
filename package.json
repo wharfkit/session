@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@greymass/eosio": "^0.6.4",
+        "@wharfkit/account": "^0.0.3",
         "eosio-signing-request": "^2.5.2",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
