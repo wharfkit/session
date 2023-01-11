@@ -10,6 +10,6 @@ export function makeContext(): TransactContext {
             provider: new FetchProvider(mockUrl, {fetch: mockFetch}),
         }),
         fetch: mockFetch,
-        session: PermissionLevel.from('wharfkit1125@test'),
+        permissionLevel: PermissionLevel.from('wharfkit1125@test'),
     })
 }

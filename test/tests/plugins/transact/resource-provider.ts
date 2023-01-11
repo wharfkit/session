@@ -76,7 +76,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
             body: JSON.stringify({
                 ref: 'unittest',
                 request,
-                signer: context.session,
+                signer: context.permissionLevel,
             }),
         })
 
@@ -152,7 +152,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         // Retrieve first authorizer and ensure it matches session context.
         const firstAction = request.getRawActions()[0]
         const firstAuthorizer = firstAction.authorization[0]
-        if (!firstAuthorizer.actor.equals(context.session.actor)) {
+        if (!firstAuthorizer.actor.equals(context.permissionLevel.actor)) {
             throw new Error('The first authorizer of the transaction does not match this session.')
         }
     }

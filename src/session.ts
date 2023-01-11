@@ -79,7 +79,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
 export interface TransactContextOptions {
     client: APIClient
     fetch: Fetch
-    session: PermissionLevel
+    permissionLevel: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
 }
@@ -98,13 +98,13 @@ export class TransactContext {
         afterSign: [],
         beforeSign: [],
     }
-    readonly session: PermissionLevel
+    readonly permissionLevel: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
 
     constructor(options: TransactContextOptions) {
         this.client = options.client
         this.fetch = options.fetch
-        this.session = options.session
+        this.permissionLevel = options.permissionLevel
         this.transactPluginsOptions = options.transactPluginsOptions || {}
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
@@ -240,9 +240,9 @@ export class Session {
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
     readonly fetch: Fetch
+    readonly permissionLevel: PermissionLevel
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
-    readonly permissionLevel: PermissionLevel
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
@@ -358,9 +358,9 @@ export class Session {
         const context = new TransactContext({
             client: this.client,
             fetch: this.fetch,
+            permissionLevel: this.permissionLevel,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
-            session: this.permissionLevel,
         })
 
         // Process TransactArgs and convert to a SigningRequest
