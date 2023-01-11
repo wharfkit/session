@@ -85,6 +85,20 @@ export interface TransactContextOptions {
 }
 
 /**
+ * Given an APIClient instance, this method returns an AbiProvider for use in EOSIO Signing Requests.
+ */
+export const makeAbiProvider = (client: APIClient): AbiProvider => ({
+    getAbi: async (account: Name): Promise<ABIDef> => {
+        const response = await client.v1.chain.get_abi(account)
+        if (!response.abi) {
+            /* istanbul ignore next */
+            throw new Error('could not load abi') // TODO: Better coverage for this
+        }
+        return ABI.from(response.abi)
+    },
+})
+
+/**
  * Temporary context created for the duration of a [[Session.transact]] call.
  *
  * This context is used to store the state of the transact request and
@@ -120,16 +134,7 @@ export class TransactContext {
     }
 
     get abiProvider(): AbiProvider {
-        return {
-            getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await this.client.v1.chain.get_abi(account)
-                if (!response.abi) {
-                    /* istanbul ignore next */
-                    throw new Error('could not load abi') // TODO: Better coverage for this
-                }
-                return ABI.from(response.abi)
-            },
-        }
+        return makeAbiProvider(this.client)
     }
 
     get esrOptions(): SigningRequestEncodingOptions {
@@ -318,18 +323,8 @@ export class Session {
     }
 
     async createRequest(args: TransactArgs): Promise<SigningRequest> {
-        const abiProvider: AbiProvider = {
-            getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await this.client.v1.chain.get_abi(account)
-                if (!response.abi) {
-                    /* istanbul ignore next */
-                    throw new Error('could not load abi') // TODO: Better coverage for this
-                }
-                return response.abi
-            },
-        }
         const options = {
-            abiProvider,
+            abiProvider: makeAbiProvider(this.client),
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
