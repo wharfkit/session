@@ -191,11 +191,11 @@ suite('session', function () {
     })
     test('getters', function () {
         assert.equal(
-            session.account,
+            session.accountName,
             PermissionLevel.from(mockSessionOptions.permissionLevel).actor
         )
         assert.equal(
-            session.permission,
+            session.permissionName,
             PermissionLevel.from(mockSessionOptions.permissionLevel).permission
         )
     })

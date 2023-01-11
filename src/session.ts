@@ -270,11 +270,11 @@ export class Session {
         this.wallet = options.walletPlugin
     }
 
-    get account(): Name {
+    get accountName(): Name {
         return this.permissionLevel.actor
     }
 
-    get permission(): Name {
+    get permissionName(): Name {
         return this.permissionLevel.permission
     }
 
