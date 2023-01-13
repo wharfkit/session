@@ -1,6 +1,5 @@
 import {
     ABI,
-    ABIDef,
     AnyAction,
     AnyTransaction,
     API,
