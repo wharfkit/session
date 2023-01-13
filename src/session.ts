@@ -3,6 +3,7 @@ import {
     ABIDef,
     AnyAction,
     AnyTransaction,
+    API,
     APIClient,
     Checksum256Type,
     FetchProvider,
@@ -77,6 +78,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
+    abiCache?: ABICache
     client: APIClient
     fetch: Fetch
     permissionLevel: PermissionLevel
@@ -85,18 +87,35 @@ export interface TransactContextOptions {
 }
 
 /**
- * Given an APIClient instance, this method returns an AbiProvider for use in EOSIO Signing Requests.
+ * Given an APIClient instance, this class provides an AbiProvider interface for retrieving and caching ABIs.
  */
-export const makeAbiProvider = (client: APIClient): AbiProvider => ({
-    getAbi: async (account: Name): Promise<ABIDef> => {
-        const response = await client.v1.chain.get_abi(account)
-        if (!response.abi) {
-            /* istanbul ignore next */
-            throw new Error('could not load abi') // TODO: Better coverage for this
+export class ABICache implements AbiProvider {
+    public readonly cache: Map<string, ABI> = new Map()
+    public readonly pending: Map<string, Promise<API.v1.GetAbiResponse>> = new Map()
+
+    constructor(public readonly client: APIClient) {}
+
+    public async getAbi(account: Name): Promise<ABI> {
+        const key = String(account)
+        let record = this.cache.get(key)
+        if (!record) {
+            let getAbi = this.pending.get(key)
+            if (!getAbi) {
+                getAbi = this.client.v1.chain.get_abi(account)
+                this.pending.set(key, getAbi)
+            }
+            const response = await getAbi
+            this.pending.delete(key)
+            if (response.abi) {
+                record = ABI.from(response.abi)
+                this.cache.set(key, record)
+            } else {
+                throw new Error(`ABI for ${key} could not be loaded.`)
+            }
         }
-        return ABI.from(response.abi)
-    },
-})
+        return record
+    }
+}
 
 /**
  * Temporary context created for the duration of a [[Session.transact]] call.
@@ -105,6 +124,7 @@ export const makeAbiProvider = (client: APIClient): AbiProvider => ({
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
+    readonly abiCache: ABICache
     readonly client: APIClient
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
@@ -116,6 +136,11 @@ export class TransactContext {
     readonly transactPluginsOptions: TransactPluginsOptions
 
     constructor(options: TransactContextOptions) {
+        if (options.abiCache) {
+            this.abiCache = options.abiCache
+        } else {
+            this.abiCache = new ABICache(options.client)
+        }
         this.client = options.client
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
@@ -133,13 +158,9 @@ export class TransactContext {
         return this.permissionLevel.permission
     }
 
-    get abiProvider(): AbiProvider {
-        return makeAbiProvider(this.client)
-    }
-
     get esrOptions(): SigningRequestEncodingOptions {
         return {
-            abiProvider: this.abiProvider,
+            abiProvider: new ABICache(this.client),
             zlib,
         }
     }
@@ -249,6 +270,7 @@ export interface SessionOptions {
 }
 
 export class Session {
+    readonly abiCache = ABICache
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
@@ -322,9 +344,9 @@ export class Session {
         return args
     }
 
-    async createRequest(args: TransactArgs): Promise<SigningRequest> {
+    async createRequest(args: TransactArgs, abiCache: ABICache): Promise<SigningRequest> {
         const options = {
-            abiProvider: makeAbiProvider(this.client),
+            abiProvider: abiCache,
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
@@ -357,8 +379,11 @@ export class Session {
      *   F --> H[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
+        const abiCache = new ABICache(this.client)
+
         // The context for this transaction
         const context = new TransactContext({
+            abiCache,
             client: this.client,
             fetch: this.fetch,
             permissionLevel: this.permissionLevel,
@@ -367,7 +392,7 @@ export class Session {
         })
 
         // Process TransactArgs and convert to a SigningRequest
-        const request: SigningRequest = await this.createRequest(args)
+        const request: SigningRequest = await this.createRequest(args, abiCache)
 
         // Create response template to this transact call
         const result: TransactResult = {
@@ -406,7 +431,7 @@ export class Session {
         const info = await context.client.v1.chain.get_info()
         const expireSeconds = 120 // TODO: Needs to be configurable by parameters
         const header = info.getTransactionHeader(expireSeconds)
-        const abis = await result.request.fetchAbis() // TODO: ABI Cache Implementation
+        const abis = await result.request.fetchAbis(abiCache)
 
         // Resolve the request and get the resolved transaction
         result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
