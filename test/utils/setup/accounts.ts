@@ -31,6 +31,9 @@ const controlKey = 'EOS6XXTaRpWhPwnb7CTV9zVsCBrvCpYMMPSk8E8hsJxhf6VFW9DYN'
 // Test permission key to set on all the accounts
 const testKey = 'EOS6RMS3nvoN9StPzZizve6WdovaDkE5KkEcCDXW7LbepyAioMiK6'
 
+// Cosigner Key for wharfkitnoop
+const noopKey = 'EOS8WUgppBZ1NjnGASYeLwQ3PkNLvdnfnchumsSpo6ApCAzbETczm'
+
 // Minimum RAM bytes to create an account
 const requiredRamBytes = 1598
 
@@ -130,6 +133,13 @@ const accounts: AccountDefinition[] = [
         balance: undefined,
         cpuStake: undefined,
         netStake: undefined,
+        ramBytes: 10000,
+    },
+    {
+        name: 'wharfkitnoop',
+        balance: '5.0000 EOS',
+        cpuStake: '1.0000 EOS',
+        netStake: '1.0000 EOS',
         ramBytes: 10000,
     },
 ]
@@ -312,6 +322,56 @@ async function createTestPermission(account: AccountDefinition): Promise<Transac
             }),
         }),
     ]
+    if (account.name === 'wharfkitnoop') {
+        actions.push(
+            // Add the test permission to the account
+            Action.from({
+                account: 'eosio',
+                name: 'updateauth',
+                authorization: [
+                    {
+                        actor: account.name,
+                        permission: 'active',
+                    },
+                ],
+                data: Updateauth.from({
+                    account: account.name,
+                    permission: 'cosign',
+                    parent: 'active',
+                    auth: {
+                        threshold: 1,
+                        keys: [
+                            {
+                                key: testKey,
+                                weight: 1,
+                            },
+                        ],
+                        accounts: [],
+                        waits: [],
+                    },
+                }),
+            })
+        )
+        actions.push(
+            // Link the test permission to the eosio.token::transfer action
+            Action.from({
+                account: 'eosio',
+                name: 'linkauth',
+                authorization: [
+                    {
+                        actor: account.name,
+                        permission: 'active',
+                    },
+                ],
+                data: Linkauth.from({
+                    account: account.name,
+                    code: 'greymassnoop',
+                    type: 'noop',
+                    requirement: 'cosign',
+                }),
+            })
+        )
+    }
     const result = await session.transact({actions})
     return result
 }
