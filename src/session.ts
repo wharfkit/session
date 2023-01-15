@@ -205,6 +205,10 @@ export interface TransactOptions {
      */
     chain?: Checksum256Type
     /**
+     * The number of seconds in the future this transaction will expire.
+     */
+    expireSeconds?: number
+    /**
      * Specific transact plugins to use for this transaction.
      */
     transactPlugins?: AbstractTransactPlugin[]
@@ -261,6 +265,7 @@ export interface SessionOptions {
     allowModify?: boolean
     broadcast?: boolean
     chain: ChainDefinitionType
+    expireSeconds?: number
     fetch?: Fetch
     permissionLevel: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
@@ -273,6 +278,7 @@ export class Session {
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
+    readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly permissionLevel: PermissionLevel
     readonly transactPlugins: TransactPlugin[]
@@ -286,6 +292,9 @@ export class Session {
         }
         if (options.broadcast !== undefined) {
             this.broadcast = options.broadcast
+        }
+        if (options.expireSeconds) {
+            this.expireSeconds = options.expireSeconds
         }
         if (options.fetch) {
             this.fetch = options.fetch
@@ -409,6 +418,10 @@ export class Session {
                 ? options.allowModify
                 : this.allowModify
 
+        // The number of seconds before this transaction expires
+        const expireSeconds =
+            options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
+
         // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
@@ -428,7 +441,6 @@ export class Session {
 
         // Resolve SigningRequest with authority + tapos
         const info = await context.client.v1.chain.get_info()
-        const expireSeconds = 120 // TODO: Needs to be configurable by parameters
         const header = info.getTransactionHeader(expireSeconds)
         const abis = await result.request.fetchAbis(abiCache)
 

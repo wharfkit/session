@@ -1,12 +1,15 @@
 import {assert} from 'chai'
 
 import {BaseTransactPlugin, Session, SessionKit, SessionKitOptions} from '$lib'
-import {PermissionLevel} from '@greymass/eosio'
+import {PermissionLevel, TimePointSec} from '@greymass/eosio'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
+import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {mockPermissionLevel} from '$test/utils/mock-config'
+
+const action = makeMockAction()
 
 const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
@@ -27,6 +30,37 @@ suite('kit', function () {
             assert.instanceOf(sessionKit, SessionKit)
         })
         suite('options', function () {
+            suite('expireSeconds', function () {
+                test('default: 120', async function () {
+                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const session = await sessionKit.login()
+                    const result = await session.transact({action}, {broadcast: false})
+                    // Get the chain info to get the current head block time from test cache
+                    const {head_block_time} = await session.client.v1.chain.get_info()
+                    const expectedExpiration = head_block_time.toMilliseconds() + 120 * 1000
+                    assert.equal(
+                        String(result.transaction?.expiration),
+                        String(TimePointSec.fromMilliseconds(expectedExpiration))
+                    )
+                })
+                test('override: 60', async function () {
+                    const sessionKit = new SessionKit({
+                        ...defaultSessionKitOptions,
+                        expireSeconds: 60,
+                    })
+                    const session = await sessionKit.login()
+                    const expireSeconds = 60
+                    const result = await session.transact({action}, {broadcast: false})
+                    // Get the chain info to get the current head block time from test cache
+                    const {head_block_time} = await session.client.v1.chain.get_info()
+                    const expectedExpiration =
+                        head_block_time.toMilliseconds() + expireSeconds * 1000
+                    assert.equal(
+                        String(result.transaction?.expiration),
+                        String(TimePointSec.fromMilliseconds(expectedExpiration))
+                    )
+                })
+            })
             suite('transactPlugins', function () {
                 test('default', async function () {
                     const sessionKit = new SessionKit(defaultSessionKitOptions)

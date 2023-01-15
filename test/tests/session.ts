@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {PermissionLevel} from '@greymass/eosio'
+import {PermissionLevel, TimePointSec} from '@greymass/eosio'
 
 import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
@@ -103,6 +103,49 @@ suite('session', function () {
                     })
                     const result = await testSession.transact({action}, {broadcast: false})
                     assert.isUndefined(result.response)
+                })
+            })
+            suite('expireSeconds', function () {
+                test('default: 120', async function () {
+                    const session = new Session({
+                        chain: ChainDefinition.from({
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
+                        }),
+                        fetch: mockFetch, // Required for unit tests
+                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                        walletPlugin: wallet,
+                    })
+                    const result = await session.transact({action}, {broadcast: false})
+                    // Get the chain info to get the current head block time from test cache
+                    const {head_block_time} = await session.client.v1.chain.get_info()
+                    const expectedExpiration = head_block_time.toMilliseconds() + 120 * 1000
+                    assert.equal(
+                        String(result.transaction?.expiration),
+                        String(TimePointSec.fromMilliseconds(expectedExpiration))
+                    )
+                })
+                test('override: 60', async function () {
+                    const session = new Session({
+                        chain: ChainDefinition.from({
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
+                        }),
+                        expireSeconds: 60,
+                        fetch: mockFetch, // Required for unit tests
+                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                        walletPlugin: wallet,
+                    })
+                    const expireSeconds = 60
+                    const result = await session.transact({action}, {broadcast: false})
+                    // Get the chain info to get the current head block time from test cache
+                    const {head_block_time} = await session.client.v1.chain.get_info()
+                    const expectedExpiration =
+                        head_block_time.toMilliseconds() + expireSeconds * 1000
+                    assert.equal(
+                        String(result.transaction?.expiration),
+                        String(TimePointSec.fromMilliseconds(expectedExpiration))
+                    )
                 })
             })
             suite('passed as', function () {
