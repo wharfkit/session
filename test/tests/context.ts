@@ -3,6 +3,9 @@ import {assert} from 'chai'
 import {ABI, Name} from '@greymass/eosio'
 import zlib from 'pako'
 
+import {SigningRequest} from '$lib'
+import {makeMockAction} from '$test/utils/mock-transfer'
+
 import {makeContext} from '$test/utils/mock-context'
 
 const context = makeContext()
@@ -33,6 +36,19 @@ suite('context', function () {
         test('has zlib', function () {
             assert.isDefined(context.esrOptions.zlib)
             assert.instanceOf(context.esrOptions.zlib, Object)
+        })
+    })
+    suite('resolve', function () {
+        test('request', async function () {
+            const request = await SigningRequest.create(
+                {
+                    action: makeMockAction(),
+                    chainId: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                },
+                {zlib}
+            )
+            const resolved = context.resolve(request)
+            console.log(resolved)
         })
     })
 })

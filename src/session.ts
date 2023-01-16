@@ -1,6 +1,4 @@
 import {
-    ABI,
-    API,
     APIClient,
     FetchProvider,
     Name,
@@ -9,7 +7,7 @@ import {
     Signature,
     SignedTransaction,
 } from '@greymass/eosio'
-import {AbiProvider, ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 import zlib from 'pako'
 import {ABICache} from './abi'
 import {
@@ -193,7 +191,7 @@ export class Session {
         })
 
         // Process TransactArgs and convert to a SigningRequest
-        const request: SigningRequest = await this.createRequest(args, abiCache)
+        let request: SigningRequest = await this.createRequest(args, abiCache)
 
         // Create response template to this transact call
         const result: TransactResult = {
@@ -221,10 +219,10 @@ export class Session {
 
         // Run the `beforeSign` hooks
         for (const hook of context.hooks.beforeSign) {
-            const response = await hook(result.request.clone(), context)
+            const response = await hook(request.clone(), context)
             // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
             if (allowModify) {
-                result.request = response.request.clone()
+                request = response.request.clone()
             }
             // If signatures were returned, append them
             if (response.signatures) {
@@ -232,13 +230,9 @@ export class Session {
             }
         }
 
-        // Resolve SigningRequest with authority + tapos
-        const info = await context.client.v1.chain.get_info()
-        const header = info.getTransactionHeader(expireSeconds)
-        const abis = await result.request.fetchAbis(abiCache)
-
-        // Resolve the request and get the resolved transaction
-        result.resolved = await result.request.resolve(abis, this.permissionLevel, header)
+        // Resolve the SigningRequest and assign it to the TransactResult
+        result.request = request
+        result.resolved = await context.resolve(request, expireSeconds)
         result.transaction = result.resolved.resolvedTransaction
 
         // Sign transaction based on wallet plugin

@@ -105,6 +105,19 @@ export class TransactContext {
     addHook(t: TransactHookTypes, hook: TransactHook) {
         this.hooks[t].push(hook)
     }
+
+    async resolve(request: SigningRequest, expireSeconds = 120): Promise<ResolvedSigningRequest> {
+        // TODO: Cache the info/header first time the context resolves?
+        // If multiple plugins resolve the same request and call get_info, tapos might change
+        const info = await this.client.v1.chain.get_info()
+        const header = info.getTransactionHeader(expireSeconds)
+
+        // Load ABIs required to resolve this request
+        const abis = await request.fetchAbis(this.abiCache)
+
+        // Resolve the request and return
+        return request.resolve(abis, this.permissionLevel, header)
+    }
 }
 /**
  * Payload accepted by the [[Session.transact]] method.

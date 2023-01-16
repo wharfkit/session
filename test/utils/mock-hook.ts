@@ -31,6 +31,12 @@ export class MockTransactPlugin extends AbstractTransactPlugin {
     }
 }
 
+// Needed to load the ABI and work with an `Action` object
+class noop extends Struct {
+    static abiName = 'noop'
+    static abiFields = []
+}
+
 export async function mockTransactResourceProviderPresignHook(
     request: SigningRequest,
     context: TransactContext
@@ -47,11 +53,6 @@ export async function mockTransactResourceProviderPresignHook(
     }
     // Clone the request for modification
     const cloned = request.clone()
-    // Needed to load the ABI and work with an `Action` object
-    class noop extends Struct {
-        static abiName = 'noop'
-        static abiFields = []
-    }
     const newAction = Action.from({
         account: 'greymassnoop',
         name: 'noop',
@@ -90,4 +91,31 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactResourceProviderPresignHook)
     }
+}
+
+export const mockTransactActionPrependerPlugin = {
+    register: (context) =>
+        context.addHook(TransactHookTypes.beforeSign, async (request, context) => ({
+            request: await SigningRequest.create(
+                {
+                    actions: [
+                        {
+                            account: 'greymassnoop',
+                            name: 'noop',
+                            authorization: [
+                                {
+                                    actor: [...Array(12)]
+                                        .map(() => Math.random().toString(36)[2])
+                                        .join(''),
+                                    permission: 'test',
+                                },
+                            ],
+                            data: {},
+                        },
+                        ...request.getRawActions(),
+                    ],
+                },
+                context.esrOptions
+            ),
+        })),
 }
