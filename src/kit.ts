@@ -8,18 +8,14 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
-
+import {Session, SessionOptions, WalletPlugin, WalletPluginLoginOptions} from './session'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
-    Session,
-    SessionOptions,
     TransactPlugin,
     TransactPluginsOptions,
-    WalletPlugin,
-    WalletPluginLoginOptions,
-} from './session'
+} from './transact'
+import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 
 export enum LoginHookTypes {
     beforeLogin = 'beforeLogin',
