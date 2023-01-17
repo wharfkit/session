@@ -349,41 +349,6 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
-            test('triggers', async function () {
-                const {action, session} = await mockData()
-                const result = await session.transact(
-                    {action},
-                    {transactPlugins: [new MockTransactPlugin()]}
-                )
-                assetValidTransactResponse(result)
-            })
-            test('multiple unique modifications from plugins', async function () {
-                const {action, session} = await mockData()
-                const result = await session.transact(
-                    {action},
-                    {
-                        transactPlugins: [
-                            mockTransactActionPrependerPlugin,
-                            mockTransactActionPrependerPlugin,
-                        ],
-                    }
-                )
-                assetValidTransactResponse(result)
-                if (result && result.transaction && result.transaction.actions) {
-                    assert.lengthOf(result.transaction.actions, 3)
-                    assert.isTrue(result.transaction.actions[0].account.equals('greymassnoop'))
-                    assert.isTrue(result.transaction.actions[1].account.equals('greymassnoop'))
-                    assert.isTrue(result.transaction.actions[2].account.equals('eosio.token'))
-                    // Ensure these two authorizations are random and not the same
-                    assert.isTrue(
-                        !result.transaction.actions[0].authorization[0].actor.equals(
-                            result.transaction.actions[1].authorization[0].actor
-                        )
-                    )
-                } else {
-                    assert.fail('Transaction with actions was not returned in result.')
-                }
-            })
         })
         suite('transactPluginsOptions', function () {
             test('transact', async function () {
@@ -477,6 +442,43 @@ suite('transact', function () {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
             })
+        })
+    })
+    suite('plugins', function () {
+        test('trigger', async function () {
+            const {action, session} = await mockData()
+            const result = await session.transact(
+                {action},
+                {transactPlugins: [new MockTransactPlugin()]}
+            )
+            assetValidTransactResponse(result)
+        })
+        test('multiple modifications', async function () {
+            const {action, session} = await mockData()
+            const result = await session.transact(
+                {action},
+                {
+                    transactPlugins: [
+                        mockTransactActionPrependerPlugin,
+                        mockTransactActionPrependerPlugin,
+                    ],
+                }
+            )
+            assetValidTransactResponse(result)
+            if (result && result.transaction && result.transaction.actions) {
+                assert.lengthOf(result.transaction.actions, 3)
+                assert.isTrue(result.transaction.actions[0].account.equals('greymassnoop'))
+                assert.isTrue(result.transaction.actions[1].account.equals('greymassnoop'))
+                assert.isTrue(result.transaction.actions[2].account.equals('eosio.token'))
+                // Ensure these two authorizations are random and not the same
+                assert.isTrue(
+                    !result.transaction.actions[0].authorization[0].actor.equals(
+                        result.transaction.actions[1].authorization[0].actor
+                    )
+                )
+            } else {
+                assert.fail('Transaction with actions was not returned in result.')
+            }
         })
     })
     suite('response', function () {
