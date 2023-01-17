@@ -10,6 +10,7 @@ import {
     TransactHookTypes,
     Transaction,
 } from '$lib'
+import {prependAction} from 'src/utils'
 
 export async function mockLoginHook(context: SessionOptions) {
     // Mock hook that does nothing
@@ -51,8 +52,6 @@ export async function mockTransactResourceProviderPresignHook(
             signatures: [],
         }
     }
-    // Clone the request for modification
-    const cloned = request.clone()
     const newAction = Action.from({
         account: 'greymassnoop',
         name: 'noop',
@@ -64,25 +63,10 @@ export async function mockTransactResourceProviderPresignHook(
         ],
         data: noop.from({}),
     })
-    // TODO: Couldn't work with normal objects here
-    // Needs to do a bunch of conditional logic - shoulnd't be required for a hook
-    if (cloned.data.req.value instanceof Action) {
-        // Overwrite the data
-        cloned.data.req.value = [newAction, cloned.data.req.value]
-        // This needs to be done to indicate it's an `Action[]`
-        cloned.data.req.variantIdx = 1
-    } else if (cloned.data.req.value instanceof Array) {
-        // Prepend the action to the existing array
-        cloned.data.req.value.unshift(newAction)
-    } else if (cloned.data.req.value instanceof Transaction) {
-        // Prepend the action to the existing array of the transaction
-        cloned.data.req.value.actions.unshift(newAction)
-    } else {
-        throw new Error('Unrecognized data type in request.')
-    }
+    const modified = prependAction(request, newAction)
     // Return the request
     return {
-        request: cloned,
+        request: modified,
         signatures: [],
     }
 }
