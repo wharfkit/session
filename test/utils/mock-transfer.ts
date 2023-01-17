@@ -1,4 +1,5 @@
 import {Action, API, Asset, Name, Struct, Transaction} from '@greymass/eosio'
+
 import {mockAccountName, mockPermissionName} from './mock-config'
 
 @Struct.type('transfer')
