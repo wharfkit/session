@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import {ABI, Name} from '@greymass/eosio'
+import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'
@@ -47,8 +47,17 @@ suite('context', function () {
                 },
                 {zlib}
             )
-            const resolved = context.resolve(request)
-            console.log(resolved)
+            const resolved = await context.resolve(request)
+            assert.isTrue(
+                resolved.chainId.equals(
+                    Checksum256.from(
+                        '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d'
+                    )
+                )
+            )
+            assert.instanceOf(resolved.request, SigningRequest)
+            assert.instanceOf(resolved.signer, PermissionLevel)
+            assert.instanceOf(resolved.transaction, Transaction)
         })
     })
 })
