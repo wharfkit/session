@@ -5,7 +5,6 @@ import {
     Checksum256Type,
     Name,
     PermissionLevel,
-    PublicKey,
     Serializer,
     Signature,
 } from '@greymass/eosio'
