@@ -67,6 +67,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  * Options for creating a new instance of a [[Session]].
  */
 export interface SessionOptions {
+    abiProvider?: AbiProvider
     actor?: NameType
     allowModify?: boolean
     broadcast?: boolean
@@ -81,7 +82,7 @@ export interface SessionOptions {
 }
 
 export class Session {
-    readonly abiCache = ABICache
+    readonly abiProvider: AbiProvider
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
@@ -124,6 +125,11 @@ export class Session {
             throw new Error(
                 'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
             )
+        }
+        if (options.abiProvider) {
+            this.abiProvider = options.abiProvider
+        } else {
+            this.abiProvider = new ABICache(this.client)
         }
         this.wallet = options.walletPlugin
     }
@@ -274,11 +280,12 @@ export class Session {
      *   F --> G[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
-        const abiCache = new ABICache(this.client)
+        // The abi provider to use for this transaction, defaulting to the one from the session
+        const abiProvider = options?.abiProvider || this.abiProvider
 
         // The context for this transaction
         const context = new TransactContext({
-            abiCache,
+            abiProvider,
             client: this.client,
             fetch: this.fetch,
             permissionLevel: this.permissionLevel,
@@ -287,7 +294,7 @@ export class Session {
         })
 
         // Process TransactArgs and convert to a SigningRequest
-        let request: SigningRequest = await this.createRequest(args, abiCache)
+        let request: SigningRequest = await this.createRequest(args, abiProvider)
 
         // Create response template to this transact call
         const result: TransactResult = {
@@ -324,7 +331,7 @@ export class Session {
 
             // If modification is allowed, change the current request.
             if (allowModify) {
-                request = await this.updateRequest(request, response.request, abiCache)
+                request = await this.updateRequest(request, response.request, abiProvider)
             }
             // If signatures were returned, append them
             if (response.signatures) {
@@ -363,4 +370,3 @@ export class Session {
         return result
     }
 }
-export {AbstractTransactPlugin}

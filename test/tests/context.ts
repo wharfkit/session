@@ -13,16 +13,16 @@ const context = makeContext()
 suite('context', function () {
     suite('abiProvider', function () {
         test('has default', function () {
-            assert.isDefined(context.abiCache)
+            assert.isDefined(context.abiProvider)
         })
         test('fetches ABIs', async function () {
-            const result = await context.abiCache.getAbi(Name.from('eosio.token'))
+            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
             const abi = ABI.from(result)
             assert.instanceOf(result, ABI)
             assert.equal(abi.version, 'eosio::abi/1.2')
         })
         test('caches ABIs', async function () {
-            const result = await context.abiCache.getAbi(Name.from('eosio.token'))
+            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
             const abi = ABI.from(result)
             assert.instanceOf(result, ABI)
             assert.equal(abi.version, 'eosio::abi/1.2')

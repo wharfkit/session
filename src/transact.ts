@@ -9,13 +9,13 @@ import {
     Signature,
 } from '@greymass/eosio'
 import {
+    AbiProvider,
     ResolvedSigningRequest,
     ResolvedTransaction,
     SigningRequest,
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 import zlib from 'pako'
-import {ABICache} from './abi'
 
 import {ChainDefinition, Fetch} from './types'
 
@@ -47,7 +47,7 @@ export interface TransactHookResponse {
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
-    abiCache?: ABICache
+    abiProvider: AbiProvider
     client: APIClient
     fetch: Fetch
     permissionLevel: PermissionLevel
@@ -62,7 +62,7 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    readonly abiCache: ABICache
+    readonly abiProvider: AbiProvider
     readonly client: APIClient
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
@@ -74,11 +74,7 @@ export class TransactContext {
     readonly transactPluginsOptions: TransactPluginsOptions
 
     constructor(options: TransactContextOptions) {
-        if (options.abiCache) {
-            this.abiCache = options.abiCache
-        } else {
-            this.abiCache = new ABICache(options.client)
-        }
+        this.abiProvider = options.abiProvider
         this.client = options.client
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
@@ -98,7 +94,7 @@ export class TransactContext {
 
     get esrOptions(): SigningRequestEncodingOptions {
         return {
-            abiProvider: new ABICache(this.client),
+            abiProvider: this.abiProvider,
             zlib,
         }
     }
@@ -114,7 +110,7 @@ export class TransactContext {
         const header = info.getTransactionHeader(expireSeconds)
 
         // Load ABIs required to resolve this request
-        const abis = await request.fetchAbis(this.abiCache)
+        const abis = await request.fetchAbis(this.abiProvider)
 
         // Resolve the request and return
         return request.resolve(abis, this.permissionLevel, header)
@@ -139,6 +135,10 @@ export interface TransactArgs {
  * Options for the [[Session.transact]] method.
  */
 export interface TransactOptions {
+    /**
+     * An optional AbiProvider to control how ABIs are loaded.
+     */
+    abiProvider?: AbiProvider
     /**
      * Whether to allow the signer to make modifications to the request
      * (e.g. applying a cosigner action to pay for resources).
