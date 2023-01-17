@@ -213,6 +213,36 @@ export class Session {
     }
 
     /**
+     * Update a SigningRequest, ensuring its old metadata is retained.
+     *
+     * @param {SigningRequest} previous
+     * @param {SigningRequest} modified
+     * @param abiProvider
+     * @returns
+     */
+    async updateRequest(
+        previous: SigningRequest,
+        modified: SigningRequest,
+        abiProvider: AbiProvider
+    ): Promise<SigningRequest> {
+        const updatedRequest: SigningRequest = this.cloneRequest(modified, abiProvider)
+        const info = updatedRequest.getRawInfo()
+        // Take all the metadata from the previous and set it on the modified request.
+        // This will preserve the metadata as it is modified by various plugins.
+        previous.data.info.forEach((metadata) => {
+            if (info[metadata.key]) {
+                // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
+                console.warn(
+                    `During an updateRequest call, the previous request had already set the ` +
+                        `metadata key of "${metadata.key}" which will not be overwritten.` +
+                )
+            }
+            updatedRequest.setRawInfoKey(metadata.key, metadata.value)
+        })
+        return updatedRequest
+    }
+
+    /**
      * Perform a transaction using this session.
      *
      * @param {TransactArgs} args
@@ -278,7 +308,7 @@ export class Session {
 
             // If modification is allowed, change the current request.
             if (allowModify) {
-                request = response.request.clone()
+                request = await this.updateRequest(request, response.request, abiCache)
             }
             // If signatures were returned, append them
             if (response.signatures) {

@@ -5,6 +5,7 @@ import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eo
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
+    ABICache,
     ChainDefinition,
     Session,
     SessionOptions,
@@ -15,6 +16,7 @@ import SessionKit, {
 import {makeClient} from '$test/utils/mock-client'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {
+    mockMetadataFooWriterPlugin,
     mockTransactActionPrependerPlugin,
     MockTransactPlugin,
     MockTransactResourceProviderPlugin,
@@ -138,6 +140,20 @@ suite('transact', function () {
                 })
                 assetValidTransactResponse(result)
             })
+            test('string maintains payload metadata', async function () {
+                const {session} = await mockData()
+                const result = await session.transact(
+                    {
+                        request:
+                            'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                    },
+                    {
+                        broadcast: false,
+                        transactPlugins: [],
+                    }
+                )
+                assert.equal(result.request.getInfoKey('foo'), 'bar')
+            })
             test('object', async function () {
                 const {session} = await mockData()
                 const result = await session.transact({
@@ -147,6 +163,27 @@ suite('transact', function () {
                     ),
                 })
                 assetValidTransactResponse(result)
+            })
+            test('object maintains payload metadata', async function () {
+                const {action, session} = await mockData()
+                const abiCache = new ABICache(this.client)
+                const request = await SigningRequest.create(
+                    {action},
+                    {
+                        abiProvider: abiCache,
+                        zlib,
+                    }
+                )
+                request.setInfoKey('foo', 'bar')
+                assert.equal(request.getInfoKey('foo'), 'bar')
+                const result = await session.transact(
+                    {request},
+                    {
+                        broadcast: false,
+                        transactPlugins: [],
+                    }
+                )
+                assert.equal(result.request.getInfoKey('foo'), 'bar')
             })
         })
         suite('invalid', function () {
@@ -479,6 +516,34 @@ suite('transact', function () {
             } else {
                 assert.fail('Transaction with actions was not returned in result.')
             }
+        })
+        test('metadata persists through mutation', async function () {
+            const {session} = await mockData()
+            const result = await session.transact(
+                {
+                    request:
+                        'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                },
+                {
+                    broadcast: false,
+                    transactPlugins: [mockTransactActionPrependerPlugin],
+                }
+            )
+            assert.equal(result.request.getInfoKey('foo'), 'bar')
+        })
+        test('metadata preservation from original', async function () {
+            const {session} = await mockData()
+            const result = await session.transact(
+                {
+                    request:
+                        'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                },
+                {
+                    broadcast: false,
+                    transactPlugins: [mockMetadataFooWriterPlugin],
+                }
+            )
+            assert.equal(result.request.getInfoKey('foo'), 'bar')
         })
     })
     suite('response', function () {

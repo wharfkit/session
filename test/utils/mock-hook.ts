@@ -119,3 +119,13 @@ export const mockTransactActionPrependerPlugin = {
             ),
         })),
 }
+
+export const mockMetadataFooWriterPlugin = {
+    register: (context) =>
+        context.addHook(TransactHookTypes.beforeSign, async (request) => {
+            request.setInfoKey('foo', 'baz')
+            return {
+                request,
+            }
+        }),
+}
