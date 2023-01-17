@@ -7,7 +7,13 @@ import {
     Signature,
     SignedTransaction,
 } from '@greymass/eosio'
-import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+import {
+    RequestDataV2,
+    RequestDataV3,
+    RequestSignature,
+    ResolvedSigningRequest,
+    SigningRequest,
+} from 'eosio-signing-request'
 import zlib from 'pako'
 import {ABICache} from './abi'
 import {
@@ -144,6 +150,11 @@ export class Session {
         return args
     }
 
+    // Lifted from @greymass/eosio-signing-request
+    private storageType(version: number): typeof RequestDataV3 | typeof RequestDataV2 {
+        return version === 2 ? RequestDataV2 : RequestDataV3
+    }
+
     async createRequest(args: TransactArgs, abiCache: ABICache): Promise<SigningRequest> {
         let request: SigningRequest
         const options = {
@@ -151,7 +162,18 @@ export class Session {
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
-            request = SigningRequest.from(String(args.request), options)
+            // Lifted from @greymass/eosio-signing-request method `clone()`
+            // This was done to modify the zlib and abiProvider
+            // TODO: Modify ESR library to expose this `clone()` functionality
+            let signature: RequestSignature | undefined
+            if (args.request.signature) {
+                signature = RequestSignature.from(
+                    JSON.parse(JSON.stringify(args.request.signature))
+                )
+            }
+            const RequestData = this.storageType(args.request.version)
+            const data = RequestData.from(JSON.parse(JSON.stringify(args.request.data)))
+            request = new SigningRequest(args.request.version, data, zlib, abiCache, signature)
         } else if (args.request) {
             request = SigningRequest.from(args.request, options)
         } else {
