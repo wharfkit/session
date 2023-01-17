@@ -5,6 +5,7 @@ import {
     Checksum256Type,
     Name,
     PermissionLevel,
+    PublicKey,
     Serializer,
     Signature,
 } from '@greymass/eosio'
@@ -226,6 +227,8 @@ export class TransactRevisions {
 export interface TransactResult {
     /** The chain that was used. */
     chain: ChainDefinition
+    /** The public keys used to sign. */
+    keys: PublicKey[]
     /** The SigningRequest representation of the transaction. */
     request: SigningRequest
     /** The ResolvedSigningRequest of the transaction */

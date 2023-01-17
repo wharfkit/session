@@ -1,7 +1,18 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {Action, Name, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {
+    Action,
+    Name,
+    PermissionLevel,
+    PrivateKey,
+    Serializer,
+    Signature,
+    SignatureType,
+    Struct,
+    TimePointSec,
+    Transaction,
+} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -319,6 +330,128 @@ suite('transact', function () {
                     String(result.transaction?.expiration),
                     String(TimePointSec.fromMilliseconds(expectedExpiration))
                 )
+            })
+        })
+        suite('validatePluginSignatures', function () {
+            test('default: true (check and throw after mutations invalidate signatures)', async function () {
+                const {action, session} = await mockData()
+                const randomKeyCosignerHook = async (
+                    request: SigningRequest,
+                    context: TransactContext
+                ) => {
+                    const randomName = Name.from('')
+                    const randomKey = PrivateKey.generate('K1')
+                    class noop extends Struct {
+                        static abiName = 'noop'
+                        static abiFields = []
+                    }
+                    const newAction = Action.from({
+                        account: 'greymassnoop',
+                        name: 'noop',
+                        authorization: [
+                            {
+                                actor: randomName,
+                                permission: 'cosign',
+                            },
+                        ],
+                        data: noop.from({}),
+                    })
+                    const info = await context.client.v1.chain.get_info()
+                    const header = info.getTransactionHeader()
+                    const newTransaction = Transaction.from({
+                        ...header,
+                        actions: [newAction, ...request.getRawActions()],
+                    })
+                    const newRequest = await SigningRequest.create(
+                        {transaction: newTransaction, chainId: session.chain.id},
+                        context.esrOptions
+                    )
+                    const digest = newTransaction.signingDigest(info.chain_id)
+                    const signature: SignatureType = randomKey.signDigest(digest)
+                    return {
+                        request: newRequest,
+                        signatures: [signature],
+                    }
+                }
+                const debugPlugin = {
+                    register(context) {
+                        context.addHook(TransactHookTypes.beforeSign, randomKeyCosignerHook)
+                        context.addHook(TransactHookTypes.beforeSign, randomKeyCosignerHook)
+                    },
+                }
+                let error
+                await session
+                    .transact(
+                        {action},
+                        {
+                            broadcast: false,
+                            transactPlugins: [debugPlugin],
+                        }
+                    )
+                    .catch((e) => {
+                        error = e
+                    })
+                assert.instanceOf(
+                    error,
+                    Error,
+                    'Expected an Error to be thrown by validatePluginSignatures.'
+                )
+            })
+            test('override: false', async function () {
+                const {action, session} = await mockData()
+                const randomKeyCosignerHook = async (
+                    request: SigningRequest,
+                    context: TransactContext
+                ) => {
+                    const randomName = Name.from('')
+                    const randomKey = PrivateKey.generate('K1')
+                    class noop extends Struct {
+                        static abiName = 'noop'
+                        static abiFields = []
+                    }
+                    const newAction = Action.from({
+                        account: 'greymassnoop',
+                        name: 'noop',
+                        authorization: [
+                            {
+                                actor: randomName,
+                                permission: 'cosign',
+                            },
+                        ],
+                        data: noop.from({}),
+                    })
+                    const info = await context.client.v1.chain.get_info()
+                    const header = info.getTransactionHeader()
+                    const newTransaction = Transaction.from({
+                        ...header,
+                        actions: [newAction, ...request.getRawActions()],
+                    })
+                    const newRequest = await SigningRequest.create(
+                        {transaction: newTransaction, chainId: session.chain.id},
+                        context.esrOptions
+                    )
+                    const digest = newTransaction.signingDigest(info.chain_id)
+                    const signature: SignatureType = randomKey.signDigest(digest)
+                    return {
+                        request: newRequest,
+                        signatures: [signature],
+                    }
+                }
+                const debugPlugin = {
+                    register(context) {
+                        context.addHook(TransactHookTypes.beforeSign, randomKeyCosignerHook)
+                        context.addHook(TransactHookTypes.beforeSign, randomKeyCosignerHook)
+                    },
+                }
+                const result = await session.transact(
+                    {action},
+                    {
+                        broadcast: false,
+                        transactPlugins: [debugPlugin],
+                        validatePluginSignatures: false,
+                    }
+                )
+                assetValidTransactResponse(result)
             })
         })
         suite('transactPlugins', function () {
