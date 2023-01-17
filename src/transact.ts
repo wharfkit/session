@@ -5,6 +5,8 @@ import {
     Checksum256Type,
     Name,
     PermissionLevel,
+    PublicKey,
+    Serializer,
     Signature,
 } from '@greymass/eosio'
 import {
@@ -166,6 +168,57 @@ export interface TransactOptions {
      * Optional parameters passed in to the various transact plugins.
      */
     transactPluginsOptions?: TransactPluginsOptions
+    /**
+     * Optional parameter to control whether signatures returned from plugins are validated.
+     */
+    validatePluginSignatures?: boolean
+}
+
+export interface TransactRevision {
+    /**
+     * Whether or not the context allowed any modification to take effect.
+     */
+    allowModify: boolean
+    /**
+     * The string representation of the code executed.
+     */
+    code: string
+    /**
+     * If the request was modified by this code.
+     */
+    modified: boolean
+    /**
+     * The response from the code that was executed.
+     */
+    response: {
+        request: string
+        signatures: string[]
+    }
+}
+
+export class TransactRevisions {
+    readonly revisions: TransactRevision[] = []
+    constructor(request: SigningRequest) {
+        this.addRevision({request, signatures: []}, 'original', true)
+    }
+    public addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
+        // Determine if the new response modifies the request
+        let modified = false
+        const previous = this.revisions.at(-1)
+        if (previous) {
+            modified = previous.response.request !== String(response.request)
+        }
+        // Push this revision in to the stack
+        this.revisions.push({
+            allowModify,
+            code: String(code),
+            modified,
+            response: {
+                request: String(response.request),
+                signatures: response.signatures ? Serializer.objectify(response.signatures) : [],
+            },
+        })
+    }
 }
 
 /**
@@ -180,6 +233,8 @@ export interface TransactResult {
     resolved: ResolvedSigningRequest | undefined
     /** The response from the API after sending the transaction, only present if transaction was broadcast. */
     response?: {[key: string]: any}
+    /** An array containing revisions of the transaction as modified by plugins as ESR payloads */
+    revisions: TransactRevisions
     /** The transaction signatures. */
     signatures: Signature[]
     /** The signer authority. */

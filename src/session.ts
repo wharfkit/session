@@ -19,6 +19,7 @@ import {
     TransactPlugin,
     TransactPluginsOptions,
     TransactResult,
+    TransactRevisions,
 } from './transact'
 
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
@@ -144,25 +145,26 @@ export class Session {
     }
 
     async createRequest(args: TransactArgs, abiCache: ABICache): Promise<SigningRequest> {
+        let request: SigningRequest
         const options = {
             abiProvider: abiCache,
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
-            return SigningRequest.from(String(args.request), options)
+            request = SigningRequest.from(String(args.request), options)
         } else if (args.request) {
-            return SigningRequest.from(args.request, options)
+            request = SigningRequest.from(args.request, options)
         } else {
             args = this.upgradeTransaction(args)
-            const request = await SigningRequest.create(
+            request = await SigningRequest.create(
                 {
                     ...args,
                     chainId: this.chain.id,
                 },
                 options
             )
-            return request
         }
+        return request
     }
 
     /**
@@ -198,6 +200,7 @@ export class Session {
             chain: this.chain,
             request,
             resolved: undefined,
+            revisions: new TransactRevisions(request),
             signatures: [],
             signer: this.permissionLevel,
             transaction: undefined,
@@ -219,8 +222,13 @@ export class Session {
 
         // Run the `beforeSign` hooks
         for (const hook of context.hooks.beforeSign) {
+            // Get the response of the hook by passing a clonied request.
             const response = await hook(request.clone(), context)
-            // TODO: Verify we should be cloning the requests here, and write tests to verify they cannot be modified
+
+            // Save revision history for developers to debug modifications to requests.
+            result.revisions.addRevision(response, String(hook), allowModify)
+
+            // If modification is allowed, change the current request.
             if (allowModify) {
                 request = response.request.clone()
             }
