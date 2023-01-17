@@ -10,6 +10,7 @@ import {
     TransactHookTypes,
     Transaction,
 } from '$lib'
+import {prependAction} from 'src/utils'
 
 export async function mockLoginHook(context: SessionOptions) {
     // Mock hook that does nothing
@@ -27,9 +28,14 @@ export class MockTransactPlugin extends AbstractTransactPlugin {
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactHook)
         context.addHook(TransactHookTypes.afterSign, mockTransactHook)
-        context.addHook(TransactHookTypes.beforeBroadcast, mockTransactHook)
         context.addHook(TransactHookTypes.afterBroadcast, mockTransactHook)
     }
+}
+
+// Needed to load the ABI and work with an `Action` object
+class noop extends Struct {
+    static abiName = 'noop'
+    static abiFields = []
 }
 
 export async function mockTransactResourceProviderPresignHook(
@@ -46,13 +52,6 @@ export async function mockTransactResourceProviderPresignHook(
             signatures: [],
         }
     }
-    // Clone the request for modification
-    const cloned = request.clone()
-    // Needed to load the ABI and work with an `Action` object
-    class noop extends Struct {
-        static abiName = 'noop'
-        static abiFields = []
-    }
     const newAction = Action.from({
         account: 'greymassnoop',
         name: 'noop',
@@ -64,25 +63,10 @@ export async function mockTransactResourceProviderPresignHook(
         ],
         data: noop.from({}),
     })
-    // TODO: Couldn't work with normal objects here
-    // Needs to do a bunch of conditional logic - shoulnd't be required for a hook
-    if (cloned.data.req.value instanceof Action) {
-        // Overwrite the data
-        cloned.data.req.value = [newAction, cloned.data.req.value]
-        // This needs to be done to indicate it's an `Action[]`
-        cloned.data.req.variantIdx = 1
-    } else if (cloned.data.req.value instanceof Array) {
-        // Prepend the action to the existing array
-        cloned.data.req.value.unshift(newAction)
-    } else if (cloned.data.req.value instanceof Transaction) {
-        // Prepend the action to the existing array of the transaction
-        cloned.data.req.value.actions.unshift(newAction)
-    } else {
-        throw new Error('Unrecognized data type in request.')
-    }
+    const modified = prependAction(request, newAction)
     // Return the request
     return {
-        request: cloned,
+        request: modified,
         signatures: [],
     }
 }
@@ -91,4 +75,41 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactResourceProviderPresignHook)
     }
+}
+
+export const mockTransactActionPrependerPlugin = {
+    register: (context) =>
+        context.addHook(TransactHookTypes.beforeSign, async (request, context) => ({
+            request: await SigningRequest.create(
+                {
+                    actions: [
+                        {
+                            account: 'greymassnoop',
+                            name: 'noop',
+                            authorization: [
+                                {
+                                    actor: [...Array(12)]
+                                        .map(() => Math.random().toString(36)[2])
+                                        .join(''),
+                                    permission: 'test',
+                                },
+                            ],
+                            data: {},
+                        },
+                        ...request.getRawActions(),
+                    ],
+                },
+                context.esrOptions
+            ),
+        })),
+}
+
+export const mockMetadataFooWriterPlugin = {
+    register: (context) =>
+        context.addHook(TransactHookTypes.beforeSign, async (request) => {
+            request.setInfoKey('foo', 'baz')
+            return {
+                request,
+            }
+        }),
 }

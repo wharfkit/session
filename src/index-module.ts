@@ -1,4 +1,6 @@
+export * from './abi'
 export * from './kit'
 export * from './plugins'
 export * from './session'
+export * from './transact'
 export * from './types'

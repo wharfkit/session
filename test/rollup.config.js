@@ -90,7 +90,10 @@ export default [
             alias({
                 entries: [
                     {find: '$lib', replacement: path.join(__dirname, '..', 'lib/session.m.js')},
-                    {find: './utils/mock-provider', replacement: './utils/browser-provider.ts'},
+                    {
+                        find: '$test/utils/mock-fetch',
+                        replacement: './test/utils/browser-fetch.ts',
+                    },
                 ],
             }),
             typescript({target: 'es6', module: 'esnext', tsconfig: './test/tsconfig.json'}),

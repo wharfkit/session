@@ -76,7 +76,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
             body: JSON.stringify({
                 ref: 'unittest',
                 request,
-                signer: context.session,
+                signer: context.permissionLevel,
             }),
         })
 
@@ -125,25 +125,10 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         response: ResourceProviderResponse,
         context: TransactContext
     ): Promise<SigningRequest> {
-        // Establish an AbiProvider based on the session context.
-        const abiProvider: AbiProvider = {
-            getAbi: async (account: Name): Promise<ABIDef> => {
-                const response = await context.client.v1.chain.get_abi(account)
-                if (!response.abi) {
-                    /* istanbul ignore next */
-                    throw new Error('could not load abi') // TODO: Better coverage for this
-                }
-                return response.abi
-            },
-        }
-
         // Create a new signing request based on the response to return to the session's transact flow.
         const request = await SigningRequest.create(
             {transaction: response.data.request[1]},
-            {
-                abiProvider,
-                zlib,
-            }
+            context.esrOptions
         )
 
         // Set the required fee onto the request itself for wallets to process.
@@ -167,7 +152,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         // Retrieve first authorizer and ensure it matches session context.
         const firstAction = request.getRawActions()[0]
         const firstAuthorizer = firstAction.authorization[0]
-        if (!firstAuthorizer.actor.equals(context.session.actor)) {
+        if (!firstAuthorizer.actor.equals(context.permissionLevel.actor)) {
             throw new Error('The first authorizer of the transaction does not match this session.')
         }
     }

@@ -1,4 +1,5 @@
-import {FetchProviderOptions} from '@greymass/eosio'
+import {Action, AnyAction, FetchProviderOptions, Transaction} from '@greymass/eosio'
+import {SigningRequest} from 'eosio-signing-request'
 import {Fetch} from './types'
 
 export function getFetch(options?: FetchProviderOptions): Fetch {
@@ -12,4 +13,40 @@ export function getFetch(options?: FetchProviderOptions): Fetch {
         return global.fetch.bind(global)
     }
     throw new Error('Missing fetch')
+}
+
+export function appendAction(request: SigningRequest, action: AnyAction): SigningRequest {
+    const newAction = Action.from(action)
+    const cloned = request.clone()
+    if (cloned.data.req.value instanceof Action) {
+        // Overwrite the data
+        cloned.data.req.value = [cloned.data.req.value, newAction]
+        // This needs to be done to indicate it's an `Action[]`
+        cloned.data.req.variantIdx = 1
+    } else if (cloned.data.req.value instanceof Array) {
+        // Prepend the action to the existing array
+        cloned.data.req.value.push(newAction)
+    } else if (cloned.data.req.value instanceof Transaction) {
+        // Prepend the action to the existing array of the transaction
+        cloned.data.req.value.actions.push(newAction)
+    }
+    return cloned
+}
+
+export function prependAction(request: SigningRequest, action: AnyAction): SigningRequest {
+    const newAction = Action.from(action)
+    const cloned = request.clone()
+    if (cloned.data.req.value instanceof Action) {
+        // Overwrite the data
+        cloned.data.req.value = [newAction, cloned.data.req.value]
+        // This needs to be done to indicate it's an `Action[]`
+        cloned.data.req.variantIdx = 1
+    } else if (cloned.data.req.value instanceof Array) {
+        // Prepend the action to the existing array
+        cloned.data.req.value.unshift(newAction)
+    } else if (cloned.data.req.value instanceof Transaction) {
+        // Prepend the action to the existing array of the transaction
+        cloned.data.req.value.actions.unshift(newAction)
+    }
+    return cloned
 }

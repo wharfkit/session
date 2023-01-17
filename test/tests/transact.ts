@@ -1,10 +1,11 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature} from '@greymass/eosio'
+import {Action, Name, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
+    ABICache,
     ChainDefinition,
     Session,
     SessionOptions,
@@ -14,10 +15,16 @@ import SessionKit, {
 
 import {makeClient} from '$test/utils/mock-client'
 import {mockFetch} from '$test/utils/mock-fetch'
-import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
+import {
+    mockMetadataFooWriterPlugin,
+    mockTransactActionPrependerPlugin,
+    MockTransactPlugin,
+    MockTransactResourceProviderPlugin,
+} from '$test/utils/mock-hook'
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockPermissionLevel} from '$test/utils/mock-config'
+import {Transfer} from '$test/utils/setup/structs'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -134,6 +141,20 @@ suite('transact', function () {
                 })
                 assetValidTransactResponse(result)
             })
+            test('string maintains payload metadata', async function () {
+                const {session} = await mockData()
+                const result = await session.transact(
+                    {
+                        request:
+                            'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                    },
+                    {
+                        broadcast: false,
+                        transactPlugins: [],
+                    }
+                )
+                assert.equal(result.request.getInfoKey('foo'), 'bar')
+            })
             test('object', async function () {
                 const {session} = await mockData()
                 const result = await session.transact({
@@ -143,6 +164,27 @@ suite('transact', function () {
                     ),
                 })
                 assetValidTransactResponse(result)
+            })
+            test('object maintains payload metadata', async function () {
+                const {action, session} = await mockData()
+                const abiCache = new ABICache(this.client)
+                const request = await SigningRequest.create(
+                    {action},
+                    {
+                        abiProvider: abiCache,
+                        zlib,
+                    }
+                )
+                request.setInfoKey('foo', 'bar')
+                assert.equal(request.getInfoKey('foo'), 'bar')
+                const result = await session.transact(
+                    {request},
+                    {
+                        broadcast: false,
+                        transactPlugins: [],
+                    }
+                )
+                assert.equal(result.request.getInfoKey('foo'), 'bar')
             })
         })
         suite('invalid', function () {
@@ -236,6 +278,49 @@ suite('transact', function () {
                 assetValidTransactResponse(result)
             })
         })
+        suite('expireSeconds', function () {
+            test('default: 120', async function () {
+                const {action} = await mockData()
+                const session = new Session({
+                    chain: ChainDefinition.from({
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    }),
+                    fetch: mockFetch, // Required for unit tests
+                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                    walletPlugin: wallet,
+                })
+                const result = await session.transact({action}, {broadcast: false})
+                // Get the chain info to get the current head block time from test cache
+                const {head_block_time} = await session.client.v1.chain.get_info()
+                const expectedExpiration = head_block_time.toMilliseconds() + 120 * 1000
+                assert.equal(
+                    String(result.transaction?.expiration),
+                    String(TimePointSec.fromMilliseconds(expectedExpiration))
+                )
+            })
+            test('override: 60', async function () {
+                const {action} = await mockData()
+                const session = new Session({
+                    chain: ChainDefinition.from({
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    }),
+                    fetch: mockFetch, // Required for unit tests
+                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                    walletPlugin: wallet,
+                })
+                const expireSeconds = 60
+                const result = await session.transact({action}, {broadcast: false, expireSeconds})
+                // Get the chain info to get the current head block time from test cache
+                const {head_block_time} = await session.client.v1.chain.get_info()
+                const expectedExpiration = head_block_time.toMilliseconds() + expireSeconds * 1000
+                assert.equal(
+                    String(result.transaction?.expiration),
+                    String(TimePointSec.fromMilliseconds(expectedExpiration))
+                )
+            })
+        })
         suite('transactPlugins', function () {
             test('inherit', async function () {
                 const {action} = await mockData()
@@ -284,7 +369,6 @@ suite('transact', function () {
                     register(context) {
                         context.addHook(TransactHookTypes.beforeSign, debugHook)
                         context.addHook(TransactHookTypes.afterSign, debugHook)
-                        context.addHook(TransactHookTypes.beforeBroadcast, debugHook)
                         context.addHook(TransactHookTypes.afterBroadcast, debugHook)
                     },
                 }
@@ -302,14 +386,6 @@ suite('transact', function () {
                 } else {
                     assert.fail('Transaction with actions was not returned in result.')
                 }
-            })
-            test('triggers', async function () {
-                const {action, session} = await mockData()
-                const result = await session.transact(
-                    {action},
-                    {transactPlugins: [new MockTransactPlugin()]}
-                )
-                assetValidTransactResponse(result)
             })
         })
         suite('transactPluginsOptions', function () {
@@ -406,6 +482,71 @@ suite('transact', function () {
             })
         })
     })
+    suite('plugins', function () {
+        test('trigger', async function () {
+            const {action, session} = await mockData()
+            const result = await session.transact(
+                {action},
+                {transactPlugins: [new MockTransactPlugin()]}
+            )
+            assetValidTransactResponse(result)
+        })
+        test('multiple modifications', async function () {
+            const {action, session} = await mockData()
+            const result = await session.transact(
+                {action},
+                {
+                    transactPlugins: [
+                        mockTransactActionPrependerPlugin,
+                        mockTransactActionPrependerPlugin,
+                    ],
+                }
+            )
+            assetValidTransactResponse(result)
+            if (result && result.transaction && result.transaction.actions) {
+                assert.lengthOf(result.transaction.actions, 3)
+                assert.isTrue(result.transaction.actions[0].account.equals('greymassnoop'))
+                assert.isTrue(result.transaction.actions[1].account.equals('greymassnoop'))
+                assert.isTrue(result.transaction.actions[2].account.equals('eosio.token'))
+                // Ensure these two authorizations are random and not the same
+                assert.isTrue(
+                    !result.transaction.actions[0].authorization[0].actor.equals(
+                        result.transaction.actions[1].authorization[0].actor
+                    )
+                )
+            } else {
+                assert.fail('Transaction with actions was not returned in result.')
+            }
+        })
+        test('metadata persists through mutation', async function () {
+            const {session} = await mockData()
+            const result = await session.transact(
+                {
+                    request:
+                        'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                },
+                {
+                    broadcast: false,
+                    transactPlugins: [mockTransactActionPrependerPlugin],
+                }
+            )
+            assert.equal(result.request.getInfoKey('foo'), 'bar')
+        })
+        test('metadata preservation from original', async function () {
+            const {session} = await mockData()
+            const result = await session.transact(
+                {
+                    request:
+                        'esr://gmNgZGBY1mTC_MoglIGBIVzX5uxZRgEnjpsHS30fM4DAhI2nLGACDRsnxsWq9Z6yZAVLMbC4-geDaPHyjMSitOzMEoXMYoWSjFSFpNTiEgUbY0YGRua0_HzmpMQiAA',
+                },
+                {
+                    broadcast: false,
+                    transactPlugins: [mockMetadataFooWriterPlugin],
+                }
+            )
+            assert.equal(result.request.getInfoKey('foo'), 'bar')
+        })
+    })
     suite('response', function () {
         test('type check', async function () {
             const {session, transaction} = await mockData()
@@ -422,20 +563,14 @@ suite('transact', function () {
             })
             assert.exists(result.transaction)
             if (result.transaction) {
+                const resolvedPermission = result.transaction.actions[0].authorization[0]
+                const resolvedData = Transfer.from(result.transaction.actions[0].data)
+                const expectedPermission = PermissionLevel.from(mockPermissionLevel)
                 // Ensure transaction authority was templated
-                assert.equal(
-                    result.transaction.actions[0].authorization[0].actor,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-                )
-                assert.equal(
-                    result.transaction.actions[0].authorization[0].permission,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).permission
-                )
+                assert.isTrue(resolvedPermission.actor.equals(expectedPermission.actor))
+                assert.isTrue(resolvedPermission.permission.equals(expectedPermission.permission))
                 // Ensure transaction data was templated
-                assert.equal(
-                    result.transaction.actions[0].data.from,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-                )
+                assert.isTrue(resolvedData.from.equals(expectedPermission.actor))
             } else {
                 assert.fail('Decoded transaction was not returned in result.')
             }
@@ -451,14 +586,12 @@ suite('transact', function () {
             assert.exists(result.resolved)
             const {resolved} = result
             // Ensure it returns resolved request with authority templated
-            assert.equal(
-                resolved?.transaction.actions[0].authorization[0].actor,
-                PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-            )
-            assert.equal(
-                resolved?.transaction.actions[0].authorization[0].permission,
-                PermissionLevel.from(mockSessionOptions.permissionLevel).permission
-            )
+            if (resolved) {
+                const resolvedPermission = resolved.transaction.actions[0].authorization[0]
+                const expectedPermission = PermissionLevel.from(mockPermissionLevel)
+                assert.isTrue(resolvedPermission.actor.equals(expectedPermission.actor))
+                assert.isTrue(resolvedPermission.permission.equals(expectedPermission.permission))
+            }
         })
         test('valid signatures', async function () {
             const {action, session} = await mockData()

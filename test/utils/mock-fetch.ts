@@ -26,6 +26,9 @@ async function getExisting(filename: string) {
 }
 
 export async function mockFetch(path, params) {
+    if (process.env['LOGHTTP']) {
+        console.log('HTTP Request', {path, params})
+    }
     const filename = getFilename(path, params)
     if (process.env['MOCK'] !== 'overwrite') {
         const existing = await getExisting(filename)

@@ -8,18 +8,20 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
-
+import {
+    Session,
+    SessionOptions,
+    WalletPlugin,
+    WalletPluginContext,
+    WalletPluginLoginOptions,
+} from './session'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
-    Session,
-    SessionOptions,
     TransactPlugin,
     TransactPluginsOptions,
-    WalletPlugin,
-    WalletPluginLoginOptions,
-} from './session'
+} from './transact'
+import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 
 export enum LoginHookTypes {
     beforeLogin = 'beforeLogin',
@@ -96,6 +98,7 @@ export interface LoginOptions {
 export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
+    expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
@@ -109,6 +112,7 @@ export interface SessionKitOptions {
 export class SessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
+    readonly expireSeconds: number = 120
     readonly fetch?: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
     readonly transactPlugins: AbstractTransactPlugin[]
@@ -119,6 +123,10 @@ export class SessionKit {
         // Store options passed on the kit
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
+        // Override default expireSeconds for all sessions if specified
+        if (options.expireSeconds) {
+            this.expireSeconds = options.expireSeconds
+        }
         // Override fetch if provided
         if (options.fetch) {
             this.fetch = options.fetch
@@ -168,6 +176,7 @@ export class SessionKit {
         const chain = this.chains[0]
         const context: SessionOptions = {
             chain,
+            expireSeconds: this.expireSeconds,
             fetch: this.fetch,
             permissionLevel: 'eosio@active',
             transactPlugins: options?.transactPlugins || this.transactPlugins,
@@ -175,10 +184,15 @@ export class SessionKit {
             walletPlugin: this.walletPlugins[0],
         }
 
+        const walletContext: WalletPluginContext = {
+            chain,
+            permissionLevel: PermissionLevel.from('eosio@active'),
+        }
+
         const walletOptions: WalletPluginLoginOptions = {
             appName: this.appName,
             chains: this.chains,
-            context,
+            context: walletContext,
         }
 
         // Allow overriding of the default wallet plugin by specifying one in the options
