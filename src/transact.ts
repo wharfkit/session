@@ -203,7 +203,7 @@ export class TransactRevisions {
     public addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
         // Determine if the new response modifies the request
         let modified = false
-        const previous = this.revisions.at(-1)
+        const previous = this.revisions[this.revisions.length - 1]
         if (previous) {
             modified = previous.response.request !== String(response.request)
         }
