@@ -8,6 +8,7 @@ import {
     SignedTransaction,
 } from '@greymass/eosio'
 import {
+    AbiProvider,
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
@@ -150,30 +151,52 @@ export class Session {
         return args
     }
 
-    // Lifted from @greymass/eosio-signing-request
+    /**
+     * Lifted from @greymass/eosio-signing-request.
+     *
+     * TODO: Remove. This will no longer be needed once the `clone` functionality in ESR is updated
+     */
     private storageType(version: number): typeof RequestDataV3 | typeof RequestDataV2 {
         return version === 2 ? RequestDataV2 : RequestDataV3
     }
 
-    async createRequest(args: TransactArgs, abiCache: ABICache): Promise<SigningRequest> {
+    /**
+     * Create a clone of the given SigningRequest
+     *
+     * @param {SigningRequest} request
+     * @param {AbiProvider} abiProvider
+     * @returns Returns a cloned SigningRequest with updated abiProvider and zlib
+     */
+    cloneRequest(request: SigningRequest, abiProvider: AbiProvider): SigningRequest {
+        // Lifted from @greymass/eosio-signing-request method `clone()`
+        // This was done to modify the zlib and abiProvider
+        // TODO: Modify ESR library to expose this `clone()` functionality
+        // TODO: This if statement should potentially just be:
+        //          request = args.request.clone(abiProvider, zlib)
+        let signature: RequestSignature | undefined
+        if (request.signature) {
+            signature = RequestSignature.from(JSON.parse(JSON.stringify(request.signature)))
+        }
+        const RequestData = this.storageType(request.version)
+        const data = RequestData.from(JSON.parse(JSON.stringify(request.data)))
+        return new SigningRequest(request.version, data, zlib, abiProvider, signature)
+    }
+
+    /**
+     * Convert any provided form of TransactArgs to a SigningRequest
+     *
+     * @param {TransactArgs} args
+     * @param {AbiProvider} abiProvider
+     * @returns Returns a SigningRequest
+     */
+    async createRequest(args: TransactArgs, abiProvider: AbiProvider): Promise<SigningRequest> {
         let request: SigningRequest
         const options = {
-            abiProvider: abiCache,
+            abiProvider,
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
-            // Lifted from @greymass/eosio-signing-request method `clone()`
-            // This was done to modify the zlib and abiProvider
-            // TODO: Modify ESR library to expose this `clone()` functionality
-            let signature: RequestSignature | undefined
-            if (args.request.signature) {
-                signature = RequestSignature.from(
-                    JSON.parse(JSON.stringify(args.request.signature))
-                )
-            }
-            const RequestData = this.storageType(args.request.version)
-            const data = RequestData.from(JSON.parse(JSON.stringify(args.request.data)))
-            request = new SigningRequest(args.request.version, data, zlib, abiCache, signature)
+            request = this.cloneRequest(args.request, abiProvider)
         } else if (args.request) {
             request = SigningRequest.from(args.request, options)
         } else {
@@ -192,14 +215,17 @@ export class Session {
     /**
      * Perform a transaction using this session.
      *
+     * @param {TransactArgs} args
+     * @param {TransactOptions} options
+     * @returns {TransactResult} The status and data gathered during the operation.
      * @mermaid - Transaction sequence diagram
      * flowchart LR
      *   A((Transact)) --> B{{"Hook(s): beforeSign"}}
      *   B --> C[Wallet Plugin]
      *   C --> D{{"Hook(s): afterSign"}}
-     *   D --> F[Broadcast Plugin]
-     *   E --> G{{"Hook(s): afterBroadcast"}}
-     *   F --> H[TransactResult]
+     *   D --> E[Broadcast Plugin]
+     *   E --> F{{"Hook(s): afterBroadcast"}}
+     *   F --> G[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         const abiCache = new ABICache(this.client)
