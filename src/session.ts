@@ -2,6 +2,7 @@ import {
     APIClient,
     FetchProvider,
     Name,
+    NameType,
     PermissionLevel,
     PermissionLevelType,
     Signature,
@@ -36,10 +37,15 @@ export interface WalletPluginOptions {
     name?: string
 }
 
+export interface WalletPluginContext {
+    chain: ChainDefinition
+    permissionLevel: PermissionLevelType | string
+}
+
 export interface WalletPluginLoginOptions {
     appName: Name
     chains: ChainDefinition[]
-    context: SessionOptions
+    context: WalletPluginContext
 }
 
 export interface WalletPluginLoginResponse {
@@ -61,12 +67,14 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
  * Options for creating a new instance of a [[Session]].
  */
 export interface SessionOptions {
+    actor?: NameType
     allowModify?: boolean
     broadcast?: boolean
     chain: ChainDefinitionType
     expireSeconds?: number
     fetch?: Fetch
-    permissionLevel: PermissionLevelType | string
+    permission?: NameType
+    permissionLevel?: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     walletPlugin: WalletPlugin
@@ -108,15 +116,23 @@ export class Session {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        this.permissionLevel = PermissionLevel.from(options.permissionLevel)
+        if (options.permissionLevel) {
+            this.permissionLevel = PermissionLevel.from(options.permissionLevel)
+        } else if (options.actor && options.permission) {
+            this.permissionLevel = PermissionLevel.from(`${options.actor}@${options.permission}`)
+        } else {
+            throw new Error(
+                'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
+            )
+        }
         this.wallet = options.walletPlugin
     }
 
-    get accountName(): Name {
+    get actor(): Name {
         return this.permissionLevel.actor
     }
 
-    get permissionName(): Name {
+    get permission(): Name {
         return this.permissionLevel.permission
     }
 

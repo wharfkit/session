@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {Action, Name, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -24,6 +24,7 @@ import {
 import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockPermissionLevel} from '$test/utils/mock-config'
+import {Transfer} from '$test/utils/setup/structs'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -562,20 +563,14 @@ suite('transact', function () {
             })
             assert.exists(result.transaction)
             if (result.transaction) {
+                const resolvedPermission = result.transaction.actions[0].authorization[0]
+                const resolvedData = Transfer.from(result.transaction.actions[0].data)
+                const expectedPermission = PermissionLevel.from(mockPermissionLevel)
                 // Ensure transaction authority was templated
-                assert.equal(
-                    result.transaction.actions[0].authorization[0].actor,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-                )
-                assert.equal(
-                    result.transaction.actions[0].authorization[0].permission,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).permission
-                )
+                assert.isTrue(resolvedPermission.actor.equals(expectedPermission.actor))
+                assert.isTrue(resolvedPermission.permission.equals(expectedPermission.permission))
                 // Ensure transaction data was templated
-                assert.equal(
-                    result.transaction.actions[0].data.from,
-                    PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-                )
+                assert.isTrue(resolvedData.from.equals(expectedPermission.actor))
             } else {
                 assert.fail('Decoded transaction was not returned in result.')
             }
@@ -591,14 +586,12 @@ suite('transact', function () {
             assert.exists(result.resolved)
             const {resolved} = result
             // Ensure it returns resolved request with authority templated
-            assert.equal(
-                resolved?.transaction.actions[0].authorization[0].actor,
-                PermissionLevel.from(mockSessionOptions.permissionLevel).actor
-            )
-            assert.equal(
-                resolved?.transaction.actions[0].authorization[0].permission,
-                PermissionLevel.from(mockSessionOptions.permissionLevel).permission
-            )
+            if (resolved) {
+                const resolvedPermission = resolved.transaction.actions[0].authorization[0]
+                const expectedPermission = PermissionLevel.from(mockPermissionLevel)
+                assert.isTrue(resolvedPermission.actor.equals(expectedPermission.actor))
+                assert.isTrue(resolvedPermission.permission.equals(expectedPermission.permission))
+            }
         })
         test('valid signatures', async function () {
             const {action, session} = await mockData()

@@ -8,7 +8,13 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {Session, SessionOptions, WalletPlugin, WalletPluginLoginOptions} from './session'
+import {
+    Session,
+    SessionOptions,
+    WalletPlugin,
+    WalletPluginContext,
+    WalletPluginLoginOptions,
+} from './session'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
@@ -178,10 +184,15 @@ export class SessionKit {
             walletPlugin: this.walletPlugins[0],
         }
 
+        const walletContext: WalletPluginContext = {
+            chain,
+            permissionLevel: PermissionLevel.from('eosio@active'),
+        }
+
         const walletOptions: WalletPluginLoginOptions = {
             appName: this.appName,
             chains: this.chains,
-            context,
+            context: walletContext,
         }
 
         // Allow overriding of the default wallet plugin by specifying one in the options
