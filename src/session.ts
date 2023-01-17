@@ -234,7 +234,7 @@ export class Session {
                 // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
                 console.warn(
                     `During an updateRequest call, the previous request had already set the ` +
-                        `metadata key of "${metadata.key}" which will not be overwritten.` +
+                        `metadata key of "${metadata.key}" which will not be overwritten.`
                 )
             }
             updatedRequest.setRawInfoKey(metadata.key, metadata.value)
