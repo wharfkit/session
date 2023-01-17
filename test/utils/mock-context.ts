@@ -2,7 +2,7 @@ import {TransactContext} from '$lib'
 import {APIClient, FetchProvider, PermissionLevel} from '@greymass/eosio'
 
 import {mockUrl} from './mock-config'
-import {mockFetch} from './mock-fetch'
+import {mockFetch} from '$test/utils/mock-fetch'
 
 export function makeContext(): TransactContext {
     return new TransactContext({

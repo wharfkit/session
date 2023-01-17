@@ -12,7 +12,7 @@ import {
 import {Buyrambytes, Delegatebw, Linkauth, Newaccount, Transfer, Updateauth} from './structs'
 
 // Mock of Fetch for debugging/testing
-// import {mockFetch} from '../mock-fetch'
+// import {mockFetch} from '$test/utils/mock-fetch'
 
 /**
  * THIS INFORMATION NEEDS TO BE POPULATED
