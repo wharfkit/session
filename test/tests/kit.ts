@@ -8,6 +8,8 @@ import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {mockPermissionLevel} from '$test/utils/mock-config'
+import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const action = makeMockAction()
 
@@ -111,6 +113,23 @@ suite('kit', function () {
                 walletPlugin: makeWallet(),
             })
             assert.instanceOf(session, Session)
+        })
+    })
+    suite('ui', function () {
+        test('default', async function () {
+            const sessionKit = new SessionKit(defaultSessionKitOptions)
+            assert.instanceOf(sessionKit.ui, UserInterfaceHeadless)
+            const session = await sessionKit.login()
+            assert.instanceOf(session.ui, UserInterfaceHeadless)
+        })
+        test('override', async function () {
+            const sessionKit = new SessionKit({
+                ...defaultSessionKitOptions,
+                ui: new MockUserInterface(),
+            })
+            assert.instanceOf(sessionKit.ui, MockUserInterface)
+            const session = await sessionKit.login()
+            assert.instanceOf(session.ui, MockUserInterface)
         })
     })
 })

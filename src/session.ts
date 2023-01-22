@@ -18,6 +18,8 @@ import {
 } from 'eosio-signing-request'
 import zlib from 'pako'
 import {ABICache} from './abi'
+import {UserInterface} from './kit'
+import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
@@ -78,6 +80,7 @@ export interface SessionOptions {
     permissionLevel?: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    ui?: UserInterface
     walletPlugin: WalletPlugin
 }
 
@@ -91,6 +94,7 @@ export class Session {
     readonly permissionLevel: PermissionLevel
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
+    readonly ui: UserInterface
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
@@ -130,6 +134,11 @@ export class Session {
             this.abiProvider = options.abiProvider
         } else {
             this.abiProvider = new ABICache(this.client)
+        }
+        if (options.ui) {
+            this.ui = options.ui
+        } else {
+            this.ui = new UserInterfaceHeadless()
         }
         this.wallet = options.walletPlugin
     }
@@ -291,7 +300,10 @@ export class Session {
             permissionLevel: this.permissionLevel,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            ui: this.ui,
         })
+
+        context.ui.status('Preparing transaction...')
 
         // Process TransactArgs and convert to a SigningRequest
         let request: SigningRequest = await this.createRequest(args, abiProvider)
@@ -339,6 +351,8 @@ export class Session {
             }
         }
 
+        context.ui.status('Awaiting transaction signature...')
+
         // Resolve the SigningRequest and assign it to the TransactResult
         result.request = request
         result.resolved = await context.resolve(request, expireSeconds)
@@ -348,11 +362,15 @@ export class Session {
         const signature = await this.wallet.sign(this.chain, result.resolved)
         result.signatures.push(signature)
 
+        context.ui.status('Post processing transaction...')
+
         // Run the `afterSign` hooks
         for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
 
         // Broadcast transaction if requested
         if (willBroadcast) {
+            context.ui.status('Preparing to broadcast transaction...')
+
             // Assemble the signed transaction to broadcast
             const signed = SignedTransaction.from({
                 ...result.resolved.transaction,
@@ -361,6 +379,8 @@ export class Session {
 
             // Broadcast the signed transaction
             result.response = await context.client.v1.chain.send_transaction(signed)
+
+            context.ui.status('Completing transaction...')
 
             // Run the `afterBroadcast` hooks
             for (const hook of context.hooks.afterBroadcast)

@@ -16,6 +16,7 @@ import {
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 import zlib from 'pako'
+import {UserInterface} from './kit'
 
 import {ChainDefinition, Fetch} from './types'
 
@@ -53,6 +54,7 @@ export interface TransactContextOptions {
     permissionLevel: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    ui: UserInterface
 }
 
 /**
@@ -72,6 +74,7 @@ export class TransactContext {
     }
     readonly permissionLevel: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
+    readonly ui: UserInterface
 
     constructor(options: TransactContextOptions) {
         this.abiProvider = options.abiProvider
@@ -79,6 +82,7 @@ export class TransactContext {
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
         this.transactPluginsOptions = options.transactPluginsOptions || {}
+        this.ui = options.ui
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })

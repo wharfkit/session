@@ -9,6 +9,8 @@ import {nodejsUsage} from './use-cases/general/nodejs'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockPermissionLevel} from '$test/utils/mock-config'
+import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -307,5 +309,23 @@ suite('session', function () {
         // Ensure transaction authority was templated
         assert.isTrue(session.actor.equals(expectedPermission.actor))
         assert.isTrue(session.permission.equals(expectedPermission.permission))
+    })
+    suite('ui', function () {
+        test('default', async function () {
+            assert.instanceOf(session.ui, UserInterfaceHeadless)
+        })
+        test('override', async function () {
+            const testSession = new Session({
+                chain: ChainDefinition.from({
+                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                    url: 'https://jungle4.greymass.com',
+                }),
+                fetch: mockFetch, // Required for unit tests
+                permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                ui: new MockUserInterface(),
+                walletPlugin: wallet,
+            })
+            assert.instanceOf(testSession.ui, MockUserInterface)
+        })
     })
 })

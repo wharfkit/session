@@ -3,10 +3,12 @@ import {assert} from 'chai'
 import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
-import {SigningRequest} from '$lib'
+import {SigningRequest, TransactContext} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
-import {makeContext} from '$test/utils/mock-context'
+import {makeContext, mockTransactContextOptions} from '$test/utils/mock-context'
+import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const context = makeContext()
 
@@ -58,6 +60,11 @@ suite('context', function () {
             assert.instanceOf(resolved.request, SigningRequest)
             assert.instanceOf(resolved.signer, PermissionLevel)
             assert.instanceOf(resolved.transaction, Transaction)
+        })
+    })
+    suite('ui', function () {
+        test('default', async function () {
+            assert.instanceOf(context.ui, UserInterfaceHeadless)
         })
     })
 })

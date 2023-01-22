@@ -7,6 +7,7 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@greymass/eosio'
+import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 
 import {
     Session,
@@ -95,6 +96,14 @@ export interface LoginOptions {
     walletPlugin?: WalletPlugin
 }
 
+/**
+ * Interface which a [[UserInteface]] plugins must implement.
+ */
+export interface UserInterface {
+    // Update the displayed modal status from a TransactPlugin
+    status: (message: string) => void
+}
+
 export interface SessionKitOptions {
     appName: NameType
     chains: ChainDefinitionType[]
@@ -103,6 +112,7 @@ export interface SessionKitOptions {
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    ui?: UserInterface
     walletPlugins: WalletPlugin[]
 }
 
@@ -117,6 +127,7 @@ export class SessionKit {
     readonly loginPlugins: AbstractLoginPlugin[]
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
+    readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -146,6 +157,11 @@ export class SessionKit {
         // Establish default options for transact plugins
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
+        }
+        if (options.ui) {
+            this.ui = options.ui
+        } else {
+            this.ui = new UserInterfaceHeadless()
         }
         // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
@@ -181,6 +197,7 @@ export class SessionKit {
             permissionLevel: 'eosio@active',
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            ui: this.ui,
             walletPlugin: this.walletPlugins[0],
         }
 
