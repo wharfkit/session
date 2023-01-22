@@ -21,16 +21,16 @@ const external = Object.keys(pkg.dependencies)
 /** @type {import('rollup').RollupOptions} */
 export default [
     {
-        input: 'src/index.ts',
+        input: 'src/index-bundle.ts',
         output: {
             banner,
             file: pkg.main,
             format: 'cjs',
             sourcemap: true,
-            exports: 'named',
+            exports: 'default',
         },
         plugins: [typescript({target: 'es6'})],
-        external,
+        external: Object.keys({...pkg.dependencies, ...pkg.peerDependencies}),
     },
     {
         input: 'src/index.ts',
