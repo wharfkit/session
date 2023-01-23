@@ -201,15 +201,11 @@ export class SessionKit {
             walletPlugin: this.walletPlugins[0],
         }
 
+        const permissionLevel = PermissionLevel.from(options?.permissionLevel || 'eosio@active')
+
         const walletContext: WalletPluginContext = {
             chain,
-            permissionLevel: PermissionLevel.from('eosio@active'),
-        }
-
-        const walletOptions: WalletPluginLoginOptions = {
-            appName: this.appName,
-            chains: this.chains,
-            context: walletContext,
+            permissionLevel,
         }
 
         // Allow overriding of the default wallet plugin by specifying one in the options
@@ -220,11 +216,6 @@ export class SessionKit {
         // Allow overriding of the default chain definition by specifying one in the options
         if (options?.chain) {
             context.chain = this.getChain(options.chain)
-        }
-
-        // Allow a permission level to be specified via options
-        if (options?.permissionLevel) {
-            context.permissionLevel = PermissionLevel.from(options.permissionLevel)
         }
 
         // TODO: Implement login hooks
@@ -239,7 +230,11 @@ export class SessionKit {
         // })
 
         // Perform login based on wallet plugin
-        const response = await context.walletPlugin.login(walletOptions)
+        const response = await context.walletPlugin.login({
+            appName: this.appName,
+            chains: this.chains,
+            context: walletContext,
+        })
         context.chain = response.chain
         context.permissionLevel = response.permissionLevel
 

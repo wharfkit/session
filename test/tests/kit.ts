@@ -99,6 +99,7 @@ suite('kit', function () {
                 permissionLevel: PermissionLevel.from(mockPermissionLevel),
             })
             assert.instanceOf(session, Session)
+            assert.isTrue(PermissionLevel.from(mockPermissionLevel).equals(session.permissionLevel))
         })
         test('specify permission (untyped)', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
@@ -106,6 +107,7 @@ suite('kit', function () {
                 permissionLevel: mockPermissionLevel,
             })
             assert.instanceOf(session, Session)
+            assert.isTrue(PermissionLevel.from(mockPermissionLevel).equals(session.permissionLevel))
         })
         test('specify wallet plugin', async function () {
             const sessionKit = new SessionKit(defaultSessionKitOptions)
