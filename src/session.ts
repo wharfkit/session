@@ -303,6 +303,7 @@ export class Session {
             ui: this.ui,
         })
 
+        await context.ui.onTransact(context)
         context.ui.status('Preparing transaction...')
 
         // Process TransactArgs and convert to a SigningRequest
@@ -386,6 +387,8 @@ export class Session {
             for (const hook of context.hooks.afterBroadcast)
                 await hook(result.request.clone(), context)
         }
+
+        await context.ui.onTransactResult(result)
 
         return result
     }

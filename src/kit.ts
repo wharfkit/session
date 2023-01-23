@@ -7,6 +7,8 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@greymass/eosio'
+import {SigningRequest} from 'eosio-signing-request'
+import {Context} from 'mocha'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 
 import {
@@ -19,8 +21,10 @@ import {
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    TransactContext,
     TransactPlugin,
     TransactPluginsOptions,
+    TransactResult,
 } from './transact'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 
@@ -100,6 +104,10 @@ export interface LoginOptions {
  * Interface which a [[UserInteface]] plugins must implement.
  */
 export interface UserInterface {
+    // Inform the UI that a transact call has started
+    onTransact: (context: TransactContext) => void
+    // Inform the UI that a transact call has completed
+    onTransactResult: (context: TransactResult) => void
     // Update the displayed modal status from a TransactPlugin
     status: (message: string) => void
 }
