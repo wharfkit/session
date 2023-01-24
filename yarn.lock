@@ -569,24 +569,15 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/account@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@wharfkit/account/-/account-0.0.3.tgz#0777f7590d3e41fccff8dca7f222e3bf2a4612b9"
-  integrity sha512-ioOgYFemoxOnGYVPMHLYsbBVqhRiubt6CsfqNNDVPo1Ml1gRghv4rFK98JtRAArnTVjLSWdEd+urAJnQTnzWLA==
+"@wharfkit/account@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@wharfkit/account/-/account-0.0.4.tgz#ec971093eaade7bba980591fedb61176057dc5a5"
+  integrity sha512-0PAKFltJednd15yy6q8Gvu/GUMAtIlDYHL2BxQDZIhwuNVzt8qgM8aPMEQAO6yQS5NEqibfU7hkguUy7V55T1w==
   dependencies:
     "@greymass/eosio" "^0.6.4"
-    "@wharfkit/contract" "ssh:git@github.com:wharfkit/contract.git"
     anchor-link "^3.5.1"
     eosio-signing-request "^2.5.2"
     git "^0.1.5"
-    tslib "^2.1.0"
-    zlib "^1.0.5"
-
-"@wharfkit/contract@ssh:git@github.com:wharfkit/contract.git":
-  version "0.0.0"
-  resolved "ssh:git@github.com:wharfkit/contract.git#4f64ad03ee61b9cb8b147333558585ddfd45362b"
-  dependencies:
-    "@greymass/eosio" "^0.6.4"
     tslib "^2.1.0"
 
 acorn-jsx@^5.3.2:
@@ -2878,8 +2869,3 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
-
-zlib@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/zlib/-/zlib-1.0.5.tgz#6e7c972fc371c645a6afb03ab14769def114fcc0"
-  integrity sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==
