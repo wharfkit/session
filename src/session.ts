@@ -16,7 +16,7 @@ import {
     ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
-import { Account } from '@wharfkit/account'
+import {Account} from '@wharfkit/account'
 
 import zlib from 'pako'
 import {ABICache} from './abi'
@@ -32,8 +32,8 @@ import {
     TransactRevisions,
 } from './transact'
 
-import { ChainDefinition, ChainDefinitionType, Fetch } from './types'
-import { getFetch } from './utils'
+import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {getFetch} from './utils'
 
 export interface WalletPluginOptions {
     name?: string
@@ -133,7 +133,6 @@ export class Session {
     get actor(): Name {
         return this.permissionLevel.actor
     }
-
     get account(): Account {
         return Account.from(this.permissionLevel.actor, this.chain.id, this.client)
     }
@@ -143,7 +142,7 @@ export class Session {
     }
 
     get client(): APIClient {
-        return new APIClient({ provider: new FetchProvider(this.chain.url, { fetch: this.fetch }) })
+        return new APIClient({provider: new FetchProvider(this.chain.url, {fetch: this.fetch})})
     }
 
     upgradeTransaction(args) {
