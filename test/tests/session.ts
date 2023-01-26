@@ -2,6 +2,7 @@ import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {Account} from '@wharfkit/account'
 
 import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
@@ -307,5 +308,9 @@ suite('session', function () {
         // Ensure transaction authority was templated
         assert.isTrue(session.actor.equals(expectedPermission.actor))
         assert.isTrue(session.permission.equals(expectedPermission.permission))
+        assert.instanceOf(
+            session.account,
+            Account
+        ) 
     })
 })

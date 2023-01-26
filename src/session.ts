@@ -16,6 +16,8 @@ import {
     ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
+import {Account} from '@wharfkit/account'
+
 import zlib from 'pako'
 import {ABICache} from './abi'
 import {
@@ -136,6 +138,9 @@ export class Session {
 
     get actor(): Name {
         return this.permissionLevel.actor
+    }
+    get account(): Account {
+        return Account.from(this.permissionLevel.actor, this.chain.id, this.client)
     }
 
     get permission(): Name {
