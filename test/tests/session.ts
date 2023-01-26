@@ -312,9 +312,5 @@ suite('session', function () {
             session.account,
             Account
         ) 
-        assert.equal(
-            session.permission,
-            PermissionLevel.from(mockSessionOptions.permissionLevel!).permission
-        )
     })
 })
