@@ -1,11 +1,4 @@
-import {
-    Checksum256,
-    PermissionLevel,
-    PrivateKey,
-    PrivateKeyType,
-    Signature,
-    Transaction,
-} from '@greymass/eosio'
+import {Checksum256, PrivateKey, PrivateKeyType, Signature, Transaction} from '@greymass/eosio'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 import {
     WalletPlugin,
@@ -39,12 +32,20 @@ export class WalletPluginPrivateKey implements WalletPlugin {
         )} public key.`
     }
     login(options: WalletPluginLoginOptions): WalletPluginLoginResponse {
+        let chain: Checksum256
+        if (options.chain) {
+            chain = options.chain.id
+        } else {
+            chain = options.chains[0].id
+        }
+        if (!options.permissionLevel) {
+            throw new Error(
+                'Calling login() without a permissionLevel is not supported by the WalletPluginPrivateKey plugin.'
+            )
+        }
         return {
-            chain: ChainDefinition.from({
-                id: Checksum256.from(options.context.chain.id),
-                url: options.context.chain.url,
-            }),
-            permissionLevel: PermissionLevel.from(options.context.permissionLevel),
+            chain,
+            permissionLevel: options.permissionLevel,
         }
     }
     sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Signature {

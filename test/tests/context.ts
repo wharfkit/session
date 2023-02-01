@@ -30,14 +30,28 @@ suite('context', function () {
             assert.equal(abi.version, 'eosio::abi/1.2')
         })
     })
-    suite('esrOptions', function () {
-        test('has abiProvider', function () {
-            assert.isDefined(context.esrOptions.abiProvider)
-            assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+    suite('getters', function () {
+        test('accountName', function () {
+            assert.isTrue(
+                context.accountName.equals('wharfkit1125'),
+                `Expected 'wharfkit1125', got '${context.accountName}'`
+            )
         })
-        test('has zlib', function () {
-            assert.isDefined(context.esrOptions.zlib)
-            assert.instanceOf(context.esrOptions.zlib, Object)
+        test('permissionName', function () {
+            assert.isTrue(
+                context.permissionName.equals('test'),
+                `Expected 'test', got '${context.permissionName}'`
+            )
+        })
+        suite('esrOptions', function () {
+            test('has abiProvider', function () {
+                assert.isDefined(context.esrOptions.abiProvider)
+                assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+            })
+            test('has zlib', function () {
+                assert.isDefined(context.esrOptions.zlib)
+                assert.instanceOf(context.esrOptions.zlib, Object)
+            })
         })
     })
     suite('resolve', function () {

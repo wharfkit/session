@@ -1,5 +1,6 @@
 import {
     APIClient,
+    Checksum256,
     FetchProvider,
     Name,
     NameType,
@@ -18,7 +19,7 @@ import {
 } from 'eosio-signing-request'
 import zlib from 'pako'
 import {ABICache} from './abi'
-import {UserInterface} from './kit'
+import {LoginContext, UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
@@ -46,12 +47,20 @@ export interface WalletPluginContext {
 
 export interface WalletPluginLoginOptions {
     appName: Name
+    chain?: ChainDefinition
     chains: ChainDefinition[]
-    context: WalletPluginContext
+    context: LoginContext
+    permissionLevel?: PermissionLevel
 }
 
+/**
+ * The response required for a login call by a walletPlugin.
+ */
 export interface WalletPluginLoginResponse {
-    chain: ChainDefinition
+    /**
+     * The chain
+     */
+    chain: Checksum256
     permissionLevel: PermissionLevel
 }
 

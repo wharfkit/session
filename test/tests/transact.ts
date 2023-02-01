@@ -444,7 +444,9 @@ suite('transact', function () {
                     },
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login()
+                const {session} = await sessionKit.login({
+                    permissionLevel: mockPermissionLevel,
+                })
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
                 if (result && result.transaction && result.transaction.actions) {
@@ -467,7 +469,8 @@ suite('transact', function () {
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login({
+                const {session} = await sessionKit.login({
+                    permissionLevel: mockPermissionLevel,
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },

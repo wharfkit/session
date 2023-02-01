@@ -2,11 +2,12 @@ import {assert} from 'chai'
 
 import zlib from 'pako'
 
-import {SigningRequest, Transaction} from '$lib'
+import {ChainDefinition, SigningRequest, Transaction} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
 import {appendAction, prependAction} from 'src/utils'
 import {mockData} from '$test/utils/mock-data'
+import {mockChainId} from '$test/utils/mock-config'
 
 const newAction = makeMockAction('new action')
 
@@ -45,6 +46,22 @@ function commonAsserts(
 }
 
 suite('utils', function () {
+    suite('chainDefinition', function () {
+        test('returns name', function () {
+            const definition = new ChainDefinition({
+                id: mockChainId,
+                url: 'https://jungle4.greymass.com',
+            })
+            assert.equal(definition.name, 'Jungle 4 (Testnet)')
+        })
+        test('returns unknown', function () {
+            const definition = new ChainDefinition({
+                id: '3d2e128872f1e1f7dacbb3b624d21fe5875193619376c2e5e4843bbdd5deeae3',
+                url: 'https://randochain.greymass.com',
+            })
+            assert.equal(definition.name, 'Unknown blockchain')
+        })
+    })
     suite('appendAction', function () {
         test('payload w/ action', async function () {
             const {action} = await mockData('old action')
