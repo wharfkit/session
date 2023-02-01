@@ -113,6 +113,7 @@ export interface SessionOptions {
     abiProvider?: AbiProvider
     actor?: NameType
     allowModify?: boolean
+    appName?: NameType
     broadcast?: boolean
     chain: ChainDefinitionType
     expireSeconds?: number
@@ -126,6 +127,7 @@ export interface SessionOptions {
 }
 
 export class Session {
+    readonly appName: Name | undefined
     readonly abiProvider: AbiProvider
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
@@ -139,6 +141,9 @@ export class Session {
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
+        if (options.appName) {
+            this.appName = Name.from(options.appName)
+        }
         this.chain = ChainDefinition.from(options.chain)
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
