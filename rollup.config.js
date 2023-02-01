@@ -9,6 +9,17 @@ export default [
     {
         input: 'src/index.ts',
         output: {
+            file: pkg.main,
+            format: 'cjs',
+            sourcemap: true,
+            exports: 'named',
+        },
+        plugins: [typescript({target: 'es6'})],
+        external,
+    },
+    {
+        input: 'src/index.ts',
+        output: {
             file: pkg.module,
             format: 'esm',
             sourcemap: true,
