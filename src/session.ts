@@ -233,6 +233,7 @@ export class Session {
      *
      * TODO: Remove. This will no longer be needed once the `clone` functionality in ESR is updated
      */
+    /* istanbul ignore next */
     private storageType(version: number): typeof RequestDataV3 | typeof RequestDataV2 {
         return version === 2 ? RequestDataV2 : RequestDataV3
     }
@@ -240,10 +241,11 @@ export class Session {
     /**
      * Create a clone of the given SigningRequest
      *
-     * @param {SigningRequest} request
-     * @param {AbiProvider} abiProvider
+     * @param {SigningRequest} request The SigningRequest to clone
+     * @param {AbiProvider} abiProvider The AbiProvider to use for the clone
      * @returns Returns a cloned SigningRequest with updated abiProvider and zlib
      */
+    /* istanbul ignore next */
     cloneRequest(request: SigningRequest, abiProvider: AbiProvider): SigningRequest {
         // Lifted from @greymass/eosio-signing-request method `clone()`
         // This was done to modify the zlib and abiProvider
