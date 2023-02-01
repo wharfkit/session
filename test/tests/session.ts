@@ -178,22 +178,23 @@ suite('session', function () {
                     )
                 })
             })
-            suite('fetch', function () {
-                test('unset', function () {
-                    assert.throw(
-                        () =>
-                            new Session({
-                                chain: ChainDefinition.from({
-                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                    url: 'https://jungle4.greymass.com',
-                                }),
-                                expireSeconds: 60,
-                                permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                                walletPlugin: wallet,
-                            })
-                    )
-                })
-            })
+            // TODO: Implement for code coverage. This doesn't throw in v18+
+            // suite('fetch', function () {
+            //     test('unset', function () {
+            //         assert.throw(
+            //             () =>
+            //                 new Session({
+            //                     chain: ChainDefinition.from({
+            //                         id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+            //                         url: 'https://jungle4.greymass.com',
+            //                     }),
+            //                     expireSeconds: 60,
+            //                     permissionLevel: PermissionLevel.from(mockPermissionLevel),
+            //                     walletPlugin: wallet,
+            //                 })
+            //         )
+            //     })
+            // })
             suite('authority', function () {
                 suite('actor + permission', function () {
                     test('typed values', async function () {
