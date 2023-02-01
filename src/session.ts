@@ -55,12 +55,53 @@ export interface WalletPluginLoginResponse {
     permissionLevel: PermissionLevel
 }
 
+export interface WalletPluginConfig {
+    /**
+     * Indicates if the walletPlugin requires the user to manually select the blockchain to authorize against.
+     */
+    requiresChainSelect: boolean
+    /**
+     * Indicates if the walletPlugin requires the user to manually select a permission to use.
+     */
+    requiresPermissionSelect: boolean
+}
+
+export interface WalletPluginMetadata {
+    /**
+     * Display name for the wallet that is presented to users.
+     */
+    name?: string
+    /**
+     * Wallet description to further identify the wallet for users.
+     */
+    description?: string
+    /**
+     * Wallet branding
+     */
+    logo?: string
+    /**
+     * Link to the homepage for the wallet
+     */
+    homepage?: string
+    /**
+     * Link to the download page for the wallet
+     */
+    download?: string
+}
+
 export interface WalletPlugin {
+    config: WalletPluginConfig
+    metadata: WalletPluginMetadata
     login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
     sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
 }
 
 export abstract class AbstractWalletPlugin implements WalletPlugin {
+    public config: WalletPluginConfig = {
+        requiresChainSelect: true,
+        requiresPermissionSelect: false,
+    }
+    public metadata: WalletPluginMetadata = {}
     public abstract login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
     public abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
 }
