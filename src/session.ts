@@ -5,6 +5,7 @@ import {
     NameType,
     PermissionLevel,
     PermissionLevelType,
+    Serializer,
     Signature,
     SignedTransaction,
 } from '@greymass/eosio'
@@ -77,6 +78,7 @@ export interface SessionOptions {
     permissionLevel?: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    validatePluginSignatures?: boolean
     walletPlugin: WalletPlugin
 }
 
@@ -90,6 +92,7 @@ export class Session {
     readonly permissionLevel: PermissionLevel
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
+    readonly validatePluginSignatures: boolean = true
     readonly wallet: WalletPlugin
 
     constructor(options: SessionOptions) {
@@ -124,6 +127,9 @@ export class Session {
             throw new Error(
                 'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
             )
+        }
+        if (options.validatePluginSignatures !== undefined) {
+            this.validatePluginSignatures = options.validatePluginSignatures
         }
         this.wallet = options.walletPlugin
     }
@@ -292,6 +298,7 @@ export class Session {
         // Create response template to this transact call
         const result: TransactResult = {
             chain: this.chain,
+            keys: [],
             request,
             resolved: undefined,
             revisions: new TransactRevisions(request),
@@ -314,6 +321,12 @@ export class Session {
         const willBroadcast =
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
 
+        // Whether all signatures generated
+        const willValidatePluginSignatures =
+            options && typeof options.validatePluginSignatures !== 'undefined'
+                ? options.validatePluginSignatures
+                : this.validatePluginSignatures
+
         // Run the `beforeSign` hooks
         for (const hook of context.hooks.beforeSign) {
             // Get the response of the hook by passing a clonied request.
@@ -326,10 +339,27 @@ export class Session {
             if (allowModify) {
                 request = await this.updateRequest(request, response.request, abiCache)
             }
-            // If signatures were returned, append them
-            if (response.signatures) {
+
+            // If signatures were returned, record them in the response.
+            if (response.signatures?.length) {
+                // Merge new signatures alongside existing signatures into the TransactResult.
                 result.signatures = [...result.signatures, ...response.signatures]
+
+                // Recover the keys used to generate the signatures at the time of the request.
+                const recoveredKeys = response.signatures.map((signature) => {
+                    const requestTransaction = request.getRawTransaction()
+                    const requestDigest = requestTransaction.signingDigest(this.chain.id)
+                    return signature.recoverDigest(requestDigest)
+                })
+
+                // Merge newly discovered keys into the TransactResult.
+                result.keys = [...result.keys, ...recoveredKeys]
             }
+        }
+
+        // Validate all the signatures returned by the plugins against the current request
+        if (willValidatePluginSignatures) {
+            this.validateBeforeSignSignatures(context, request, result)
         }
 
         // Resolve the SigningRequest and assign it to the TransactResult
@@ -361,6 +391,27 @@ export class Session {
         }
 
         return result
+    }
+    validateBeforeSignSignatures(
+        context: TransactContext,
+        request: SigningRequest,
+        result: TransactResult
+    ): void {
+        const requestTransaction = request.getRawTransaction()
+        const requestDigest = requestTransaction.signingDigest(this.chain.id)
+        const publicKeys = Serializer.objectify(result.keys)
+        result.signatures.forEach((signature) => {
+            const recoveredKey = signature.recoverDigest(requestDigest)
+            const verified = signature.verifyDigest(requestDigest, recoveredKey)
+            if (!verified || !publicKeys.includes(String(recoveredKey))) {
+                throw new Error(
+                    `A signature (${signature}) provided by a beforeSign hook using ` +
+                        `a key (${recoveredKey}) has been invalidated, likely due to the transaction ` +
+                        `being modified by another hook after the signature was created. To disable ` +
+                        `this error, set validatePluginSignatures equal to false.`
+                )
+            }
+        })
     }
 }
 export {AbstractTransactPlugin}
