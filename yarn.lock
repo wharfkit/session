@@ -1374,6 +1374,13 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
+"@wharfkit/wallet-plugin-privatekey@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/wallet-plugin-privatekey/-/wallet-plugin-privatekey-0.1.0.tgz#acb5b2e118e3e97d2c63f888abca71c18c2d3b3a"
+  integrity sha512-62AZxB6hd3MbM3AJQbI3WF/cGloKGFrvMYQ8+4CVUHx9GqDY5BDSqstg7ROdW//gX636ftKHzuPNxcUNbpspyg==
+  dependencies:
+    tslib "^2.1.0"
+
 acorn-jsx@^5.3.2:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"

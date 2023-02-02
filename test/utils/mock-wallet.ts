@@ -1,11 +1,7 @@
 import {Checksum256, PermissionLevel, PrivateKey, Transaction} from '@greymass/eosio'
-import {
-    AbstractWalletPlugin,
-    ChainDefinition,
-    WalletPluginConfig,
-    WalletPluginPrivateKey,
-} from '$lib'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
+import {AbstractWalletPlugin, ChainDefinition, WalletPluginConfig} from '$lib'
 import {mockChainDefinition, mockPermissionLevel, mockPrivateKey} from './mock-config'
 
 export const privateKey = PrivateKey.from(mockPrivateKey)

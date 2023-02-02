@@ -1,19 +1,14 @@
 import {assert} from 'chai'
+import {PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
-import {
-    BaseTransactPlugin,
-    Session,
-    SessionKit,
-    SessionKitOptions,
-    WalletPluginPrivateKey,
-} from '$lib'
-import {Checksum256, PermissionLevel, PrivateKey, TimePointSec} from '@greymass/eosio'
+import {BaseTransactPlugin, Session, SessionKit, SessionKitOptions} from '$lib'
 
 import {makeWallet} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockFetch} from '$test/utils/mock-fetch'
-import {mockChainId, mockPermissionLevel, mockPrivateKey} from '$test/utils/mock-config'
+import {mockPermissionLevel} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 

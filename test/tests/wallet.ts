@@ -1,14 +1,6 @@
 import {assert} from 'chai'
 
-import SessionKit, {
-    AbstractWalletPlugin,
-    ChainDefinition,
-    LoginContext,
-    Name,
-    SessionKitOptions,
-    WalletPluginPrivateKey,
-} from '$lib'
-import {mockPrivateKey} from '$test/utils/mock-config'
+import SessionKit, {ChainDefinition, LoginContext, SessionKitOptions} from '$lib'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'

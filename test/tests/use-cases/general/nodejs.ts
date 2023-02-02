@@ -2,14 +2,16 @@
  * When replicating this use case in your own scripts, the only import required
  * will be the Session abd WalletPluginPrivateKey class, e.g.
  *
- * import {Session, WalletPluginPrivateKey} from 'wharfkit/session'
+ * import {Session} from 'wharfkit/session'
+ * import {WalletPluginPrivateKey} from 'wharfkit/wallet-plugin-privatekey'
  *
  * The rest of the imports are only required for this unit test.
  */
 
 import {assert} from 'chai'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
-import {Session, Signature, WalletPluginPrivateKey} from '$lib'
+import {Session, Signature} from '$lib'
 
 import {
     mockAccountName,

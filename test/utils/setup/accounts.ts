@@ -1,14 +1,7 @@
 import fetch from 'node-fetch'
-import {
-    Action,
-    AssetType,
-    Name,
-    NameType,
-    PermissionLevel,
-    Session,
-    TransactResult,
-    WalletPluginPrivateKey,
-} from '$lib'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
+import {Action, AssetType, Name, NameType, PermissionLevel, Session, TransactResult} from '$lib'
+
 import {Buyrambytes, Delegatebw, Linkauth, Newaccount, Transfer, Updateauth} from './structs'
 
 // Mock of Fetch for debugging/testing

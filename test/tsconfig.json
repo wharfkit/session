@@ -8,6 +8,7 @@
         "types": ["mocha", "node"],
         "baseUrl": "..",
         "paths": {
+            "@wharfkit/session": ["src"],
             "$lib": ["src"],
             "$test": ["test"],
             "$test/*": ["test/*"]
