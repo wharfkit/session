@@ -24,14 +24,14 @@ export class WalletPluginPrivateKey implements WalletPlugin {
         name: 'Private Key Signer',
         description: '',
     }
-    public privateKey: PrivateKey
+    privateKey: PrivateKey
     constructor(options: WalletPluginPrivateKeyOptions) {
         this.privateKey = PrivateKey.from(options.privateKey)
         this.metadata.description = `An unsecured wallet that can sign for authorities using the ${String(
             this.privateKey.toPublic()
         )} public key.`
     }
-    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse {
+    async login(options: WalletPluginLoginOptions): Promise<WalletPluginLoginResponse> {
         let chain: Checksum256
         if (options.chain) {
             chain = options.chain.id
@@ -48,7 +48,7 @@ export class WalletPluginPrivateKey implements WalletPlugin {
             permissionLevel: options.permissionLevel,
         }
     }
-    sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Signature {
+    async sign(chain: ChainDefinition, resolved: ResolvedSigningRequest): Promise<Signature> {
         const transaction = Transaction.from(resolved.transaction)
         const digest = transaction.signingDigest(Checksum256.from(chain.id))
         return this.privateKey.signDigest(digest)

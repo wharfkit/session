@@ -93,7 +93,7 @@ export interface LoginPlugin {
  * Abstract class for [[Kit.login]] plugins to extend.
  */
 export abstract class AbstractLoginPlugin implements LoginPlugin {
-    public abstract register(context: LoginContext): void
+    abstract register(context: LoginContext): void
 }
 
 export class BaseLoginPlugin extends AbstractLoginPlugin {
@@ -122,9 +122,9 @@ export interface LoginResult {
  */
 export interface UserInterface {
     // Inform the UI that a login call has started
-    onLogin: (options?: LoginOptions) => void
+    onLogin: (options?: LoginOptions) => Promise<void>
     // Inform the UI that a login call has completed
-    onLoginResult: () => void
+    onLoginResult: () => Promise<void>
     // Ask the user to select a blockchain, and return the chain id
     onSelectChain: (context: LoginContext) => Promise<Checksum256>
     // Ask the user to select an account, and return the PermissionLevel
@@ -132,11 +132,22 @@ export interface UserInterface {
     // Ask the user to select a wallet, and return the index based on the metadata
     onSelectWallet: (context: LoginContext) => Promise<number>
     // Inform the UI that a transact call has started
-    onTransact: (context: TransactContext) => void
+    onTransact: (context: TransactContext) => Promise<void>
     // Inform the UI that a transact call has completed
-    onTransactResult: (context: TransactResult) => void
+    onTransactResult: (context: TransactResult) => Promise<void>
     // Update the displayed modal status from a TransactPlugin
     status: (message: string) => void
+}
+
+export abstract class AbstractUserInterface implements UserInterface {
+    abstract onLogin(options?: LoginOptions): Promise<void>
+    abstract onLoginResult(): Promise<void>
+    abstract onSelectChain(context: LoginContext): Promise<Checksum256>
+    abstract onSelectPermissionLevel(context: LoginContext): Promise<PermissionLevel>
+    abstract onSelectWallet(context: LoginContext): Promise<number>
+    abstract onTransact(context: TransactContext): Promise<void>
+    abstract onTransactResult(context: TransactResult): Promise<void>
+    abstract status(message: string): void
 }
 
 export interface SessionKitOptions {

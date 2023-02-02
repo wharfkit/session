@@ -270,7 +270,7 @@ suite('kit', function () {
             })
             test('walletPlugin returning invalid index throws', async function () {
                 class FailingUI extends MockUserInterface {
-                    public async onSelectWallet(): Promise<number> {
+                    async onSelectWallet(): Promise<number> {
                         return 999999
                     }
                 }

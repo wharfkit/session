@@ -204,7 +204,7 @@ export class TransactRevisions {
     constructor(request: SigningRequest) {
         this.addRevision({request, signatures: []}, 'original', true)
     }
-    public addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
+    addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
         // Determine if the new response modifies the request
         let modified = false
         const previous = this.revisions[this.revisions.length - 1]
@@ -257,7 +257,7 @@ export interface TransactPlugin {
  * Abstract class for [[Session.transact]] plugins to extend.
  */
 export abstract class AbstractTransactPlugin implements TransactPlugin {
-    public abstract register(context: TransactContext): void
+    abstract register(context: TransactContext): void
 }
 
 export class BaseTransactPlugin extends AbstractTransactPlugin {

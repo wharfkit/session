@@ -101,18 +101,18 @@ export interface WalletPluginMetadata {
 export interface WalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
-    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+    login(options: WalletPluginLoginOptions): Promise<WalletPluginLoginResponse>
+    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Promise<Signature>
 }
 
 export abstract class AbstractWalletPlugin implements WalletPlugin {
-    public config: WalletPluginConfig = {
+    config: WalletPluginConfig = {
         requiresChainSelect: true,
         requiresPermissionSelect: false,
     }
-    public metadata: WalletPluginMetadata = {}
-    public abstract login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    public abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
+    metadata: WalletPluginMetadata = {}
+    abstract login(options: WalletPluginLoginOptions): Promise<WalletPluginLoginResponse>
+    abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Promise<Signature>
 }
 
 /**

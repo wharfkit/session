@@ -25,7 +25,7 @@ export class ChainDefinition extends Struct {
     @Struct.field('checksum256') declare id: Checksum256
     @Struct.field('string') declare url: string
 
-    public get name() {
+    get name() {
         const id = String(this.id)
         return chainNames.has(id) ? chainNames.get(id) : 'Unknown blockchain'
     }

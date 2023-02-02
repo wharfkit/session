@@ -21,7 +21,7 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         name: 'Mock Wallet Plugin',
         description: 'A mock wallet plugin for testing chain selection',
     }
-    public privateKey: PrivateKey
+    privateKey: PrivateKey
     constructor(config?: WalletPluginConfig) {
         super()
         if (config) {
@@ -29,13 +29,13 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         }
         this.privateKey = PrivateKey.from(mockPrivateKey)
     }
-    login(options) {
+    async login(options) {
         return {
             chain: options.chain ? options.chain.id : ChainDefinition.from(mockChainDefinition).id,
             permissionLevel: options.permissionLevel || PermissionLevel.from(mockPermissionLevel),
         }
     }
-    sign(chain, resolved) {
+    async sign(chain, resolved) {
         const transaction = Transaction.from(resolved.transaction)
         const digest = transaction.signingDigest(Checksum256.from(chain.id))
         return this.privateKey.signDigest(digest)
