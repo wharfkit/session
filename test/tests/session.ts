@@ -1,12 +1,6 @@
 import {assert} from 'chai'
 
-import SessionKit, {
-    ABICache,
-    BaseTransactPlugin,
-    ChainDefinition,
-    Session,
-    SessionOptions,
-} from '$lib'
+import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {ABIDef, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
 
 import {mockFetch} from '$test/utils/mock-fetch'
@@ -18,19 +12,14 @@ import {mockPermissionLevel} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
+import {mockSessionArgs} from '$test/utils/mock-session'
 
 const wallet = makeWallet()
 const action = makeMockAction()
 
 const mockSessionOptions: SessionOptions = {
     broadcast: false, // Disable broadcasting by default for tests, enable when required.
-    chain: ChainDefinition.from({
-        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-        url: 'https://jungle4.greymass.com',
-    }),
     fetch: mockFetch, // Required for unit tests
-    permissionLevel: PermissionLevel.from(mockPermissionLevel),
-    walletPlugin: wallet,
 }
 
 const mockTransactOptions = {
@@ -41,7 +30,7 @@ suite('session', function () {
     let session: Session
     setup(function () {
         // Establish new session before each test
-        session = new Session(mockSessionOptions)
+        session = new Session(mockSessionArgs, mockSessionOptions)
     })
     nodejsUsage()
     suite('construct', function () {
@@ -57,15 +46,9 @@ suite('session', function () {
                         getAbi: async (account) =>
                             (await client.v1.chain.get_abi(account)).abi as ABIDef,
                     }
-                    const testSession = new Session({
+                    const testSession = new Session(mockSessionArgs, {
+                        ...mockSessionOptions,
                         abiProvider,
-                        chain: ChainDefinition.from({
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        }),
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                        walletPlugin: wallet,
                     })
                     assert.equal(testSession.abiProvider['foo'], 'bar')
                 })
@@ -80,7 +63,7 @@ suite('session', function () {
                     }
                 })
                 test('true', async function () {
-                    const testSession = new Session({
+                    const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
                         allowModify: true,
                     })
@@ -92,7 +75,7 @@ suite('session', function () {
                     }
                 })
                 test('false', async function () {
-                    const testSession = new Session({
+                    const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
                         allowModify: false,
                     })
@@ -106,20 +89,14 @@ suite('session', function () {
             })
             suite('broadcast', function () {
                 test('default: true', async function () {
-                    const testSession = new Session({
-                        chain: ChainDefinition.from({
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        }),
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                        walletPlugin: wallet,
+                    const testSession = new Session(mockSessionArgs, {
+                        fetch: mockSessionOptions.fetch,
                     })
                     const result = await testSession.transact({action})
                     assert.isDefined(result.response)
                 })
                 test('true', async function () {
-                    const testSession = new Session({
+                    const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
                         broadcast: true,
                     })
@@ -127,7 +104,7 @@ suite('session', function () {
                     assert.isDefined(result.response)
                 })
                 test('false', async function () {
-                    const testSession = new Session({
+                    const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
                         broadcast: false,
                     })
@@ -137,15 +114,7 @@ suite('session', function () {
             })
             suite('expireSeconds', function () {
                 test('default: 120', async function () {
-                    const session = new Session({
-                        chain: ChainDefinition.from({
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        }),
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                        walletPlugin: wallet,
-                    })
+                    const session = new Session(mockSessionArgs, mockSessionOptions)
                     const result = await session.transact({action}, {broadcast: false})
                     // Get the chain info to get the current head block time from test cache
                     const {head_block_time} = await session.client.v1.chain.get_info()
@@ -156,15 +125,9 @@ suite('session', function () {
                     )
                 })
                 test('override: 60', async function () {
-                    const session = new Session({
-                        chain: ChainDefinition.from({
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        }),
+                    const session = new Session(mockSessionArgs, {
+                        ...mockSessionOptions,
                         expireSeconds: 60,
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                        walletPlugin: wallet,
                     })
                     const expireSeconds = 60
                     const result = await session.transact({action}, {broadcast: false})
@@ -198,96 +161,93 @@ suite('session', function () {
             suite('authority', function () {
                 suite('actor + permission', function () {
                     test('typed values', async function () {
-                        const testSession = new Session({
-                            actor: Name.from('account'),
-                            chain: ChainDefinition.from({
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            }),
-                            fetch: mockFetch, // Required for unit tests
-                            permission: Name.from('permission'),
-                            walletPlugin: wallet,
-                        })
+                        const testSession = new Session(
+                            {
+                                ...mockSessionArgs,
+                                actor: Name.from('account'),
+                                permissionLevel: undefined,
+                                permission: Name.from('permission'),
+                            },
+                            mockSessionOptions
+                        )
                         assert.instanceOf(testSession, Session)
                     })
                     test('untyped values', async function () {
-                        const testSession = new Session({
-                            actor: 'account',
-                            chain: ChainDefinition.from({
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            }),
-                            fetch: mockFetch, // Required for unit tests
-                            permission: 'permission',
-                            walletPlugin: wallet,
-                        })
+                        const testSession = new Session(
+                            {
+                                ...mockSessionArgs,
+                                actor: 'account',
+                                permissionLevel: undefined,
+                                permission: 'permission',
+                            },
+                            mockSessionOptions
+                        )
                         assert.instanceOf(testSession, Session)
                     })
                 })
                 suite('permissionLevel', function () {
                     test('typed values', async function () {
-                        const testSession = new Session({
-                            chain: ChainDefinition.from({
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            }),
-                            fetch: mockFetch, // Required for unit tests
-                            permissionLevel: PermissionLevel.from('account@permission'),
-                            walletPlugin: wallet,
-                        })
+                        const testSession = new Session(
+                            {
+                                ...mockSessionArgs,
+                                permissionLevel: PermissionLevel.from('account@permission'),
+                            },
+                            mockSessionOptions
+                        )
                         assert.instanceOf(testSession, Session)
                     })
                     test('untyped values', async function () {
-                        const testSession = new Session({
-                            actor: 'account',
-                            chain: ChainDefinition.from({
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            }),
-                            fetch: mockFetch, // Required for unit tests
-                            permissionLevel: 'account@permission',
-                            walletPlugin: wallet,
-                        })
+                        const testSession = new Session(
+                            {
+                                ...mockSessionArgs,
+                                permissionLevel: 'account@permission',
+                            },
+                            mockSessionOptions
+                        )
                         assert.instanceOf(testSession, Session)
                     })
                 })
                 test('undefined', function () {
                     assert.throws(() => {
-                        new Session({
-                            actor: 'account',
-                            chain: ChainDefinition.from({
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            }),
-                            fetch: mockFetch, // Required for unit tests
-                            walletPlugin: wallet,
-                        })
+                        new Session(
+                            {
+                                ...mockSessionArgs,
+                                actor: undefined,
+                                permissionLevel: undefined,
+                                permission: undefined,
+                            },
+                            mockSessionOptions
+                        )
                     })
                 })
             })
             suite('passed as', function () {
                 test('typed values', async function () {
-                    const testSession = new Session({
-                        chain: ChainDefinition.from({
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        }),
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: PermissionLevel.from('account@permission'),
-                        walletPlugin: wallet,
-                    })
+                    const testSession = new Session(
+                        {
+                            chain: ChainDefinition.from({
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            }),
+                            permissionLevel: PermissionLevel.from('account@permission'),
+                            walletPlugin: wallet,
+                        },
+                        mockSessionOptions
+                    )
                     assert.instanceOf(testSession, Session)
                 })
                 test('untyped values', async function () {
-                    const testSession = new Session({
-                        chain: {
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
+                    const testSession = new Session(
+                        {
+                            chain: {
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            },
+                            permissionLevel: 'account@permission',
+                            walletPlugin: wallet,
                         },
-                        fetch: mockFetch, // Required for unit tests
-                        permissionLevel: 'account@permission',
-                        walletPlugin: wallet,
-                    })
+                        mockSessionOptions
+                    )
                     assert.instanceOf(testSession, Session)
                 })
             })
@@ -363,15 +323,9 @@ suite('session', function () {
             assert.instanceOf(session.ui, UserInterfaceHeadless)
         })
         test('override', async function () {
-            const testSession = new Session({
-                chain: ChainDefinition.from({
-                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                    url: 'https://jungle4.greymass.com',
-                }),
-                fetch: mockFetch, // Required for unit tests
-                permissionLevel: PermissionLevel.from(mockPermissionLevel),
+            const testSession = new Session(mockSessionArgs, {
+                ...mockSessionOptions,
                 ui: new MockUserInterface(),
-                walletPlugin: wallet,
             })
             assert.instanceOf(testSession.ui, MockUserInterface)
         })
