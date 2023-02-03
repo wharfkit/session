@@ -1,5 +1,6 @@
 import {Action, AnyAction, FetchProviderOptions, Transaction} from '@greymass/eosio'
 import {SigningRequest} from 'eosio-signing-request'
+
 import {Fetch} from './types'
 
 export function getFetch(options?: FetchProviderOptions): Fetch {

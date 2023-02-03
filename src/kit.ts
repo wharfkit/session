@@ -6,7 +6,6 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@greymass/eosio'
-import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 
 import {
     Session,
@@ -23,6 +22,7 @@ import {
     TransactPluginsOptions,
     TransactResult,
 } from './transact'
+import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 
 export enum LoginHookTypes {

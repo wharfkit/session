@@ -1,3 +1,4 @@
+import zlib from 'pako'
 import {
     AnyAction,
     AnyTransaction,
@@ -15,9 +16,8 @@ import {
     SigningRequest,
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
-import zlib from 'pako'
-import {UserInterface} from './kit'
 
+import {UserInterface} from './kit'
 import {ChainDefinition, Fetch} from './types'
 
 export type TransactPluginsOptions = Record<string, unknown>

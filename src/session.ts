@@ -1,3 +1,4 @@
+import zlib from 'pako'
 import {
     APIClient,
     Checksum256,
@@ -17,7 +18,7 @@ import {
     ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
-import zlib from 'pako'
+
 import {ABICache} from './abi'
 import {LoginContext, UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
@@ -32,7 +33,6 @@ import {
     TransactResult,
     TransactRevisions,
 } from './transact'
-
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {getFetch} from './utils'
 

@@ -1,4 +1,5 @@
 import {Checksum256, PermissionLevel} from '@greymass/eosio'
+
 import {LoginOptions, UserInterface} from '../../kit'
 import {TransactContext, TransactResult} from '../../transact'
 
