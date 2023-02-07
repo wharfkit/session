@@ -49,6 +49,7 @@ export interface TransactHookResponse {
  */
 export interface TransactContextOptions {
     abiProvider: AbiProvider
+    chain: ChainDefinition
     client: APIClient
     fetch: Fetch
     permissionLevel: PermissionLevel
@@ -65,6 +66,7 @@ export interface TransactContextOptions {
  */
 export class TransactContext {
     readonly abiProvider: AbiProvider
+    readonly chain: ChainDefinition
     readonly client: APIClient
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
@@ -78,6 +80,7 @@ export class TransactContext {
 
     constructor(options: TransactContextOptions) {
         this.abiProvider = options.abiProvider
+        this.chain = options.chain
         this.client = options.client
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel

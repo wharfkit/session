@@ -397,6 +397,7 @@ export class Session {
         // The context object for this transaction
         const context = new TransactContext({
             abiProvider,
+            chain: this.chain,
             client: this.client,
             fetch: this.fetch,
             permissionLevel: this.permissionLevel,
