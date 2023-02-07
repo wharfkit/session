@@ -324,6 +324,7 @@ suite('transact', function () {
                 const debugHook = async (request: SigningRequest, context: TransactContext) => {
                     // Log the output
                     if (context.transactPluginsOptions.logging) {
+                        // eslint-disable-next-line no-console
                         console.log(Serializer.objectify(request.getRawTransaction()))
                     }
                     // Return the request and no additional signatures

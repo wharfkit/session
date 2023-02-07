@@ -14,6 +14,7 @@ export class MockUserInterface implements UserInterface {
     log(message: string) {
         this.messages.push(message)
         if (this.logging) {
+            // eslint-disable-next-line no-console
             console.info('MockUserInterface', message)
         }
     }
@@ -35,15 +36,21 @@ export class MockUserInterface implements UserInterface {
         this.log(`onSelectChain: ${String(checksum)}`)
         return checksum
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onSelectWallet(context: LoginContext): Promise<number> {
         this.log('onSelectWallet')
         return 0
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTransact(context: TransactContext) {
         this.log('onTransactResult')
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTransactResult(context: TransactResult) {
         this.log('onTransactResult')
+    }
+    prompt(args) {
+        this.log('prompt' + JSON.stringify(args))
     }
     status(message: string) {
         this.log(`status:('${message}')`)

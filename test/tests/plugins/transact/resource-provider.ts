@@ -94,7 +94,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
 
         // TODO: Interact with interface for fee based prompting
 
-        /* Pseudo-code for fee based prompting
+        /* Psuedo-code for fee based prompting
 
         if (response.status === 402) {
 
@@ -193,7 +193,11 @@ const mockSessionArgs: SessionArgs = {
 }
 
 const mockSessionOptions: SessionOptions = {
-    fetch: mockFetch, // Required for unit tests
+    /**
+     * NOT required for normal usage of wharfkit/session
+     * This is only required to execute sucessfully in a unit test environment.
+     */
+    fetch: mockFetch,
     transactPlugins: [mockResourceProviderPlugin],
 }
 
