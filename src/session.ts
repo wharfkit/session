@@ -116,23 +116,29 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
 }
 
 /**
+ * Arguments required to create a new session
+ */
+export interface SessionArgs {
+    actor?: NameType
+    chain: ChainDefinitionType
+    permission?: NameType
+    permissionLevel?: PermissionLevelType | string
+    walletPlugin: WalletPlugin
+}
+
+/**
  * Options for creating a new instance of a [[Session]].
  */
 export interface SessionOptions {
     abiProvider?: AbiProvider
-    actor?: NameType
     allowModify?: boolean
     appName?: NameType
     broadcast?: boolean
-    chain: ChainDefinitionType
     expireSeconds?: number
     fetch?: Fetch
-    permission?: NameType
-    permissionLevel?: PermissionLevelType | string
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
-    walletPlugin: WalletPlugin
 }
 
 /**
@@ -157,11 +163,28 @@ export class Session {
      *
      * @param options SessionOptions
      */
-    constructor(options: SessionOptions) {
+    constructor(args: SessionArgs, options: SessionOptions = {}) {
+        // Set the ChainDefinition for this session
+        this.chain = ChainDefinition.from(args.chain)
+
+        // Determine the permission level to use for this session
+        if (args.permissionLevel) {
+            this.permissionLevel = PermissionLevel.from(args.permissionLevel)
+        } else if (args.actor && args.permission) {
+            this.permissionLevel = PermissionLevel.from(`${args.actor}@${args.permission}`)
+        } else {
+            throw new Error(
+                'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
+            )
+        }
+
+        // Set the WalletPlugin for this session
+        this.wallet = args.walletPlugin
+
+        // Handle all the optional values provided
         if (options.appName) {
             this.appName = Name.from(options.appName)
         }
-        this.chain = ChainDefinition.from(options.chain)
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
         }
@@ -184,15 +207,6 @@ export class Session {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        if (options.permissionLevel) {
-            this.permissionLevel = PermissionLevel.from(options.permissionLevel)
-        } else if (options.actor && options.permission) {
-            this.permissionLevel = PermissionLevel.from(`${options.actor}@${options.permission}`)
-        } else {
-            throw new Error(
-                'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
-            )
-        }
         if (options.abiProvider) {
             this.abiProvider = options.abiProvider
         } else {
@@ -203,7 +217,6 @@ export class Session {
         } else {
             this.ui = new UserInterfaceHeadless()
         }
-        this.wallet = options.walletPlugin
     }
 
     /**

@@ -308,17 +308,22 @@ export class SessionKit {
         // TODO: Implement afterLogin hook
 
         // Create a session combining all this information
-        const session = new Session({
-            appName: this.appName,
-            chain: this.getChainDefinition(response.chain),
-            expireSeconds: this.expireSeconds,
-            fetch: this.fetch,
-            permissionLevel: response.permissionLevel,
-            transactPlugins: options?.transactPlugins || this.transactPlugins,
-            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
-            ui: this.ui,
-            walletPlugin: this.walletPlugins[0],
-        })
+        const session = new Session(
+            {
+                chain: this.getChainDefinition(response.chain),
+                permissionLevel: response.permissionLevel,
+                walletPlugin: this.walletPlugins[0],
+            },
+            {
+                appName: this.appName,
+                expireSeconds: this.expireSeconds,
+                fetch: this.fetch,
+                transactPlugins: options?.transactPlugins || this.transactPlugins,
+                transactPluginsOptions:
+                    options?.transactPluginsOptions || this.transactPluginsOptions,
+                ui: this.ui,
+            }
+        )
 
         // Notify the UI that the login request has completed.
         this.ui.onLoginResult()

@@ -1,12 +1,11 @@
 import {assert} from 'chai'
-import zlib from 'pako'
 
-import {ABIDef, Action, Asset, AssetType, Name, Signature, Struct} from '@greymass/eosio'
+import {Action, Asset, AssetType, Name, Signature, Struct} from '@greymass/eosio'
 
 import {
-    AbiProvider,
     AbstractTransactPlugin,
     Session,
+    SessionArgs,
     SessionOptions,
     SigningRequest,
     TransactContext,
@@ -16,7 +15,6 @@ import {
 
 import {mockChainId, mockUrl} from '$test/utils/mock-config'
 import {mockFetch} from '$test/utils/mock-fetch'
-import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 
 const wallet = makeWallet()
@@ -96,7 +94,7 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
 
         // TODO: Interact with interface for fee based prompting
 
-        /* Psuedo-code for fee based prompting
+        /* Pseudo-code for fee based prompting
 
         if (response.status === 402) {
 
@@ -185,19 +183,18 @@ const mockResourceProviderPlugin = new MockTransactResourceProviderPlugin({
     url: 'https://jungle4.greymass.com/v1/resource_provider/request_transaction',
 })
 
-const mockSessionOptions: SessionOptions = {
+const mockSessionArgs: SessionArgs = {
     chain: {
         id: mockChainId,
         url: mockUrl,
     },
-    /**
-     * NOT required for normal usage of wharfkit/session
-     * This is only required to execute sucessfully in a unit test environment.
-     */
-    fetch: mockFetch,
     permissionLevel: 'wharfkit1131@test',
-    transactPlugins: [mockResourceProviderPlugin],
     walletPlugin: wallet,
+}
+
+const mockSessionOptions: SessionOptions = {
+    fetch: mockFetch, // Required for unit tests
+    transactPlugins: [mockResourceProviderPlugin],
 }
 
 @Struct.type('transfer')
@@ -212,7 +209,7 @@ export const resourceProviderPlugin = () => {
     suite('resource provider', function () {
         test('provides free transaction', async function () {
             this.slow(10000)
-            const session = new Session(mockSessionOptions)
+            const session = new Session(mockSessionArgs, mockSessionOptions)
             const action = {
                 authorization: [
                     {
