@@ -1,7 +1,14 @@
 import {Checksum256, PermissionLevel, PrivateKey, Transaction} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
-import {AbstractWalletPlugin, ChainDefinition, WalletPluginConfig} from '$lib'
+import {
+    AbstractWalletPlugin,
+    ChainDefinition,
+    LoginContext,
+    ResolvedSigningRequest,
+    TransactContext,
+    WalletPluginConfig,
+} from '$lib'
 import {mockChainDefinition, mockPermissionLevel, mockPrivateKey} from './mock-config'
 
 export const privateKey = PrivateKey.from(mockPrivateKey)
@@ -25,15 +32,15 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         }
         this.privateKey = PrivateKey.from(mockPrivateKey)
     }
-    async login(options) {
+    async login(context: LoginContext, options) {
         return {
             chain: options.chain ? options.chain.id : ChainDefinition.from(mockChainDefinition).id,
             permissionLevel: options.permissionLevel || PermissionLevel.from(mockPermissionLevel),
         }
     }
-    async sign(chain, resolved) {
+    async sign(resolved: ResolvedSigningRequest, context: TransactContext) {
         const transaction = Transaction.from(resolved.transaction)
-        const digest = transaction.signingDigest(Checksum256.from(chain.id))
+        const digest = transaction.signingDigest(Checksum256.from(context.chain.id))
         return this.privateKey.signDigest(digest)
     }
 }

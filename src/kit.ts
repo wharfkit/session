@@ -11,6 +11,7 @@ import {
     Session,
     SessionOptions,
     WalletPlugin,
+    WalletPluginLoginOptions,
     WalletPluginLoginResponse,
     WalletPluginMetadata,
 } from './session'
@@ -297,13 +298,13 @@ export class SessionKit {
 
         // Perform the login request against the walletPlugin
         // TODO: The LoginContext should be passed to the wallet plugin, passing it as options is weird.
-        const response: WalletPluginLoginResponse = await walletPlugin.login({
+        const loginOptions: WalletPluginLoginOptions = {
             appName: this.appName,
             chain,
             chains,
             permissionLevel,
-            context,
-        })
+        }
+        const response: WalletPluginLoginResponse = await walletPlugin.login(context, loginOptions)
 
         // TODO: Implement afterLogin hook
 

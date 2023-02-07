@@ -101,8 +101,11 @@ export interface WalletPluginMetadata {
 export interface WalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
-    login(options: WalletPluginLoginOptions): Promise<WalletPluginLoginResponse>
-    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Promise<Signature>
+    login(
+        context: LoginContext,
+        options: WalletPluginLoginOptions
+    ): Promise<WalletPluginLoginResponse>
+    sign(transaction: ResolvedSigningRequest, context: TransactContext): Promise<Signature>
 }
 
 export abstract class AbstractWalletPlugin implements WalletPlugin {
@@ -111,12 +114,15 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         requiresPermissionSelect: false,
     }
     metadata: WalletPluginMetadata = {}
-    abstract login(options: WalletPluginLoginOptions): Promise<WalletPluginLoginResponse>
-    abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Promise<Signature>
+    abstract login(
+        context: LoginContext,
+        options: WalletPluginLoginOptions
+    ): Promise<WalletPluginLoginResponse>
+    abstract sign(transaction: ResolvedSigningRequest, context: TransactContext): Promise<Signature>
 }
 
 /**
- * Arguments required to create a new session
+ * Arguments required to create a new [[Session]].
  */
 export interface SessionArgs {
     actor?: NameType
@@ -127,7 +133,7 @@ export interface SessionArgs {
 }
 
 /**
- * Options for creating a new instance of a [[Session]].
+ * Options for creating a new [[Session]].
  */
 export interface SessionOptions {
     abiProvider?: AbiProvider
@@ -460,7 +466,7 @@ export class Session {
         result.transaction = result.resolved.resolvedTransaction
 
         // Retrieve the signature for this request from the WalletPlugin
-        const signature = await this.wallet.sign(this.chain, result.resolved)
+        const signature = await this.wallet.sign(result.resolved, context)
         result.signatures.push(signature)
 
         // Notify the UI that the signing process has completed and afterSign hooks are now processing.
