@@ -33,6 +33,9 @@ export class UserInterfaceHeadless implements UserInterface {
     async onTransactResult(context: TransactResult) {
         this.log('onTransactResult' + String(context.transaction))
     }
+    prompt() {
+        throw new Error('The headless user interface does not support prompts')
+    }
     status(message: string) {
         this.messages.push(message)
         this.log(message)
