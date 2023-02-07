@@ -17,10 +17,13 @@
         "prepare": "make"
     },
     "dependencies": {
-        "@greymass/eosio": "^0.6.4",
+        "@greymass/eosio": "^0.6.8",
         "eosio-signing-request": "^2.5.2",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
+    },
+    "resolutions": {
+        "@greymass/eosio": "^0.6.8"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.20.2",
