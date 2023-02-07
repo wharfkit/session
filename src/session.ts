@@ -49,7 +49,6 @@ export interface WalletPluginLoginOptions {
     appName: Name
     chain?: ChainDefinition
     chains: ChainDefinition[]
-    context: LoginContext
     permissionLevel?: PermissionLevel
 }
 
