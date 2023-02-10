@@ -5,12 +5,12 @@ import {AbiProvider} from 'eosio-signing-request'
  * Given an APIClient instance, this class provides an AbiProvider interface for retrieving and caching ABIs.
  */
 export class ABICache implements AbiProvider {
-    public readonly cache: Map<string, ABI> = new Map()
-    public readonly pending: Map<string, Promise<API.v1.GetAbiResponse>> = new Map()
+    readonly cache: Map<string, ABI> = new Map()
+    readonly pending: Map<string, Promise<API.v1.GetAbiResponse>> = new Map()
 
-    constructor(public readonly client: APIClient) {}
+    constructor(readonly client: APIClient) {}
 
-    public async getAbi(account: Name): Promise<ABI> {
+    async getAbi(account: Name): Promise<ABI> {
         const key = String(account)
         let record = this.cache.get(key)
         if (!record) {

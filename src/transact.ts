@@ -1,3 +1,4 @@
+import zlib from 'pako'
 import {
     AnyAction,
     AnyTransaction,
@@ -15,8 +16,8 @@ import {
     SigningRequest,
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
-import zlib from 'pako'
 
+import {UserInterface} from './kit'
 import {ChainDefinition, Fetch} from './types'
 
 export type TransactPluginsOptions = Record<string, unknown>
@@ -48,11 +49,13 @@ export interface TransactHookResponse {
  */
 export interface TransactContextOptions {
     abiProvider: AbiProvider
+    chain: ChainDefinition
     client: APIClient
     fetch: Fetch
     permissionLevel: PermissionLevel
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    ui: UserInterface
 }
 
 /**
@@ -63,6 +66,7 @@ export interface TransactContextOptions {
  */
 export class TransactContext {
     readonly abiProvider: AbiProvider
+    readonly chain: ChainDefinition
     readonly client: APIClient
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
@@ -72,13 +76,16 @@ export class TransactContext {
     }
     readonly permissionLevel: PermissionLevel
     readonly transactPluginsOptions: TransactPluginsOptions
+    readonly ui: UserInterface
 
     constructor(options: TransactContextOptions) {
         this.abiProvider = options.abiProvider
+        this.chain = options.chain
         this.client = options.client
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
         this.transactPluginsOptions = options.transactPluginsOptions || {}
+        this.ui = options.ui
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })
@@ -200,7 +207,7 @@ export class TransactRevisions {
     constructor(request: SigningRequest) {
         this.addRevision({request, signatures: []}, 'original', true)
     }
-    public addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
+    addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
         // Determine if the new response modifies the request
         let modified = false
         const previous = this.revisions[this.revisions.length - 1]
@@ -253,7 +260,7 @@ export interface TransactPlugin {
  * Abstract class for [[Session.transact]] plugins to extend.
  */
 export abstract class AbstractTransactPlugin implements TransactPlugin {
-    public abstract register(context: TransactContext): void
+    abstract register(context: TransactContext): void
 }
 
 export class BaseTransactPlugin extends AbstractTransactPlugin {

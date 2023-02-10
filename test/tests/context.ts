@@ -3,10 +3,12 @@ import {assert} from 'chai'
 import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
-import {SigningRequest} from '$lib'
+import {SigningRequest, TransactContext} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
-import {makeContext} from '$test/utils/mock-context'
+import {makeContext, mockTransactContextOptions} from '$test/utils/mock-context'
+import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const context = makeContext()
 
@@ -28,14 +30,28 @@ suite('context', function () {
             assert.equal(abi.version, 'eosio::abi/1.2')
         })
     })
-    suite('esrOptions', function () {
-        test('has abiProvider', function () {
-            assert.isDefined(context.esrOptions.abiProvider)
-            assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+    suite('getters', function () {
+        test('accountName', function () {
+            assert.isTrue(
+                context.accountName.equals('wharfkit1125'),
+                `Expected 'wharfkit1125', got '${context.accountName}'`
+            )
         })
-        test('has zlib', function () {
-            assert.isDefined(context.esrOptions.zlib)
-            assert.instanceOf(context.esrOptions.zlib, Object)
+        test('permissionName', function () {
+            assert.isTrue(
+                context.permissionName.equals('test'),
+                `Expected 'test', got '${context.permissionName}'`
+            )
+        })
+        suite('esrOptions', function () {
+            test('has abiProvider', function () {
+                assert.isDefined(context.esrOptions.abiProvider)
+                assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+            })
+            test('has zlib', function () {
+                assert.isDefined(context.esrOptions.zlib)
+                assert.instanceOf(context.esrOptions.zlib, Object)
+            })
         })
     })
     suite('resolve', function () {
@@ -58,6 +74,11 @@ suite('context', function () {
             assert.instanceOf(resolved.request, SigningRequest)
             assert.instanceOf(resolved.signer, PermissionLevel)
             assert.instanceOf(resolved.transaction, Transaction)
+        })
+    })
+    suite('ui', function () {
+        test('default', async function () {
+            assert.instanceOf(context.ui, UserInterfaceHeadless)
         })
     })
 })
