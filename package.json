@@ -1,7 +1,7 @@
 {
     "name": "@wharfkit/session",
     "description": "DESCRIPTION",
-    "version": "0.3.0-ui-6",
+    "version": "0.3.0-ui-7",
     "homepage": "https://github.com/wharfkit/session",
     "license": "BSD-3-Clause",
     "main": "lib/session.js",
