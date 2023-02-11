@@ -136,6 +136,8 @@ export interface PromptElement {
  * Interface which a [[UserInteface]] plugins must implement.
  */
 export interface UserInterface {
+    // Inform the UI that an error has occurred
+    onError: (error: Error) => Promise<void>
     // Inform the UI that a login call has started
     onLogin: (options?: LoginOptions) => Promise<void>
     // Inform the UI that a login call has completed
@@ -157,6 +159,7 @@ export interface UserInterface {
 }
 
 export abstract class AbstractUserInterface implements UserInterface {
+    abstract onError(error: Error): Promise<void>
     abstract onLogin(options?: LoginOptions): Promise<void>
     abstract onLoginResult(): Promise<void>
     abstract onSelectChain(context: LoginContext): Promise<Checksum256>

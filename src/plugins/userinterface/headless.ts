@@ -12,6 +12,9 @@ export class UserInterfaceHeadless implements UserInterface {
             console.info('UserInterfaceHeadless', message)
         }
     }
+    async onError(error: Error) {
+        this.log('onError: ' + error.message)
+    }
     async onLogin(options?: LoginOptions) {
         this.log('onLogin: ' + JSON.stringify(options))
     }

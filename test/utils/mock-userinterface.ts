@@ -18,6 +18,9 @@ export class MockUserInterface implements UserInterface {
             console.info('MockUserInterface', message)
         }
     }
+    async onError(error: Error) {
+        this.log('onError: ' + JSON.stringify(error))
+    }
     async onLogin(options?: LoginOptions) {
         this.log('onLogin: ' + JSON.stringify(options))
     }
