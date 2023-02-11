@@ -2,6 +2,7 @@ import zlib from 'pako'
 import {
     APIClient,
     Checksum256,
+    Checksum256Type,
     FetchProvider,
     Name,
     NameType,
@@ -65,13 +66,17 @@ export interface WalletPluginLoginResponse {
 
 export interface WalletPluginConfig {
     /**
-     * Indicates if the walletPlugin requires the user to manually select the blockchain to authorize against.
+     * Indicates if the pp requires the user to manually select the blockchain to authorize against.
      */
     requiresChainSelect: boolean
     /**
-     * Indicates if the walletPlugin requires the user to manually select a permission to use.
+     * Indicates if the [[WalletPlugin]] requires the user to manually select a permission to use.
      */
     requiresPermissionSelect: boolean
+    /**
+     * If set, indicates which blockchains are compatible with this [[WalletPlugin]].
+     */
+    supportedChains?: Checksum256Type[]
 }
 
 export interface WalletPluginMetadata {
