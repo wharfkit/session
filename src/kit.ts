@@ -120,14 +120,14 @@ export interface LoginResult {
 
 export interface PromptArgs {
     title: string
-    body: string
+    body?: string
     elements: PromptElement[]
 }
 
 export interface PromptElement {
-    type: 'button' | 'qr'
+    type: 'button' | 'countdown' | 'qr'
     label?: string
-    data?: string
+    data?: unknown
 }
 
 /**
