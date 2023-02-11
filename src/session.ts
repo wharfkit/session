@@ -161,7 +161,7 @@ export class Session {
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
-    readonly wallet: WalletPlugin
+    readonly walletPlugin: WalletPlugin
 
     /**
      * The constructor of the `Session` class.
@@ -184,7 +184,7 @@ export class Session {
         }
 
         // Set the WalletPlugin for this session
-        this.wallet = args.walletPlugin
+        this.walletPlugin = args.walletPlugin
 
         // Handle all the optional values provided
         if (options.appName) {
@@ -466,7 +466,7 @@ export class Session {
         result.transaction = result.resolved.resolvedTransaction
 
         // Retrieve the signature for this request from the WalletPlugin
-        const signature = await this.wallet.sign(result.resolved, context)
+        const signature = await this.walletPlugin.sign(result.resolved, context)
         result.signatures.push(signature)
 
         // Notify the UI that the signing process has completed and afterSign hooks are now processing.

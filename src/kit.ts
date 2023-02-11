@@ -58,7 +58,7 @@ export interface LoginContextOptions {
  */
 export class LoginContext {
     // client: APIClient
-    chain: ChainDefinition
+    chain?: ChainDefinition
     chains: ChainDefinition[] = []
     hooks: LoginHooks = {
         afterLogin: [],
@@ -71,7 +71,9 @@ export class LoginContext {
         if (options.chains) {
             this.chains = options.chains
         }
-        this.chain = options.chain || this.chains[0]
+        if (options.chain) {
+            this.chain = options.chain
+        }
         this.walletPlugins = options.walletPlugins || []
         this.ui = options.ui
         // options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
@@ -250,21 +252,14 @@ export class SessionKit {
      *   D --> E[Session]
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
-        // Tell the UI a login request is beginning.
-        this.ui.onLogin(options)
-
-        // Determine which chains can be used for login request.
-        const chains =
-            options && options.chains
-                ? options.chains.map((c) => this.getChainDefinition(c))
-                : this.chains
-
         // Setup a LoginContext for plugins to use
         const context = new LoginContext({
-            chains,
             ui: this.ui,
             walletPlugins: this.walletPlugins.map((plugin) => plugin.metadata),
         })
+
+        // Tell the UI a login request is beginning.
+        context.ui.onLogin(options)
 
         // Determine which WalletPlugin will fulfill the login request.
         let walletPlugin: WalletPlugin
@@ -274,7 +269,7 @@ export class SessionKit {
             // TODO: Allow the login call to specify the wallet (by index?)
         } else {
             // Prompt the user with an interface to select a walletPlugin.
-            const index = await this.ui.onSelectWallet(context)
+            const index = await context.ui.onSelectWallet(context)
             if (this.walletPlugins[index]) {
                 walletPlugin = this.walletPlugins[index]
             } else {
@@ -284,6 +279,19 @@ export class SessionKit {
             }
         }
 
+        // Determine which chains can be used for login request.
+        let chains: ChainDefinition[] = []
+        if (walletPlugin.config.supportedChains) {
+            chains = walletPlugin.config.supportedChains.map((c) => this.getChainDefinition(c))
+        } else if (options && options.chains) {
+            chains = options.chains.map((c) => this.getChainDefinition(c))
+        } else {
+            chains = this.chains
+        }
+
+        // Update the context with the chains available
+        context.chains = chains
+
         // Determine which chain will be used to perform the login request.
         let chain: ChainDefinition | undefined
         if (options && options.chain) {
@@ -292,11 +300,28 @@ export class SessionKit {
             chain = chains[0]
         } else if (walletPlugin.config.requiresChainSelect) {
             // Prompt the user with an interface to select a chain.
-            const id = await this.ui.onSelectChain(context)
+            const id = await context.ui.onSelectChain(context)
             chain = this.getChainDefinition(id, chains)
         } else {
             // No chain is a valid option, since some wallets provide their own interface to select a chain.
             chain = undefined
+        }
+
+        // Update the context with the chain
+        context.chain = chain
+
+        // Determine if the WalletPlugin has chain limitations and if so, supports this chain
+        if (walletPlugin.config.supportedChains) {
+            if (!chain) {
+                throw new Error(
+                    `The wallet plugin '${walletPlugin.metadata.name}' requires a chain to be selected.`
+                )
+            }
+            if (!walletPlugin.config.supportedChains.includes(String(chain.id))) {
+                throw new Error(
+                    `The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${chain.id}'`
+                )
+            }
         }
 
         // Determine which permission will be used to perform the login request.
@@ -304,7 +329,7 @@ export class SessionKit {
         if (options?.permissionLevel) {
             permissionLevel = PermissionLevel.from(options.permissionLevel)
         } else if (walletPlugin.config.requiresPermissionSelect) {
-            permissionLevel = await this.ui.onSelectPermissionLevel(context)
+            permissionLevel = await context.ui.onSelectPermissionLevel(context)
         } else {
             permissionLevel = undefined
         }
@@ -328,7 +353,7 @@ export class SessionKit {
             {
                 chain: this.getChainDefinition(response.chain),
                 permissionLevel: response.permissionLevel,
-                walletPlugin: this.walletPlugins[0],
+                walletPlugin,
             },
             {
                 appName: this.appName,
@@ -337,12 +362,12 @@ export class SessionKit {
                 transactPlugins: options?.transactPlugins || this.transactPlugins,
                 transactPluginsOptions:
                     options?.transactPluginsOptions || this.transactPluginsOptions,
-                ui: this.ui,
+                ui: context.ui,
             }
         )
 
         // Notify the UI that the login request has completed.
-        this.ui.onLoginResult()
+        context.ui.onLoginResult()
 
         // Return the results of the login request.
         return {

@@ -55,7 +55,7 @@ function assertSessionMatchesMockSession(session: Session) {
     assert.equal(session.broadcast, true)
     assert.equal(session.expireSeconds, 120)
     assert.isTrue(session.chain.equals(defaultSessionKitOptions.chains[4]))
-    assert.instanceOf(session.wallet, WalletPluginPrivateKey)
+    assert.instanceOf(session.walletPlugin, WalletPluginPrivateKey)
 }
 
 suite('kit', function () {
