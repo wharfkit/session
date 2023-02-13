@@ -64,6 +64,11 @@ export interface WalletPluginLoginResponse {
     permissionLevel: PermissionLevel
 }
 
+export interface WalletPluginSignResponse {
+    request?: SigningRequest
+    signatures: Signature[]
+}
+
 export interface WalletPluginConfig {
     /**
      * Indicates if the pp requires the user to manually select the blockchain to authorize against.
@@ -109,7 +114,10 @@ export interface WalletPlugin {
         context: LoginContext,
         options: WalletPluginLoginOptions
     ): Promise<WalletPluginLoginResponse>
-    sign(transaction: ResolvedSigningRequest, context: TransactContext): Promise<Signature>
+    sign(
+        transaction: ResolvedSigningRequest,
+        context: TransactContext
+    ): Promise<WalletPluginSignResponse>
 }
 
 export abstract class AbstractWalletPlugin implements WalletPlugin {
@@ -122,7 +130,10 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         context: LoginContext,
         options: WalletPluginLoginOptions
     ): Promise<WalletPluginLoginResponse>
-    abstract sign(transaction: ResolvedSigningRequest, context: TransactContext): Promise<Signature>
+    abstract sign(
+        transaction: ResolvedSigningRequest,
+        context: TransactContext
+    ): Promise<WalletPluginSignResponse>
 }
 
 /**
@@ -470,9 +481,30 @@ export class Session {
         result.resolved = await context.resolve(request, expireSeconds)
         result.transaction = result.resolved.resolvedTransaction
 
-        // Retrieve the signature for this request from the WalletPlugin
-        const signature = await this.walletPlugin.sign(result.resolved, context)
-        result.signatures.push(signature)
+        // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
+        const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
+            result.resolved,
+            context
+        )
+
+        // Merge signatures in to the TransactResult
+        result.signatures.push(...walletResponse.signatures)
+
+        // If a request was returned from the wallet, determine if its modified and was allowed to
+        if (walletResponse.request) {
+            const requestWasModified = String(request) !== String(walletResponse.request)
+            if (requestWasModified) {
+                if (allowModify) {
+                    result.request = walletResponse.request
+                    result.resolved = await context.resolve(walletResponse.request, expireSeconds)
+                    result.transaction = result.resolved.resolvedTransaction
+                } else {
+                    throw new Error(
+                        'Your wallet modified the transaction but the application did not allow it.'
+                    )
+                }
+            }
+        }
 
         // Notify the UI that the signing process has completed and afterSign hooks are now processing.
         context.ui.status('Signature received, post-processing...')

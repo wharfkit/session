@@ -4,6 +4,8 @@ import SessionKit, {ChainDefinition, SessionKitOptions} from '$lib'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
+import {makeMockAction} from '$test/utils/mock-transfer'
+import {mockChainId} from '$test/utils/mock-config'
 
 const chains = [
     ChainDefinition.from({
@@ -205,6 +207,63 @@ suite('walletPlugin', function () {
                 error = err
             }
             assert.instanceOf(error, Error)
+        })
+    })
+    suite('response', function () {
+        suite('request', function () {
+            test('allowModify: default (true)', async function () {
+                const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                    testModify: true,
+                })
+                const kit = new SessionKit({
+                    ...defaultSessionKitOptions,
+                    walletPlugins: [walletPlugin],
+                })
+                const loginResult = await kit.login({
+                    chain: chains[0].id,
+                    permissionLevel: 'mock@interface',
+                })
+                await loginResult.session.transact({action: makeMockAction()}, {broadcast: false})
+            })
+            test('allowModify: false', async function () {
+                const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                    testModify: true,
+                })
+                const kit = new SessionKit({
+                    ...defaultSessionKitOptions,
+                    allowModify: false,
+                    walletPlugins: [walletPlugin],
+                })
+                const loginResult = await kit.login({
+                    chain: chains[0].id,
+                    permissionLevel: 'mock@interface',
+                })
+                let error
+                try {
+                    await loginResult.session.transact(
+                        {action: makeMockAction()},
+                        {broadcast: false}
+                    )
+                } catch (err) {
+                    error = err
+                }
+                assert.instanceOf(error, Error)
+            })
+            test('allowModify: true', async function () {
+                const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                    testModify: true,
+                })
+                const kit = new SessionKit({
+                    ...defaultSessionKitOptions,
+                    allowModify: true,
+                    walletPlugins: [walletPlugin],
+                })
+                const loginResult = await kit.login({
+                    chain: chains[0].id,
+                    permissionLevel: 'mock@interface',
+                })
+                await loginResult.session.transact({action: makeMockAction()}, {broadcast: false})
+            })
         })
     })
 })
