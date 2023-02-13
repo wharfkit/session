@@ -172,6 +172,7 @@ export abstract class AbstractUserInterface implements UserInterface {
 }
 
 export interface SessionKitOptions {
+    allowModify?: boolean
     appName: NameType
     chains: ChainDefinitionType[]
     expireSeconds?: number
@@ -187,6 +188,7 @@ export interface SessionKitOptions {
  * Request a session from an account.
  */
 export class SessionKit {
+    readonly allowModify: boolean = true
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly expireSeconds: number = 120
@@ -199,6 +201,9 @@ export class SessionKit {
 
     constructor(options: SessionKitOptions) {
         // Store options passed on the kit
+        if (typeof options.allowModify !== 'undefined') {
+            this.allowModify = options.allowModify
+        }
         this.appName = Name.from(options.appName)
         this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
         // Override default expireSeconds for all sessions if specified
@@ -359,6 +364,7 @@ export class SessionKit {
                 walletPlugin,
             },
             {
+                allowModify: this.allowModify,
                 appName: this.appName,
                 expireSeconds: this.expireSeconds,
                 fetch: this.fetch,
