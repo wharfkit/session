@@ -1374,10 +1374,10 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/wallet-plugin-privatekey@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/wallet-plugin-privatekey/-/wallet-plugin-privatekey-0.2.0.tgz#76547f47523262d1f4ff2bfbc3004b4d2f0359be"
-  integrity sha512-BsLvtgaUdOVpeP6yW64mYlYETwAMmD9f9SafCMCZ/EEyZfDDjv+2rgrbg0SQlf8PySIrtBQaweWHqQqLtn+3Xg==
+"@wharfkit/wallet-plugin-privatekey@^0.3.0-ui-8":
+  version "0.3.0-ui-8"
+  resolved "https://registry.yarnpkg.com/@wharfkit/wallet-plugin-privatekey/-/wallet-plugin-privatekey-0.3.0-ui-8.tgz#372e15f7253c7e6e4e91a1b38f429acc70b28ce5"
+  integrity sha512-hIiAESI8qxF3EpjFPiXXNyqFCFt0JFvF8qyzrW/An8cm2ZStoB7D2Nm7ujrvP5pLxvnApvsWv4ODhh4T9vZT8w==
   dependencies:
     tslib "^2.1.0"
 
