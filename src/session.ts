@@ -407,137 +407,157 @@ export class Session {
      *   F --> G[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
-        // The abi provider to use for this transaction, falling back to the session instance
-        const abiProvider = options?.abiProvider || this.abiProvider
+        try {
+            // The abi provider to use for this transaction, falling back to the session instance
+            const abiProvider = options?.abiProvider || this.abiProvider
 
-        // The context object for this transaction
-        const context = new TransactContext({
-            abiProvider,
-            chain: this.chain,
-            client: this.client,
-            fetch: this.fetch,
-            permissionLevel: this.permissionLevel,
-            transactPlugins: options?.transactPlugins || this.transactPlugins,
-            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
-            ui: this.ui,
-        })
-
-        // Notify the UI that a transaction is about to begin
-        await context.ui.onTransact(context)
-        context.ui.status('Preparing transaction...')
-
-        // Process incoming TransactArgs and convert to a SigningRequest
-        let request: SigningRequest = await this.createRequest(args, abiProvider)
-
-        // Create TransactResult to eventually respond to this call with
-        const result: TransactResult = {
-            chain: this.chain,
-            request,
-            resolved: undefined,
-            revisions: new TransactRevisions(request),
-            signatures: [],
-            signer: this.permissionLevel,
-            transaction: undefined,
-        }
-
-        // A flag to determine whether or not the request should be able to be modified by beforeSign hooks
-        const allowModify =
-            options && typeof options.allowModify !== 'undefined'
-                ? options.allowModify
-                : this.allowModify
-
-        // The number of seconds before this transaction expires
-        const expireSeconds =
-            options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
-
-        // Whether or not the request should be broadcast during the transact call
-        const willBroadcast =
-            options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
-
-        // Call the `beforeSign` hooks that were registered by the TransactPlugins
-        for (const hook of context.hooks.beforeSign) {
-            // Get the response of the hook by passing a cloned request.
-            const response = await hook(request.clone(), context)
-
-            // Save revision history for developers to debug modifications to requests.
-            result.revisions.addRevision(response, String(hook), allowModify)
-
-            // If modification is allowed, change the current request.
-            if (allowModify) {
-                request = await this.updateRequest(request, response.request, abiProvider)
-            }
-
-            // If signatures were returned, append them
-            if (response.signatures) {
-                result.signatures = [...result.signatures, ...response.signatures]
-            }
-        }
-
-        // Notify the UI that we are now awaiting a signature from the WalletPlugin
-        context.ui.status('Awaiting transaction signature...')
-
-        // Resolve the SigningRequest and assign it to the TransactResult
-        result.request = request
-        result.resolved = await context.resolve(request, expireSeconds)
-        result.transaction = result.resolved.resolvedTransaction
-
-        // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
-        const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
-            result.resolved,
-            context
-        )
-
-        // Merge signatures in to the TransactResult
-        result.signatures.push(...walletResponse.signatures)
-
-        // If a request was returned from the wallet, determine if its modified and was allowed to
-        if (walletResponse.request) {
-            const requestWasModified = String(request) !== String(walletResponse.request)
-            if (requestWasModified) {
-                if (allowModify) {
-                    result.request = walletResponse.request
-                    result.resolved = await context.resolve(walletResponse.request, expireSeconds)
-                    result.transaction = result.resolved.resolvedTransaction
-                } else {
-                    throw new Error(
-                        'Your wallet modified the transaction but the application did not allow it.'
-                    )
-                }
-            }
-        }
-
-        // Notify the UI that the signing process has completed and afterSign hooks are now processing.
-        context.ui.status('Signature received, post-processing...')
-
-        // Run the `afterSign` hooks that were registered by the TransactPlugins
-        for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
-
-        // Broadcast transaction if requested
-        if (willBroadcast) {
-            // Notify the UI that the transaction is about to be broadcast
-            context.ui.status('Broadcasting transaction...')
-
-            // Assemble the SignedTransaction to broadcast
-            const signed = SignedTransaction.from({
-                ...result.resolved.transaction,
-                signatures: result.signatures,
+            // The context object for this transaction
+            const context = new TransactContext({
+                abiProvider,
+                chain: this.chain,
+                client: this.client,
+                fetch: this.fetch,
+                permissionLevel: this.permissionLevel,
+                transactPlugins: options?.transactPlugins || this.transactPlugins,
+                transactPluginsOptions:
+                    options?.transactPluginsOptions || this.transactPluginsOptions,
+                ui: this.ui,
             })
 
-            // Broadcast the SignedTransaction
-            result.response = await context.client.v1.chain.send_transaction(signed)
+            // Notify the UI that a transaction is about to begin
+            await context.ui.onTransact(context)
+            context.ui.status('Preparing transaction...')
 
-            // Notify the UI that the transaction has been broadcast and afterBroadcast hooks are now processing.
-            context.ui.status('Transaction broadcast, post-processing...')
+            // Process incoming TransactArgs and convert to a SigningRequest
+            let request: SigningRequest = await this.createRequest(args, abiProvider)
 
-            // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
-            for (const hook of context.hooks.afterBroadcast)
-                await hook(result.request.clone(), context)
+            // Create TransactResult to eventually respond to this call with
+            const result: TransactResult = {
+                chain: this.chain,
+                request,
+                resolved: undefined,
+                revisions: new TransactRevisions(request),
+                signatures: [],
+                signer: this.permissionLevel,
+                transaction: undefined,
+            }
+
+            // A flag to determine whether or not the request should be able to be modified by beforeSign hooks
+            const allowModify =
+                options && typeof options.allowModify !== 'undefined'
+                    ? options.allowModify
+                    : this.allowModify
+
+            // The number of seconds before this transaction expires
+            const expireSeconds =
+                options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
+
+            // Whether or not the request should be broadcast during the transact call
+            const willBroadcast =
+                options && typeof options.broadcast !== 'undefined'
+                    ? options.broadcast
+                    : this.broadcast
+
+            // Call the `beforeSign` hooks that were registered by the TransactPlugins
+            for (const hook of context.hooks.beforeSign) {
+                // Get the response of the hook by passing a cloned request.
+                const response = await hook(request.clone(), context)
+
+                // Save revision history for developers to debug modifications to requests.
+                result.revisions.addRevision(response, String(hook), allowModify)
+
+                // If modification is allowed, change the current request.
+                if (allowModify) {
+                    request = await this.updateRequest(request, response.request, abiProvider)
+                }
+
+                // If signatures were returned, append them
+                if (response.signatures) {
+                    result.signatures = [...result.signatures, ...response.signatures]
+                }
+            }
+
+            // Notify the UI that we are now awaiting a signature from the WalletPlugin
+            context.ui.status('Awaiting transaction signature...')
+
+            // Resolve the SigningRequest and assign it to the TransactResult
+            result.request = request
+            result.resolved = await context.resolve(request, expireSeconds)
+            result.transaction = result.resolved.resolvedTransaction
+
+            // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
+            const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
+                result.resolved,
+                context
+            )
+
+            // Merge signatures in to the TransactResult
+            result.signatures.push(...walletResponse.signatures)
+
+            // If a request was returned from the wallet, determine if its modified and was allowed to
+            if (walletResponse.request) {
+                const requestWasModified = String(request) !== String(walletResponse.request)
+                if (requestWasModified) {
+                    if (allowModify) {
+                        result.request = walletResponse.request
+                        result.resolved = await context.resolve(
+                            walletResponse.request,
+                            expireSeconds
+                        )
+                        result.transaction = result.resolved.resolvedTransaction
+                    } else {
+                        throw new Error(
+                            'Your wallet modified the transaction but the application did not allow it.'
+                        )
+                    }
+                }
+            }
+
+            // Notify the UI that the signing process has completed and afterSign hooks are now processing.
+            context.ui.status('Signature received, post-processing...')
+
+            // Run the `afterSign` hooks that were registered by the TransactPlugins
+            for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
+
+            // Broadcast transaction if requested
+            if (willBroadcast) {
+                // Notify the UI that the transaction is about to be broadcast
+                context.ui.status('Broadcasting transaction...')
+
+                // Assemble the SignedTransaction to broadcast
+                const signed = SignedTransaction.from({
+                    ...result.resolved.transaction,
+                    signatures: result.signatures,
+                })
+
+                // Broadcast the SignedTransaction
+                result.response = await context.client.v1.chain.send_transaction(signed)
+
+                // Notify the UI that the transaction has been broadcast and afterBroadcast hooks are now processing.
+                context.ui.status('Transaction broadcast, post-processing...')
+
+                // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
+                for (const hook of context.hooks.afterBroadcast)
+                    await hook(result.request.clone(), context)
+            }
+
+            // Notify the UI that the transaction has completed
+            await context.ui.onTransactResult(result)
+
+            // Return the TransactResult to the caller
+            return result
+        } catch (error: any) {
+            if (error.response && error.response.json) {
+                const {json} = error.response
+                if (json.error && json.error.details) {
+                    const e = new Error(json.error.details[0].message)
+                    this.ui.onError(e)
+                    throw e
+                }
+            } else {
+                this.ui.onError(error)
+            }
+            throw new Error(error)
         }
-
-        // Notify the UI that the transaction has completed
-        await context.ui.onTransactResult(result)
-
-        // Return the TransactResult to the caller
-        return result
     }
 }
