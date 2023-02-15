@@ -105,6 +105,13 @@ export class BaseLoginPlugin extends AbstractLoginPlugin {
     }
 }
 
+export interface RestoreArgs {
+    chain: Checksum256Type
+    actor: NameType
+    permission: NameType
+    walletPlugin: Record<string, any>
+}
+
 export interface LoginOptions {
     chain?: Checksum256Type
     chains?: Checksum256Type[]
@@ -209,6 +216,7 @@ export interface SessionKitOptions {
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
+    storage: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
@@ -225,6 +233,7 @@ export class SessionKit {
     readonly expireSeconds: number = 120
     readonly fetch?: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
+    readonly storage: SessionStorage
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
@@ -250,6 +259,11 @@ export class SessionKit {
             this.loginPlugins = options.loginPlugins
         } else {
             this.loginPlugins = [new BaseLoginPlugin()]
+        }
+        if (options.storage) {
+            this.storage = options.storage
+        } else {
+            this.storage = new BrowserLocalStorage(this.appName.toString())
         }
         // Establish default plugins for transact flow
         if (options.transactPlugins) {
@@ -394,16 +408,7 @@ export class SessionKit {
                 permissionLevel: response.permissionLevel,
                 walletPlugin,
             },
-            {
-                allowModify: this.allowModify,
-                appName: this.appName,
-                expireSeconds: this.expireSeconds,
-                fetch: this.fetch,
-                transactPlugins: options?.transactPlugins || this.transactPlugins,
-                transactPluginsOptions:
-                    options?.transactPluginsOptions || this.transactPluginsOptions,
-                ui: context.ui,
-            }
+            this.getSessionOptions(options)
         )
 
         // Notify the UI that the login request has completed.
@@ -414,6 +419,37 @@ export class SessionKit {
             context,
             response,
             session,
+        }
+    }
+
+    restore(args: RestoreArgs, options?: LoginOptions): Session {
+        const walletPlugin = this.walletPlugins.find((p) => p.name === args.walletPlugin.name)
+        if (!walletPlugin) {
+            throw new Error(`No WalletPlugin found with the name of: '${args.walletPlugin.name}'`)
+        }
+        return new Session(
+            {
+                chain: this.getChainDefinition(args.chain),
+                permissionLevel: PermissionLevel.from({
+                    actor: args.actor,
+                    permission: args.permission,
+                }),
+                walletPlugin,
+            },
+            this.getSessionOptions(options)
+        )
+    }
+
+    getSessionOptions(options?: LoginOptions) {
+        return {
+            allowModify: this.allowModify,
+            appName: this.appName,
+            expireSeconds: this.expireSeconds,
+            fetch: this.fetch,
+            storage: this.storage,
+            transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            ui: this.ui,
         }
     }
 }

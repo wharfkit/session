@@ -6,6 +6,7 @@ import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockChainId} from '$test/utils/mock-config'
+import {MockStorage} from '$test/utils/mock-storage'
 
 const chains = [
     ChainDefinition.from({
@@ -30,6 +31,7 @@ const defaultSessionKitOptions: SessionKitOptions = {
     appName: 'demo.app',
     chains,
     fetch: mockFetch, // Required for unit tests
+    storage: new MockStorage(),
     ui: new MockUserInterface(),
     walletPlugins: [makeWallet()],
 }

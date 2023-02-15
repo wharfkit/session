@@ -17,7 +17,7 @@ import {
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 
-import {UserInterface} from './kit'
+import {SessionStorage, UserInterface} from './kit'
 import {ChainDefinition, Fetch} from './types'
 
 export type TransactPluginsOptions = Record<string, unknown>
@@ -53,6 +53,7 @@ export interface TransactContextOptions {
     client: APIClient
     fetch: Fetch
     permissionLevel: PermissionLevel
+    storage?: SessionStorage
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui: UserInterface
@@ -75,6 +76,7 @@ export class TransactContext {
         beforeSign: [],
     }
     readonly permissionLevel: PermissionLevel
+    readonly storage?: SessionStorage
     readonly transactPluginsOptions: TransactPluginsOptions
     readonly ui: UserInterface
 
@@ -84,6 +86,9 @@ export class TransactContext {
         this.client = options.client
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
+        if (options.storage) {
+            this.storage = options.storage
+        }
         this.transactPluginsOptions = options.transactPluginsOptions || {}
         this.ui = options.ui
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {

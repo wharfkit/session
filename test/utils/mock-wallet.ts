@@ -27,6 +27,7 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         name: 'Mock Wallet Plugin',
         description: 'A mock wallet plugin for testing chain selection',
     }
+    name = 'MockWalletPluginConfigs'
     privateKey: PrivateKey
     testModify = false
     constructor(config?: WalletPluginConfig, options?: any) {
@@ -70,6 +71,11 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         const signature = this.privateKey.signDigest(digest)
         return {
             signatures: [signature],
+        }
+    }
+    serialize() {
+        return {
+            privateKey: this.privateKey,
         }
     }
 }

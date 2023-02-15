@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABIDef, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {ABIDef, Name, PermissionLevel, Serializer, TimePointSec} from '@greymass/eosio'
 
 import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
@@ -12,7 +12,8 @@ import {mockPermissionLevel} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
-import {mockSessionArgs} from '$test/utils/mock-session'
+import {mockSessionArgs, mockSessionKitOptions} from '$test/utils/mock-session'
+import {MockStorage} from '$test/utils/mock-storage'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -262,6 +263,7 @@ suite('session', function () {
                             },
                         ],
                         fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
                         walletPlugins: [makeWallet()],
                     })
                     const {session} = await sessionKit.login({
@@ -281,6 +283,7 @@ suite('session', function () {
                             },
                         ],
                         fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
                         transactPlugins: [new MockTransactPlugin()],
                         walletPlugins: [makeWallet()],
                     })
@@ -299,6 +302,7 @@ suite('session', function () {
                             },
                         ],
                         fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
                         walletPlugins: [makeWallet()],
                     })
                     const {session} = await sessionKit.login({
@@ -328,6 +332,19 @@ suite('session', function () {
                 ui: new MockUserInterface(),
             })
             assert.instanceOf(testSession.ui, MockUserInterface)
+        })
+    })
+    suite('serialize', function () {
+        test('returns valid json string', function () {
+            const original = new Session(mockSessionArgs, mockSessionOptions)
+            const serialized = original.serialize()
+            assert.equal(
+                serialized,
+                '{"chain":"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d","actor":"wharfkit1111","permission":"test","walletPlugin":{"name":"WalletPluginPrivateKey","options":{"privateKey":"PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH"}}}'
+            )
+            assert.doesNotThrow(() => {
+                JSON.parse(serialized)
+            })
         })
     })
 })

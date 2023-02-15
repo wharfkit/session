@@ -21,7 +21,7 @@ import {
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {LoginContext, UserInterface} from './kit'
+import {LoginContext, SessionStorage, UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
@@ -110,6 +110,7 @@ export interface WalletPluginMetadata {
 export interface WalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
+    get name(): string
     login(
         context: LoginContext,
         options: WalletPluginLoginOptions
@@ -118,6 +119,7 @@ export interface WalletPlugin {
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
+    serialize(): Record<string, any>
 }
 
 export abstract class AbstractWalletPlugin implements WalletPlugin {
@@ -126,6 +128,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         requiresPermissionSelect: false,
     }
     metadata: WalletPluginMetadata = {}
+    abstract get name(): string
     abstract login(
         context: LoginContext,
         options: WalletPluginLoginOptions
@@ -134,6 +137,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
+    abstract serialize(): Record<string, any>
 }
 
 /**
@@ -157,6 +161,7 @@ export interface SessionOptions {
     broadcast?: boolean
     expireSeconds?: number
     fetch?: Fetch
+    storage?: SessionStorage
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
@@ -174,6 +179,7 @@ export class Session {
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly permissionLevel: PermissionLevel
+    readonly storage?: SessionStorage
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
@@ -219,6 +225,9 @@ export class Session {
             this.fetch = options.fetch
         } else {
             this.fetch = getFetch(options)
+        }
+        if (options.storage) {
+            this.storage = options.storage
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
@@ -418,6 +427,7 @@ export class Session {
                 client: this.client,
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
+                storage: this.storage,
                 transactPlugins: options?.transactPlugins || this.transactPlugins,
                 transactPluginsOptions:
                     options?.transactPluginsOptions || this.transactPluginsOptions,
@@ -560,4 +570,12 @@ export class Session {
             throw new Error(error)
         }
     }
+
+    serialize = (): string =>
+        JSON.stringify({
+            chain: this.chain.id,
+            actor: this.permissionLevel.actor,
+            permission: this.permissionLevel.permission,
+            walletPlugin: this.walletPlugin.serialize(),
+        })
 }
