@@ -136,25 +136,25 @@ export interface PromptElement {
  * Interface which a [[UserInteface]] plugins must implement.
  */
 export interface UserInterface {
-    // Inform the UI that an error has occurred
+    /** Inform the UI that an error has occurred */
     onError: (error: Error) => Promise<void>
-    // Inform the UI that a login call has started
+    /** Inform the UI that a login call has started **/
     onLogin: (options?: LoginOptions) => Promise<void>
-    // Inform the UI that a login call has completed
+    /** Inform the UI that a login call has completed **/
     onLoginResult: () => Promise<void>
-    // Ask the user to select a blockchain, and return the chain id
+    /** Ask the user to select a blockchain, and return the chain id **/
     onSelectChain: (context: LoginContext) => Promise<Checksum256>
-    // Ask the user to select an account, and return the PermissionLevel
+    /** Ask the user to select an account, and return the PermissionLevel **/
     onSelectPermissionLevel: (context: LoginContext) => Promise<PermissionLevel>
-    // Ask the user to select a wallet, and return the index based on the metadata
+    /** Ask the user to select a wallet, and return the index based on the metadata **/
     onSelectWallet: (context: LoginContext) => Promise<number>
-    // Inform the UI that a transact call has started
+    /** Inform the UI that a transact call has started **/
     onTransact: (context: TransactContext) => Promise<void>
-    // Inform the UI that a transact call has completed
+    /** Inform the UI that a transact call has completed **/
     onTransactResult: (context: TransactResult) => Promise<void>
-    // Prompt the user with a custom UI element
+    /** Prompt the user with a custom UI element **/
     prompt: (args: PromptArgs) => void
-    // Update the displayed modal status from a TransactPlugin
+    /** Update the displayed modal status from a TransactPlugin **/
     status: (message: string) => void
 }
 
