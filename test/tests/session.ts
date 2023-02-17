@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABIDef, Name, PermissionLevel, Serializer, TimePointSec} from '@greymass/eosio'
+import {ABIDef, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
 
 import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
@@ -12,7 +12,7 @@ import {mockPermissionLevel} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
-import {mockSessionArgs, mockSessionKitOptions} from '$test/utils/mock-session'
+import {mockSessionArgs} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
 
 const wallet = makeWallet()
