@@ -7,7 +7,7 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {Session, WalletPlugin, WalletPluginLoginOptions, WalletPluginLoginResponse} from './session'
+import {Session} from './session'
 import {AbstractLoginPlugin, BaseLoginPlugin, LoginContext, LoginPlugin} from './login'
 import {
     AbstractTransactPlugin,
@@ -20,6 +20,7 @@ import {
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {BrowserLocalStorage, SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {WalletPlugin, WalletPluginLoginOptions, WalletPluginLoginResponse} from './wallet'
 
 export interface LoginOptions {
     chain?: Checksum256Type

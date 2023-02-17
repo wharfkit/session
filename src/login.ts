@@ -1,6 +1,6 @@
 import {UserInterface} from './kit'
-import {WalletPluginMetadata} from './session'
 import {ChainDefinition} from './types'
+import {WalletPluginMetadata} from './wallet'
 
 export enum LoginHookTypes {
     beforeLogin = 'beforeLogin',
