@@ -4,7 +4,7 @@ import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 import {BaseTransactPlugin, Session, SessionKit} from '$lib'
 
-import {makeWallet} from '$test/utils/mock-wallet'
+import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
@@ -201,6 +201,21 @@ suite('kit', function () {
             const mockSerializedSession = JSON.parse(session.serialize())
             const restored = await mockSessionKit.restore(mockSerializedSession)
             assertSessionMatchesMockSession(restored)
+        })
+        test('throws if wallet not found', async function () {
+            const sessionKit = new SessionKit({
+                ...mockSessionKitOptions,
+                walletPlugins: [new MockWalletPluginConfigs()],
+            })
+            const {session} = await sessionKit.login()
+            const mockSerializedSession = JSON.parse(session.serialize())
+            let error
+            try {
+                await mockSessionKit.restore(mockSerializedSession)
+            } catch (err) {
+                error = err
+            }
+            assert.instanceOf(error, Error)
         })
     })
     suite('ui', function () {

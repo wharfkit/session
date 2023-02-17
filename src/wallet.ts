@@ -85,6 +85,7 @@ export interface WalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
     get name(): string
+    get data(): Record<string, any>
     login(
         context: LoginContext,
         options: WalletPluginLoginOptions
@@ -96,6 +97,11 @@ export interface WalletPlugin {
     serialize(): Record<string, any>
 }
 
+export interface SerializedWalletPlugin {
+    name: string
+    data: Record<string, any>
+}
+
 export abstract class AbstractWalletPlugin implements WalletPlugin {
     config: WalletPluginConfig = {
         requiresChainSelect: true,
@@ -103,6 +109,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
     }
     metadata: WalletPluginMetadata = {}
     abstract get name(): string
+    abstract get data(): Record<string, any>
     abstract login(
         context: LoginContext,
         options: WalletPluginLoginOptions
@@ -111,5 +118,10 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
-    abstract serialize(): Record<string, any>
+    serialize(): SerializedWalletPlugin {
+        return {
+            name: this.name,
+            data: this.data,
+        }
+    }
 }

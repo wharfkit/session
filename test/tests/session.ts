@@ -340,7 +340,7 @@ suite('session', function () {
             const serialized = original.serialize()
             assert.equal(
                 serialized,
-                '{"chain":"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d","actor":"wharfkit1111","permission":"test","walletPlugin":{"name":"WalletPluginPrivateKey","options":{"privateKey":"PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH"}}}'
+                '{"chain":"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d","actor":"wharfkit1111","permission":"test","walletPlugin":{"name":"WalletPluginPrivateKey","data":{"privateKey":"PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH"}}}'
             )
             assert.doesNotThrow(() => {
                 JSON.parse(serialized)
