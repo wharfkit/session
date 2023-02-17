@@ -1,5 +1,5 @@
-import {UserInterface} from './kit'
 import {ChainDefinition} from './types'
+import {UserInterface} from './ui'
 import {WalletPluginMetadata} from './wallet'
 
 export enum LoginHookTypes {

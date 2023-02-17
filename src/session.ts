@@ -17,7 +17,6 @@ import {
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
@@ -34,6 +33,7 @@ import {SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {getFetch} from './utils'
 import {WalletPlugin, WalletPluginSignResponse} from './wallet'
+import {UserInterface} from './ui'
 
 /**
  * Arguments required to create a new [[Session]].
