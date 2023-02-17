@@ -21,7 +21,7 @@ import {
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {LoginContext, SessionStorage, UserInterface} from './kit'
+import {LoginContext, UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
@@ -34,6 +34,7 @@ import {
     TransactResult,
     TransactRevisions,
 } from './transact'
+import {SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {getFetch} from './utils'
 

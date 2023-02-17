@@ -17,7 +17,8 @@ import {
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
 
-import {SessionStorage, UserInterface} from './kit'
+import {UserInterface} from './kit'
+import {SessionStorage} from './storage'
 import {ChainDefinition, Fetch} from './types'
 
 export type TransactPluginsOptions = Record<string, unknown>

@@ -1,4 +1,4 @@
-import {SessionStorage} from 'src/kit'
+import {SessionStorage} from 'src/storage'
 
 export class MockStorage implements SessionStorage {
     data: Record<string, string> = {}
