@@ -1,14 +1,11 @@
 import zlib from 'pako'
 import {
     APIClient,
-    Checksum256,
-    Checksum256Type,
     FetchProvider,
     Name,
     NameType,
     PermissionLevel,
     PermissionLevelType,
-    Signature,
     SignedTransaction,
 } from '@greymass/eosio'
 import {
@@ -16,12 +13,10 @@ import {
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
-    ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {LoginContext, UserInterface} from './kit'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
@@ -34,107 +29,11 @@ import {
     TransactResult,
     TransactRevisions,
 } from './transact'
+import {SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {getFetch} from './utils'
-
-export interface WalletPluginOptions {
-    name?: string
-}
-
-export interface WalletPluginContext {
-    chain: ChainDefinition
-    permissionLevel: PermissionLevelType | string
-}
-
-export interface WalletPluginLoginOptions {
-    appName: Name
-    chain?: ChainDefinition
-    chains: ChainDefinition[]
-    permissionLevel?: PermissionLevel
-}
-
-/**
- * The response required for a login call by a walletPlugin.
- */
-export interface WalletPluginLoginResponse {
-    /**
-     * The chain
-     */
-    chain: Checksum256
-    permissionLevel: PermissionLevel
-}
-
-export interface WalletPluginSignResponse {
-    request?: SigningRequest
-    signatures: Signature[]
-}
-
-export interface WalletPluginConfig {
-    /**
-     * Indicates if the pp requires the user to manually select the blockchain to authorize against.
-     */
-    requiresChainSelect: boolean
-    /**
-     * Indicates if the [[WalletPlugin]] requires the user to manually select a permission to use.
-     */
-    requiresPermissionSelect: boolean
-    /**
-     * If set, indicates which blockchains are compatible with this [[WalletPlugin]].
-     */
-    supportedChains?: Checksum256Type[]
-}
-
-export interface WalletPluginMetadata {
-    /**
-     * Display name for the wallet that is presented to users.
-     */
-    name?: string
-    /**
-     * Wallet description to further identify the wallet for users.
-     */
-    description?: string
-    /**
-     * Wallet branding
-     */
-    logo?: string
-    /**
-     * Link to the homepage for the wallet
-     */
-    homepage?: string
-    /**
-     * Link to the download page for the wallet
-     */
-    download?: string
-}
-
-export interface WalletPlugin {
-    config: WalletPluginConfig
-    metadata: WalletPluginMetadata
-    login(
-        context: LoginContext,
-        options: WalletPluginLoginOptions
-    ): Promise<WalletPluginLoginResponse>
-    sign(
-        transaction: ResolvedSigningRequest,
-        context: TransactContext
-    ): Promise<WalletPluginSignResponse>
-}
-
-export abstract class AbstractWalletPlugin implements WalletPlugin {
-    config: WalletPluginConfig = {
-        requiresChainSelect: true,
-        requiresPermissionSelect: false,
-    }
-    metadata: WalletPluginMetadata = {}
-    abstract login(
-        context: LoginContext,
-        options: WalletPluginLoginOptions
-    ): Promise<WalletPluginLoginResponse>
-    abstract sign(
-        transaction: ResolvedSigningRequest,
-        context: TransactContext
-    ): Promise<WalletPluginSignResponse>
-}
+import {WalletPlugin, WalletPluginSignResponse} from './wallet'
+import {UserInterface} from './ui'
 
 /**
  * Arguments required to create a new [[Session]].
@@ -157,6 +56,7 @@ export interface SessionOptions {
     broadcast?: boolean
     expireSeconds?: number
     fetch?: Fetch
+    storage?: SessionStorage
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
@@ -174,6 +74,7 @@ export class Session {
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly permissionLevel: PermissionLevel
+    readonly storage?: SessionStorage
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
@@ -219,6 +120,9 @@ export class Session {
             this.fetch = options.fetch
         } else {
             this.fetch = getFetch(options)
+        }
+        if (options.storage) {
+            this.storage = options.storage
         }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
@@ -418,6 +322,7 @@ export class Session {
                 client: this.client,
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
+                storage: this.storage,
                 transactPlugins: options?.transactPlugins || this.transactPlugins,
                 transactPluginsOptions:
                     options?.transactPluginsOptions || this.transactPluginsOptions,
@@ -560,4 +465,12 @@ export class Session {
             throw new Error(error)
         }
     }
+
+    serialize = (): string =>
+        JSON.stringify({
+            chain: this.chain.id,
+            actor: this.permissionLevel.actor,
+            permission: this.permissionLevel.permission,
+            walletPlugin: this.walletPlugin.serialize(),
+        })
 }

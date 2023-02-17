@@ -2,72 +2,43 @@ import {assert} from 'chai'
 import {PermissionLevel, TimePointSec} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
-import {BaseTransactPlugin, Session, SessionKit, SessionKitOptions} from '$lib'
+import {BaseTransactPlugin, Session, SessionKit} from '$lib'
 
-import {makeWallet} from '$test/utils/mock-wallet'
+import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
-import {mockFetch} from '$test/utils/mock-fetch'
-import {mockPermissionLevel} from '$test/utils/mock-config'
+import {mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
 
 const action = makeMockAction()
 
-const defaultSessionKitOptions: SessionKitOptions = {
-    appName: 'demo.app',
-    chains: [
-        {
-            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-            url: 'https://jungle4.greymass.com',
-        },
-        {
-            id: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
-            url: 'https://eos.greymass.com',
-        },
-        {
-            id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
-            url: 'https://telos.greymass.com',
-        },
-        {
-            id: '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4',
-            url: 'https://wax.greymass.com',
-        },
-        {
-            id: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
-            url: 'https://mockuserinterface.greymass.com',
-        },
-    ],
-    fetch: mockFetch, // Required for unit tests
-    ui: new MockUserInterface(),
-    walletPlugins: [makeWallet()],
-}
-
 const defaultLoginOptions = {
-    chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+    chain: mockChainId,
     permissionLevel: mockPermissionLevel,
 }
 
 function assertSessionMatchesMockSession(session: Session) {
     assert.instanceOf(session, Session)
-    assert.isTrue(session.appName?.equals(defaultSessionKitOptions.appName))
+    assert.isTrue(session.appName?.equals(mockSessionKitOptions.appName))
     assert.equal(session.allowModify, true)
     assert.equal(session.broadcast, true)
     assert.equal(session.expireSeconds, 120)
-    assert.isTrue(session.chain.equals(defaultSessionKitOptions.chains[4]))
+    assert.isTrue(session.chain.equals(mockSessionKitOptions.chains[4]))
     assert.instanceOf(session.walletPlugin, WalletPluginPrivateKey)
 }
 
 suite('kit', function () {
     suite('construct', function () {
         test('instance', function () {
-            const sessionKit = new SessionKit(defaultSessionKitOptions)
+            const sessionKit = new SessionKit(mockSessionKitOptions)
             assert.instanceOf(sessionKit, SessionKit)
         })
         suite('options', function () {
             suite('expireSeconds', function () {
                 test('default: 120', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login(defaultLoginOptions)
                     const result = await session.transact({action}, {broadcast: false})
                     // Get the chain info to get the current head block time from test cache
@@ -80,7 +51,7 @@ suite('kit', function () {
                 })
                 test('override: 60', async function () {
                     const sessionKit = new SessionKit({
-                        ...defaultSessionKitOptions,
+                        ...mockSessionKitOptions,
                         expireSeconds: 60,
                     })
                     const {session} = await sessionKit.login(defaultLoginOptions)
@@ -98,13 +69,13 @@ suite('kit', function () {
             })
             suite('transactPlugins', function () {
                 test('default', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     assert.lengthOf(sessionKit.transactPlugins, 1)
                     assert.instanceOf(sessionKit.transactPlugins[0], BaseTransactPlugin)
                 })
                 test('override', async function () {
                     const sessionKit = new SessionKit({
-                        ...defaultSessionKitOptions,
+                        ...mockSessionKitOptions,
                         transactPlugins: [new MockTransactPlugin()],
                     })
                     assert.lengthOf(sessionKit.transactPlugins, 1)
@@ -115,14 +86,14 @@ suite('kit', function () {
     })
     suite('login', function () {
         test('default', async function () {
-            const sessionKit = new SessionKit({...defaultSessionKitOptions})
+            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             assertSessionMatchesMockSession(session)
         })
         suite('options', function () {
             suite('chain', function () {
                 test('override', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const chain = 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
@@ -131,7 +102,7 @@ suite('kit', function () {
                     assert.isTrue(session.chain.id.equals(chain))
                 })
                 test('throws on unknown', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     assert.throws(() =>
                         sessionKit.getChainDefinition(
                             'c054efbc59625be7ce0d69ef26124fd349420b98fef2ed23fead4c558b9826b1'
@@ -141,7 +112,7 @@ suite('kit', function () {
             })
             suite('chains', function () {
                 test('specify subset', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         chain: undefined,
@@ -158,7 +129,7 @@ suite('kit', function () {
                     )
                 })
                 test('specify subset, wallet returns invalid ID choice', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     let error
                     try {
                         await sessionKit.login({
@@ -179,7 +150,7 @@ suite('kit', function () {
                     )
                 })
                 test('specify subset, specify selection', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         chain: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
@@ -197,7 +168,7 @@ suite('kit', function () {
             })
             suite('permissionLevel', function () {
                 test('typed', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         permissionLevel: PermissionLevel.from('mock@interface'),
@@ -208,7 +179,7 @@ suite('kit', function () {
                     )
                 })
                 test('untyped', async function () {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions)
+                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const result = await sessionKit.login({
                         ...defaultLoginOptions,
                         permissionLevel: 'mock@interface',
@@ -223,16 +194,40 @@ suite('kit', function () {
             })
         })
     })
+    suite('restore', function () {
+        test('session', async function () {
+            const sessionKit = new SessionKit({...mockSessionKitOptions})
+            const {session} = await sessionKit.login()
+            const mockSerializedSession = JSON.parse(session.serialize())
+            const restored = await mockSessionKit.restore(mockSerializedSession)
+            assertSessionMatchesMockSession(restored)
+        })
+        test('throws if wallet not found', async function () {
+            const sessionKit = new SessionKit({
+                ...mockSessionKitOptions,
+                walletPlugins: [new MockWalletPluginConfigs()],
+            })
+            const {session} = await sessionKit.login()
+            const mockSerializedSession = JSON.parse(session.serialize())
+            let error
+            try {
+                await mockSessionKit.restore(mockSerializedSession)
+            } catch (err) {
+                error = err
+            }
+            assert.instanceOf(error, Error)
+        })
+    })
     suite('ui', function () {
         test('default', async function () {
-            const sessionKit = new SessionKit(defaultSessionKitOptions)
+            const sessionKit = new SessionKit(mockSessionKitOptions)
             assert.instanceOf(sessionKit.ui, MockUserInterface)
             const {session} = await sessionKit.login(defaultLoginOptions)
             assert.instanceOf(session.ui, MockUserInterface)
         })
         test('override', async function () {
             const sessionKit = new SessionKit({
-                ...defaultSessionKitOptions,
+                ...mockSessionKitOptions,
                 ui: new MockUserInterface(),
             })
             assert.instanceOf(sessionKit.ui, MockUserInterface)
@@ -242,7 +237,7 @@ suite('kit', function () {
         suite('onSelectWallet', function () {
             test('if 1 walletPlugin, use it without UI selection', async function () {
                 const sessionKit = new SessionKit({
-                    ...defaultSessionKitOptions,
+                    ...mockSessionKitOptions,
                     ui: new UserInterfaceHeadless(),
                     walletPlugins: [makeWallet()],
                 })
@@ -254,7 +249,7 @@ suite('kit', function () {
             })
             test('if >1 walletPlugin, force selection', async function () {
                 const sessionKit = new SessionKit({
-                    ...defaultSessionKitOptions,
+                    ...mockSessionKitOptions,
                     walletPlugins: [makeWallet(), makeWallet()],
                 })
                 const {session} = await sessionKit.login({
@@ -270,7 +265,7 @@ suite('kit', function () {
                     }
                 }
                 const sessionKit = new SessionKit({
-                    ...defaultSessionKitOptions,
+                    ...mockSessionKitOptions,
                     ui: new FailingUI(),
                     walletPlugins: [makeWallet(), makeWallet()],
                 })

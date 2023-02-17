@@ -1,7 +1,8 @@
 import {Checksum256, PermissionLevel} from '@greymass/eosio'
 
-import {LoginOptions, UserInterface} from '../../kit'
+import {LoginOptions} from '../../kit'
 import {TransactContext, TransactResult} from '../../transact'
+import {UserInterface} from '../../ui'
 
 export class UserInterfaceHeadless implements UserInterface {
     consoleLog = false

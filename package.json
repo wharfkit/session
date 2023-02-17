@@ -1,7 +1,7 @@
 {
     "name": "@wharfkit/session",
     "description": "DESCRIPTION",
-    "version": "0.3.0-ui-9",
+    "version": "0.3.0-ui-10",
     "homepage": "https://github.com/wharfkit/session",
     "license": "BSD-3-Clause",
     "main": "lib/session.js",
@@ -40,7 +40,7 @@
         "@types/node": "^18.7.18",
         "@typescript-eslint/eslint-plugin": "^5.20.0",
         "@typescript-eslint/parser": "^5.20.0",
-        "@wharfkit/wallet-plugin-privatekey": "^0.3.0-ui-8",
+        "@wharfkit/wallet-plugin-privatekey": "^0.3.0-ui-10a",
         "chai": "^4.3.4",
         "eslint": "^8.13.0",
         "eslint-config-prettier": "^8.1.0",

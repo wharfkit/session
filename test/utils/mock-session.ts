@@ -1,18 +1,32 @@
 import {PermissionLevel} from '@greymass/eosio'
 
-import {ChainDefinition, SessionArgs, SessionOptions} from '$lib'
+import {Session, SessionArgs, SessionKit, SessionKitOptions, SessionOptions} from '$lib'
 
-import {mockPermissionLevel} from '$test/utils/mock-config'
+import {
+    mockChainDefinition,
+    mockChainDefinitions,
+    mockPermissionLevel,
+} from '$test/utils/mock-config'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {makeWallet} from '$test/utils/mock-wallet'
+import {MockStorage} from './mock-storage'
+import {MockUserInterface} from './mock-userinterface'
 
 const wallet = makeWallet()
 
+export const mockSessionKitOptions: SessionKitOptions = {
+    appName: 'unittest',
+    chains: mockChainDefinitions,
+    fetch: mockFetch, // Required for unit tests
+    storage: new MockStorage(),
+    ui: new MockUserInterface(),
+    walletPlugins: [wallet],
+}
+
+export const mockSessionKit = new SessionKit(mockSessionKitOptions)
+
 export const mockSessionArgs: SessionArgs = {
-    chain: ChainDefinition.from({
-        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-        url: 'https://jungle4.greymass.com',
-    }),
+    chain: mockChainDefinition,
     permissionLevel: PermissionLevel.from(mockPermissionLevel),
     walletPlugin: wallet,
 }
@@ -21,3 +35,5 @@ export const mockSessionOptions: SessionOptions = {
     broadcast: false, // Disable broadcasting by default for tests, enable when required.
     fetch: mockFetch, // Required for unit tests
 }
+
+export const mockSession = new Session(mockSessionArgs, mockSessionOptions)

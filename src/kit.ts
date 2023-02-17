@@ -7,103 +7,19 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
-import {
-    Session,
-    SessionOptions,
-    WalletPlugin,
-    WalletPluginLoginOptions,
-    WalletPluginLoginResponse,
-    WalletPluginMetadata,
-} from './session'
+import {Session} from './session'
+import {AbstractLoginPlugin, BaseLoginPlugin, LoginContext, LoginPlugin} from './login'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
-    TransactContext,
     TransactPlugin,
     TransactPluginsOptions,
-    TransactResult,
 } from './transact'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
+import {BrowserLocalStorage, SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
-
-export enum LoginHookTypes {
-    beforeLogin = 'beforeLogin',
-    afterLogin = 'afterLogin',
-}
-
-export type LoginHook = (context: SessionOptions) => Promise<void>
-
-export interface LoginHooks {
-    afterLogin: LoginHook[]
-    beforeLogin: LoginHook[]
-}
-
-/**
- * Options for creating a new context for a [[Kit.login]] call.
- */
-export interface LoginContextOptions {
-    // client: APIClient
-    chain?: ChainDefinition
-    chains?: ChainDefinition[]
-    loginPlugins?: AbstractLoginPlugin[]
-    walletPlugins?: WalletPluginMetadata[]
-    ui: UserInterface
-}
-
-/**
- * Temporary context created for the duration of a [[Kit.login]] call.
- *
- * This context is used to store the state of the login request and
- * provide a way for plugins to add hooks into the process.
- */
-export class LoginContext {
-    // client: APIClient
-    chain?: ChainDefinition
-    chains: ChainDefinition[] = []
-    hooks: LoginHooks = {
-        afterLogin: [],
-        beforeLogin: [],
-    }
-    ui: UserInterface
-    walletPlugins: WalletPluginMetadata[] = []
-    constructor(options: LoginContextOptions) {
-        // this.client = options.client
-        if (options.chains) {
-            this.chains = options.chains
-        }
-        if (options.chain) {
-            this.chain = options.chain
-        }
-        this.walletPlugins = options.walletPlugins || []
-        this.ui = options.ui
-        // options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
-        //     plugin.register(this)
-        // })
-    }
-    addHook(t: LoginHookTypes, hook: LoginHook) {
-        this.hooks[t].push(hook)
-    }
-}
-
-/**
- * Payload accepted by the [[Kit.login]] method.
- */
-export interface LoginPlugin {
-    register: (context: LoginContext) => void
-}
-
-/**
- * Abstract class for [[Kit.login]] plugins to extend.
- */
-export abstract class AbstractLoginPlugin implements LoginPlugin {
-    abstract register(context: LoginContext): void
-}
-
-export class BaseLoginPlugin extends AbstractLoginPlugin {
-    register() {
-        // console.log('Register hooks via context.addHook')
-    }
-}
+import {WalletPlugin, WalletPluginLoginOptions, WalletPluginLoginResponse} from './wallet'
+import {UserInterface} from './ui'
 
 export interface LoginOptions {
     chain?: Checksum256Type
@@ -120,86 +36,11 @@ export interface LoginResult {
     session: Session
 }
 
-export interface PromptArgs {
-    title: string
-    body?: string
-    elements: PromptElement[]
-}
-
-export interface PromptElement {
-    type: 'button' | 'countdown' | 'qr'
-    label?: string
-    data?: unknown
-}
-
-/**
- * Interface which a [[UserInteface]] plugins must implement.
- */
-export interface UserInterface {
-    // Inform the UI that an error has occurred
-    onError: (error: Error) => Promise<void>
-    // Inform the UI that a login call has started
-    onLogin: (options?: LoginOptions) => Promise<void>
-    // Inform the UI that a login call has completed
-    onLoginResult: () => Promise<void>
-    // Ask the user to select a blockchain, and return the chain id
-    onSelectChain: (context: LoginContext) => Promise<Checksum256>
-    // Ask the user to select an account, and return the PermissionLevel
-    onSelectPermissionLevel: (context: LoginContext) => Promise<PermissionLevel>
-    // Ask the user to select a wallet, and return the index based on the metadata
-    onSelectWallet: (context: LoginContext) => Promise<number>
-    // Inform the UI that a transact call has started
-    onTransact: (context: TransactContext) => Promise<void>
-    // Inform the UI that a transact call has completed
-    onTransactResult: (context: TransactResult) => Promise<void>
-    // Prompt the user with a custom UI element
-    prompt: (args: PromptArgs) => void
-    // Update the displayed modal status from a TransactPlugin
-    status: (message: string) => void
-}
-
-export abstract class AbstractUserInterface implements UserInterface {
-    abstract onError(error: Error): Promise<void>
-    abstract onLogin(options?: LoginOptions): Promise<void>
-    abstract onLoginResult(): Promise<void>
-    abstract onSelectChain(context: LoginContext): Promise<Checksum256>
-    abstract onSelectPermissionLevel(context: LoginContext): Promise<PermissionLevel>
-    abstract onSelectWallet(context: LoginContext): Promise<number>
-    abstract onTransact(context: TransactContext): Promise<void>
-    abstract onTransactResult(context: TransactResult): Promise<void>
-    abstract prompt(args: PromptArgs): void
-    abstract status(message: string): void
-}
-
-/**
- * Interface storage adapters should implement.
- *
- * Storage adapters are responsible for persisting [[Session]]s and can optionally be
- * passed to the [[SessionKit]] constructor to auto-persist sessions.
- */
-export interface SessionStorage {
-    /** Write string to storage at key. Should overwrite existing values without error. */
-    write(key: string, data: string): Promise<void>
-    /** Read key from storage. Should return `null` if key can not be found. */
-    read(key: string): Promise<string | null>
-    /** Delete key from storage. Should not error if deleting non-existing key. */
-    remove(key: string): Promise<void>
-}
-
-export class BrowserLocalStorage implements SessionStorage {
-    constructor(readonly keyPrefix: string) {}
-    async write(key: string, data: string): Promise<void> {
-        localStorage.setItem(this.storageKey(key), data)
-    }
-    async read(key: string): Promise<string | null> {
-        return localStorage.getItem(this.storageKey(key))
-    }
-    async remove(key: string): Promise<void> {
-        localStorage.removeItem(this.storageKey(key))
-    }
-    storageKey(key: string) {
-        return `wharf-${this.keyPrefix}-${key}`
-    }
+export interface RestoreArgs {
+    chain: Checksum256Type
+    actor: NameType
+    permission: NameType
+    walletPlugin: Record<string, any>
 }
 
 export interface SessionKitOptions {
@@ -209,6 +50,7 @@ export interface SessionKitOptions {
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
+    storage: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
@@ -225,6 +67,7 @@ export class SessionKit {
     readonly expireSeconds: number = 120
     readonly fetch?: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
+    readonly storage: SessionStorage
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
@@ -250,6 +93,11 @@ export class SessionKit {
             this.loginPlugins = options.loginPlugins
         } else {
             this.loginPlugins = [new BaseLoginPlugin()]
+        }
+        if (options.storage) {
+            this.storage = options.storage
+        } else {
+            this.storage = new BrowserLocalStorage(this.appName.toString())
         }
         // Establish default plugins for transact flow
         if (options.transactPlugins) {
@@ -394,16 +242,7 @@ export class SessionKit {
                 permissionLevel: response.permissionLevel,
                 walletPlugin,
             },
-            {
-                allowModify: this.allowModify,
-                appName: this.appName,
-                expireSeconds: this.expireSeconds,
-                fetch: this.fetch,
-                transactPlugins: options?.transactPlugins || this.transactPlugins,
-                transactPluginsOptions:
-                    options?.transactPluginsOptions || this.transactPluginsOptions,
-                ui: context.ui,
-            }
+            this.getSessionOptions(options)
         )
 
         // Notify the UI that the login request has completed.
@@ -414,6 +253,37 @@ export class SessionKit {
             context,
             response,
             session,
+        }
+    }
+
+    restore(args: RestoreArgs, options?: LoginOptions): Session {
+        const walletPlugin = this.walletPlugins.find((p) => p.name === args.walletPlugin.name)
+        if (!walletPlugin) {
+            throw new Error(`No WalletPlugin found with the name of: '${args.walletPlugin.name}'`)
+        }
+        return new Session(
+            {
+                chain: this.getChainDefinition(args.chain),
+                permissionLevel: PermissionLevel.from({
+                    actor: args.actor,
+                    permission: args.permission,
+                }),
+                walletPlugin,
+            },
+            this.getSessionOptions(options)
+        )
+    }
+
+    getSessionOptions(options?: LoginOptions) {
+        return {
+            allowModify: this.allowModify,
+            appName: this.appName,
+            expireSeconds: this.expireSeconds,
+            fetch: this.fetch,
+            storage: this.storage,
+            transactPlugins: options?.transactPlugins || this.transactPlugins,
+            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            ui: this.ui,
         }
     }
 }

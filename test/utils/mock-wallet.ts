@@ -29,15 +29,29 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
     }
     privateKey: PrivateKey
     testModify = false
-    constructor(config?: WalletPluginConfig, options?: any) {
+    config: WalletPluginConfig
+    options: Record<string, any>
+    constructor(config?: WalletPluginConfig, options: Record<string, any> = {}) {
         super()
         if (config) {
             this.config = config
+        } else {
+            this.config = {
+                requiresChainSelect: true,
+                requiresPermissionSelect: false,
+            }
         }
-        if (options) {
-            this.testModify = options.testModify
-        }
+        this.options = options
         this.privateKey = PrivateKey.from(mockPrivateKey)
+    }
+    get name() {
+        return 'MockWalletPluginConfigs'
+    }
+    get data() {
+        return {
+            config: this.config,
+            options: this.options,
+        }
     }
     async login(context: LoginContext, options) {
         return {
@@ -50,7 +64,7 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         context: TransactContext
     ): Promise<WalletPluginSignResponse> {
         // If the `testModify` flag is enabled, modify the transaction for testing purposes
-        if (this.testModify) {
+        if (this.options.testModify) {
             const request = await SigningRequest.create(
                 {action: makeMockAction('modified transaction')},
                 context.esrOptions
