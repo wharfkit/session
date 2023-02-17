@@ -21,7 +21,8 @@ import {
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {LoginContext, UserInterface} from './kit'
+import {UserInterface} from './kit'
+import {LoginContext} from './login'
 import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
