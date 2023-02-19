@@ -1,48 +1,12 @@
-import {
-    Checksum256,
-    Checksum256Type,
-    Name,
-    PermissionLevel,
-    PermissionLevelType,
-    Signature,
-} from '@greymass/eosio'
+import {Checksum256, Checksum256Type, PermissionLevel, PublicKey, Signature} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
-import {ChainDefinition} from './types'
-
-export interface WalletPluginOptions {
-    name?: string
-}
-
-export interface WalletPluginContext {
-    chain: ChainDefinition
-    permissionLevel: PermissionLevelType | string
-}
-
-export interface WalletPluginLoginOptions {
-    appName: Name
-    chain?: ChainDefinition
-    chains: ChainDefinition[]
-    permissionLevel?: PermissionLevel
-}
 
 /**
- * The response required for a login call by a walletPlugin.
+ * The static configuration of a [[WalletPlugin]].
  */
-export interface WalletPluginLoginResponse {
-    /**
-     * The chain
-     */
-    chain: Checksum256
-    permissionLevel: PermissionLevel
-}
-
-export interface WalletPluginSignResponse {
-    request?: SigningRequest
-    signatures: Signature[]
-}
-
 export interface WalletPluginConfig {
     /**
      * Indicates if the pp requires the user to manually select the blockchain to authorize against.
@@ -58,13 +22,16 @@ export interface WalletPluginConfig {
     supportedChains?: Checksum256Type[]
 }
 
+/**
+ * The metadata of a [[WalletPlugin]] for display purposes.
+ */
 export interface WalletPluginMetadata {
     /**
-     * Display name for the wallet that is presented to users.
+     * A display name for the wallet that is presented to users.
      */
     name?: string
     /**
-     * Wallet description to further identify the wallet for users.
+     * A wallet description to further identify the wallet for users.
      */
     description?: string
     /**
@@ -79,49 +46,90 @@ export interface WalletPluginMetadata {
      * Link to the download page for the wallet
      */
     download?: string
+    /**
+     * The public key being used by the wallet plugin
+     */
+    publicKey?: PublicKey
 }
 
+/**
+ * The response for a login call of a [[WalletPlugin]].
+ */
+export interface WalletPluginLoginResponse {
+    chain: Checksum256
+    permissionLevel: PermissionLevel
+}
+
+/**
+ * The response for a sign call of a [[WalletPlugin]].
+ */
+export interface WalletPluginSignResponse {
+    request?: SigningRequest
+    signatures: Signature[]
+}
+
+/**
+ * Interface which all 3rd party wallet plugins must implement.
+ */
 export interface WalletPlugin {
-    config: WalletPluginConfig
-    metadata: WalletPluginMetadata
-    get name(): string
+    /** A URL friendly (lower case, no spaces, etc) ID for this plugin - Used in serialization */
+    get id(): string
+    /** A method to return the data that needs to persist for the plguin - Used in serialization */
     get data(): Record<string, any>
-    login(
-        context: LoginContext,
-        options: WalletPluginLoginOptions
-    ): Promise<WalletPluginLoginResponse>
+    /** The [[SessionKit]] configuration parameters for this [[WalletPlugin]]. */
+    config: WalletPluginConfig
+    /** The metadata for the [[WalletPlugin]] itself. */
+    metadata: WalletPluginMetadata
+    /**
+     * Request the [[WalletPlugin]] to log in a user and return a [[WalletPluginLoginResponse]].
+     *
+     * @param context The [[LoginContext]] for the [[WalletPlugin]] to use.
+     */
+    login(context: LoginContext): Promise<WalletPluginLoginResponse>
+    /**
+     * Requests the [[WalletPlugin]] to sign a transaction and return a [[WalletPluginSignResponse]]]
+     *
+     * @param transaction The transaction to sign.
+     * @param context The [[TransactContext]] for the [[WalletPlugin]] to use.
+     */
     sign(
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
+    /**
+     * Serialize the [[WalletPlugin]] ID and data into a plain object.
+     */
     serialize(): Record<string, any>
 }
 
-export interface SerializedWalletPlugin {
-    name: string
-    data: Record<string, any>
-}
-
+/**
+ * Abstract class which all 3rd party [[WalletPlugin]] implementations may extend.
+ */
 export abstract class AbstractWalletPlugin implements WalletPlugin {
     config: WalletPluginConfig = {
         requiresChainSelect: true,
         requiresPermissionSelect: false,
     }
     metadata: WalletPluginMetadata = {}
-    abstract get name(): string
+    abstract get id(): string
     abstract get data(): Record<string, any>
-    abstract login(
-        context: LoginContext,
-        options: WalletPluginLoginOptions
-    ): Promise<WalletPluginLoginResponse>
+    abstract login(context: LoginContext): Promise<WalletPluginLoginResponse>
     abstract sign(
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
     serialize(): SerializedWalletPlugin {
         return {
-            name: this.name,
+            id: this.id,
             data: this.data,
         }
     }
+}
+
+/**
+ * The serialized form of a [[WalletPlugin]] instance.
+ */
+export interface SerializedWalletPlugin {
+    id: string
+    data: Record<string, any>
 }

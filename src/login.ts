@@ -1,6 +1,7 @@
-import {ChainDefinition} from './types'
+import {APIClient, FetchProvider, Name, PermissionLevel} from '@greymass/eosio'
+import {ChainDefinition, Fetch} from './types'
 import {UserInterface} from './ui'
-import {WalletPluginMetadata} from './wallet'
+import {WalletPluginConfig, WalletPluginMetadata} from './wallet'
 
 export enum LoginHookTypes {
     beforeLogin = 'beforeLogin',
@@ -18,12 +19,26 @@ export interface LoginHooks {
  * Options for creating a new context for a [[Kit.login]] call.
  */
 export interface LoginContextOptions {
+    appName?: Name
     // client: APIClient
     chain?: ChainDefinition
     chains?: ChainDefinition[]
+    fetch: Fetch
     loginPlugins?: AbstractLoginPlugin[]
-    walletPlugins?: WalletPluginMetadata[]
+    permissionLevel?: PermissionLevel
+    walletPlugins?: UserInterfaceWalletPlugin[]
     ui: UserInterface
+}
+
+export interface UserInterfaceRequirements {
+    requiresChainSelect: boolean
+    requiresPermissionSelect: boolean
+    requiresWalletSelect: boolean
+}
+
+export interface UserInterfaceWalletPlugin {
+    config: WalletPluginConfig
+    metadata: WalletPluginMetadata
 }
 
 /**
@@ -36,12 +51,19 @@ export class LoginContext {
     // client: APIClient
     chain?: ChainDefinition
     chains: ChainDefinition[] = []
+    fetch: Fetch
     hooks: LoginHooks = {
         afterLogin: [],
         beforeLogin: [],
     }
+    permissionLevel?: PermissionLevel
     ui: UserInterface
-    walletPlugins: WalletPluginMetadata[] = []
+    uiRequirements: UserInterfaceRequirements = {
+        requiresChainSelect: true,
+        requiresPermissionSelect: true,
+        requiresWalletSelect: true,
+    }
+    walletPlugins: UserInterfaceWalletPlugin[] = []
     constructor(options: LoginContextOptions) {
         // this.client = options.client
         if (options.chains) {
@@ -50,6 +72,8 @@ export class LoginContext {
         if (options.chain) {
             this.chain = options.chain
         }
+        this.fetch = options.fetch
+        this.permissionLevel = options.permissionLevel
         this.walletPlugins = options.walletPlugins || []
         this.ui = options.ui
         options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
@@ -58,6 +82,9 @@ export class LoginContext {
     }
     addHook(t: LoginHookTypes, hook: LoginHook) {
         this.hooks[t].push(hook)
+    }
+    getClient(chain: ChainDefinition): APIClient {
+        return new APIClient({provider: new FetchProvider(chain.url, {fetch: this.fetch})})
     }
 }
 

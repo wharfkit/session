@@ -44,7 +44,7 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         this.options = options
         this.privateKey = PrivateKey.from(mockPrivateKey)
     }
-    get name() {
+    get id() {
         return 'MockWalletPluginConfigs'
     }
     get data() {
@@ -53,10 +53,10 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
             options: this.options,
         }
     }
-    async login(context: LoginContext, options) {
+    async login(context: LoginContext) {
         return {
-            chain: options.chain ? options.chain.id : ChainDefinition.from(mockChainDefinition).id,
-            permissionLevel: options.permissionLevel || PermissionLevel.from(mockPermissionLevel),
+            chain: context.chain ? context.chain.id : ChainDefinition.from(mockChainDefinition).id,
+            permissionLevel: context.permissionLevel || PermissionLevel.from(mockPermissionLevel),
         }
     }
     async sign(

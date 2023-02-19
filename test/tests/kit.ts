@@ -2,12 +2,23 @@ import {assert} from 'chai'
 import {PermissionLevel, TimePointSec} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
-import {BaseTransactPlugin, Session, SessionKit} from '$lib'
+import {
+    BaseTransactPlugin,
+    LoginContext,
+    Session,
+    SessionKit,
+    UserInterfaceLoginResponse,
+} from '$lib'
 
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
-import {mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
+import {
+    mockChainDefinition,
+    mockChainDefinitions,
+    mockChainId,
+    mockPermissionLevel,
+} from '$test/utils/mock-config'
 import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
@@ -25,7 +36,7 @@ function assertSessionMatchesMockSession(session: Session) {
     assert.equal(session.allowModify, true)
     assert.equal(session.broadcast, true)
     assert.equal(session.expireSeconds, 120)
-    assert.isTrue(session.chain.equals(mockSessionKitOptions.chains[4]))
+    assert.isTrue(session.chain.equals(mockChainDefinitions[0]))
     assert.instanceOf(session.walletPlugin, WalletPluginPrivateKey)
 }
 
@@ -124,7 +135,7 @@ suite('kit', function () {
                     })
                     assert.isTrue(
                         session.chain.id.equals(
-                            '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590'
+                            '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4'
                         )
                     )
                 })
@@ -134,7 +145,7 @@ suite('kit', function () {
                     try {
                         await sessionKit.login({
                             ...defaultLoginOptions,
-                            chain: undefined,
+                            chain: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
                             chains: [
                                 '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4',
                                 '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
@@ -238,11 +249,9 @@ suite('kit', function () {
             test('if 1 walletPlugin, use it without UI selection', async function () {
                 const sessionKit = new SessionKit({
                     ...mockSessionKitOptions,
-                    ui: new UserInterfaceHeadless(),
                     walletPlugins: [makeWallet()],
                 })
                 const {session} = await sessionKit.login({
-                    chain: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
                     permissionLevel: mockPermissionLevel,
                 })
                 assertSessionMatchesMockSession(session)
@@ -253,15 +262,18 @@ suite('kit', function () {
                     walletPlugins: [makeWallet(), makeWallet()],
                 })
                 const {session} = await sessionKit.login({
-                    chain: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
                     permissionLevel: mockPermissionLevel,
                 })
                 assertSessionMatchesMockSession(session)
             })
             test('walletPlugin returning invalid index throws', async function () {
                 class FailingUI extends MockUserInterface {
-                    async onSelectWallet(): Promise<number> {
-                        return 999999
+                    async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
+                        return {
+                            chainId: mockChainId,
+                            permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                            walletPluginIndex: 999999,
+                        }
                     }
                 }
                 const sessionKit = new SessionKit({

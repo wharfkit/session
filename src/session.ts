@@ -330,7 +330,7 @@ export class Session {
             })
 
             // Notify the UI that a transaction is about to begin
-            await context.ui.onTransact(context)
+            await context.ui.onTransact()
             context.ui.status('Preparing transaction...')
 
             // Process incoming TransactArgs and convert to a SigningRequest
@@ -447,7 +447,7 @@ export class Session {
             }
 
             // Notify the UI that the transaction has completed
-            await context.ui.onTransactResult(result)
+            await context.ui.onTransactResult()
 
             // Return the TransactResult to the caller
             return result

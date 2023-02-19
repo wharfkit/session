@@ -7,19 +7,26 @@ import {
     PermissionLevelType,
 } from '@greymass/eosio'
 
+import {
+    AbstractLoginPlugin,
+    BaseLoginPlugin,
+    LoginContext,
+    LoginPlugin,
+    UserInterfaceWalletPlugin,
+} from './login'
+import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {Session} from './session'
-import {AbstractLoginPlugin, BaseLoginPlugin, LoginContext, LoginPlugin} from './login'
+import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
     TransactPlugin,
     TransactPluginsOptions,
 } from './transact'
-import {UserInterfaceHeadless} from './plugins/userinterface/headless'
-import {BrowserLocalStorage, SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
-import {WalletPlugin, WalletPluginLoginOptions, WalletPluginLoginResponse} from './wallet'
+import {WalletPlugin, WalletPluginLoginResponse} from './wallet'
 import {UserInterface} from './ui'
+import {getFetch} from './utils'
 
 export interface LoginOptions {
     chain?: Checksum256Type
@@ -65,7 +72,7 @@ export class SessionKit {
     readonly appName: Name
     readonly chains: ChainDefinition[]
     readonly expireSeconds: number = 120
-    readonly fetch?: Fetch
+    readonly fetch: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
     readonly storage: SessionStorage
     readonly transactPlugins: AbstractTransactPlugin[]
@@ -87,6 +94,8 @@ export class SessionKit {
         // Override fetch if provided
         if (options.fetch) {
             this.fetch = options.fetch
+        } else {
+            this.fetch = getFetch(options)
         }
         // Establish default plugins for login flow
         if (options.loginPlugins) {
@@ -139,103 +148,99 @@ export class SessionKit {
      *   D --> E[Session]
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
-        // Setup a LoginContext for plugins to use
+        // Create LoginContext for this login request.
         const context = new LoginContext({
+            appName: this.appName,
+            chain: undefined,
+            chains:
+                options && options?.chains
+                    ? options.chains.map((c) => this.getChainDefinition(c))
+                    : this.chains,
+            fetch: this.fetch,
             ui: this.ui,
-            walletPlugins: this.walletPlugins.map((plugin) => plugin.metadata),
+            walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
+                return {
+                    config: plugin.config,
+                    metadata: plugin.metadata,
+                }
+            }),
         })
 
         // Tell the UI a login request is beginning.
-        context.ui.onLogin(options)
+        context.ui.onLogin()
 
-        // Determine which WalletPlugin will fulfill the login request.
-        let walletPlugin: WalletPlugin
+        // Predetermine chain (if possible) to prevent uneeded UI interactions.
+        if (options && options.chain) {
+            context.chain = this.getChainDefinition(options.chain, context.chains)
+            context.uiRequirements.requiresChainSelect = false
+        } else if (context.chains.length === 1) {
+            context.chain = context.chains[0]
+            context.uiRequirements.requiresChainSelect = false
+        }
+
+        // Predetermine permission (if possible) to prevent uneeded UI interactions.
+        if (options?.permissionLevel) {
+            context.permissionLevel = PermissionLevel.from(options.permissionLevel)
+            context.uiRequirements.requiresPermissionSelect = false
+        }
+
+        // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
+        let walletPlugin: WalletPlugin | undefined = undefined
         if (this.walletPlugins.length === 1) {
             walletPlugin = this.walletPlugins[0] // Default to first when only one.
-            // } else if (options.walletPlugin) {
-            // TODO: Allow the login call to specify the wallet (by index?)
-        } else {
-            // Prompt the user with an interface to select a walletPlugin.
-            const index = await context.ui.onSelectWallet(context)
-            if (this.walletPlugins[index]) {
-                walletPlugin = this.walletPlugins[index]
-            } else {
+            context.uiRequirements.requiresWalletSelect = false
+        }
+
+        // Perform UserInterface.login() flow to get determine the chain, permission, and WalletPlugin.
+        const uiLoginResponse = await context.ui.login(context)
+
+        // Attempt to set the current WalletPlugin to the index the UI requested
+        if (uiLoginResponse.walletPluginIndex !== undefined) {
+            walletPlugin = this.walletPlugins[uiLoginResponse.walletPluginIndex]
+        }
+
+        if (!walletPlugin) {
+            throw new Error('UserInterface did not return a valid WalletPlugin index.')
+        }
+
+        // Attempt to set the current chain to match the UI response
+        if (uiLoginResponse.chainId) {
+            // Ensure the chain ID returned by the UI is in the list of chains
+            if (!context.chains.some((c) => c.id.equals(uiLoginResponse.chainId))) {
                 throw new Error(
-                    'The user interface returned an invalid option during the onWalletSelect event.'
+                    'UserInterface did not return a chain ID matching the subset of chains.'
+                )
+            }
+
+            // Set the context.chain definition from the new chain ID
+            context.chain = this.getChainDefinition(uiLoginResponse.chainId, context.chains)
+
+            // Ensure the wallet plugin supports the chain that was selected
+            const {supportedChains} = walletPlugin.config
+            if (
+                supportedChains &&
+                supportedChains.length &&
+                !supportedChains.includes(String(context.chain.id))
+            ) {
+                throw new Error(
+                    `The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${context.chain.id}'`
                 )
             }
         }
 
-        // Determine which chains can be used for login request.
-        let chains: ChainDefinition[] = []
-        if (walletPlugin.config.supportedChains) {
-            chains = walletPlugin.config.supportedChains.map((c) => this.getChainDefinition(c))
-        } else if (options && options.chains) {
-            chains = options.chains.map((c) => this.getChainDefinition(c))
-        } else {
-            chains = this.chains
-        }
-
-        // Update the context with the chains available
-        context.chains = chains
-
-        // Determine which chain will be used to perform the login request.
-        let chain: ChainDefinition | undefined
-        if (options && options.chain) {
-            chain = this.getChainDefinition(options.chain, chains)
-        } else if (chains.length === 1) {
-            chain = chains[0]
-        } else if (walletPlugin.config.requiresChainSelect) {
-            // Prompt the user with an interface to select a chain.
-            const id = await context.ui.onSelectChain(context)
-            chain = this.getChainDefinition(id, chains)
-        } else {
-            // No chain is a valid option, since some wallets provide their own interface to select a chain.
-            chain = undefined
-        }
-
-        // Update the context with the chain
-        context.chain = chain
-
-        // Determine if the WalletPlugin has chain limitations and if so, supports this chain
-        if (walletPlugin.config.supportedChains) {
-            if (!chain) {
-                throw new Error(
-                    `The wallet plugin '${walletPlugin.metadata.name}' requires a chain to be selected.`
-                )
-            }
-            if (!walletPlugin.config.supportedChains.includes(String(chain.id))) {
-                throw new Error(
-                    `The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${chain.id}'`
-                )
-            }
-        }
-
-        // Determine which permission will be used to perform the login request.
-        let permissionLevel: PermissionLevel | undefined
-        if (options?.permissionLevel) {
-            permissionLevel = PermissionLevel.from(options.permissionLevel)
-        } else if (walletPlugin.config.requiresPermissionSelect) {
-            permissionLevel = await context.ui.onSelectPermissionLevel(context)
-        } else {
-            permissionLevel = undefined
+        // Set the PermissionLevel from the UI response to the context
+        if (uiLoginResponse.permissionLevel) {
+            context.permissionLevel = PermissionLevel.from(uiLoginResponse.permissionLevel)
         }
 
         // TODO: Implement beforeLogin hook
 
-        // Perform the login request against the walletPlugin
-        // TODO: The LoginContext should be passed to the wallet plugin, passing it as options is weird.
-        const loginOptions: WalletPluginLoginOptions = {
-            appName: this.appName,
-            chain,
-            chains,
-            permissionLevel,
-        }
-        const response: WalletPluginLoginResponse = await walletPlugin.login(context, loginOptions)
+        // Perform the login request against the selected walletPlugin
+        const response: WalletPluginLoginResponse = await walletPlugin.login(context)
 
         // TODO: Implement afterLogin hook
 
-        // Create a session combining all this information
+        // Create a session from the resulting login response
         const session = new Session(
             {
                 chain: this.getChainDefinition(response.chain),
@@ -257,9 +262,9 @@ export class SessionKit {
     }
 
     restore(args: RestoreArgs, options?: LoginOptions): Session {
-        const walletPlugin = this.walletPlugins.find((p) => p.name === args.walletPlugin.name)
+        const walletPlugin = this.walletPlugins.find((p) => p.id === args.walletPlugin.id)
         if (!walletPlugin) {
-            throw new Error(`No WalletPlugin found with the name of: '${args.walletPlugin.name}'`)
+            throw new Error(`No WalletPlugin found with the ID of: '${args.walletPlugin.id}'`)
         }
         return new Session(
             {

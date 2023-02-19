@@ -1,8 +1,6 @@
-import {Checksum256, PermissionLevel} from '@greymass/eosio'
-
 import {LoginOptions} from '../../kit'
-import {TransactContext, TransactResult} from '../../transact'
-import {UserInterface} from '../../ui'
+import {LoginContext} from '../../login'
+import {UserInterface, UserInterfaceLoginResponse} from '../../ui'
 
 export class UserInterfaceHeadless implements UserInterface {
     consoleLog = false
@@ -11,6 +9,23 @@ export class UserInterfaceHeadless implements UserInterface {
         if (this.consoleLog) {
             // eslint-disable-next-line no-console
             console.info('UserInterfaceHeadless', message)
+        }
+    }
+    async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
+        if (!context.chain) {
+            throw new Error(
+                'The headless user interface adapter requires a chain to be set during login().'
+            )
+        }
+        if (!context.permissionLevel) {
+            throw new Error(
+                'The headless user interface adapter requires a permissionLevel to be set during login().'
+            )
+        }
+        return {
+            chainId: context.chain?.id,
+            permissionLevel: context.permissionLevel,
+            walletPluginIndex: 0,
         }
     }
     async onError(error: Error) {
@@ -22,20 +37,11 @@ export class UserInterfaceHeadless implements UserInterface {
     async onLoginResult() {
         this.log('onLoginResult')
     }
-    async onSelectPermissionLevel(): Promise<PermissionLevel> {
-        throw new Error('The headless user interface does not support permission selection')
+    async onTransact() {
+        this.log('onTransact')
     }
-    async onSelectChain(): Promise<Checksum256> {
-        throw new Error('The headless user interface does not support chain selection')
-    }
-    async onSelectWallet(): Promise<number> {
-        throw new Error('The headless user interface does not support wallet selection')
-    }
-    async onTransact(context: TransactContext) {
-        this.log('onTransact' + String(context.accountName))
-    }
-    async onTransactResult(context: TransactResult) {
-        this.log('onTransactResult' + String(context.transaction))
+    async onTransactResult() {
+        this.log('onTransactResult')
     }
     prompt() {
         throw new Error('The headless user interface does not support prompts')

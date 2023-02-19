@@ -2,6 +2,9 @@ import {Checksum256, Checksum256Type, Struct} from '@greymass/eosio'
 
 export type Fetch = (input: any, init?: any) => Promise<any>
 
+/**
+ * A list of chain IDs and their names for display purposes.
+ */
 export const chainNames: Map<Checksum256Type, string> = new Map([
     ['aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', 'EOS'],
     ['21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c', 'FIO'],
@@ -20,6 +23,9 @@ export const chainNames: Map<Checksum256Type, string> = new Map([
     ['f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12', 'WAX (Testnet)'],
 ])
 
+/**
+ * The information required to interact with a given chain.
+ */
 @Struct.type('chain_definition')
 export class ChainDefinition extends Struct {
     @Struct.field('checksum256') declare id: Checksum256

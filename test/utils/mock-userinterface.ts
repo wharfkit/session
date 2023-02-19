@@ -3,9 +3,8 @@ import {
     LoginContext,
     LoginOptions,
     PermissionLevel,
-    TransactContext,
-    TransactResult,
     UserInterface,
+    UserInterfaceLoginResponse,
 } from '$lib'
 
 export class MockUserInterface implements UserInterface {
@@ -18,6 +17,21 @@ export class MockUserInterface implements UserInterface {
             console.info('MockUserInterface', message)
         }
     }
+    async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
+        let chainId = context.chain?.id
+        if (!chainId) {
+            chainId = Checksum256.from(context.chains[0].id)
+        }
+        let permissionLevel = context.permissionLevel
+        if (!permissionLevel) {
+            permissionLevel = PermissionLevel.from('mock@interface')
+        }
+        return {
+            chainId,
+            permissionLevel,
+            walletPluginIndex: 0,
+        }
+    }
     async onError(error: Error) {
         this.log('onError: ' + JSON.stringify(error))
     }
@@ -27,29 +41,12 @@ export class MockUserInterface implements UserInterface {
     async onLoginResult() {
         this.log('onLoginResult')
     }
-    async onSelectPermissionLevel(): Promise<PermissionLevel> {
-        const permissionLevel = PermissionLevel.from('mock@interface')
-        this.log(`onSelectPermissionLevel: ${JSON.stringify(permissionLevel)}`)
-        return permissionLevel
-    }
-    async onSelectChain(): Promise<Checksum256> {
-        const checksum = Checksum256.from(
-            '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590'
-        )
-        this.log(`onSelectChain: ${String(checksum)}`)
-        return checksum
-    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async onSelectWallet(context: LoginContext): Promise<number> {
-        this.log('onSelectWallet')
-        return 0
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async onTransact(context: TransactContext) {
+    async onTransact() {
         this.log('onTransactResult')
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async onTransactResult(context: TransactResult) {
+    async onTransactResult() {
         this.log('onTransactResult')
     }
     prompt(args) {

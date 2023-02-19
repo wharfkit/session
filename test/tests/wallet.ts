@@ -1,11 +1,12 @@
 import {assert} from 'chai'
 
-import SessionKit, {ChainDefinition, SessionKitOptions} from '$lib'
+import SessionKit, {ChainDefinition, SessionKitOptions, UserInterfaceHeadless} from '$lib'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {MockStorage} from '$test/utils/mock-storage'
+import {mockChainDefinitions} from '$test/utils/mock-config'
 
 const chains = [
     ChainDefinition.from({
@@ -73,7 +74,7 @@ suite('walletPlugin', function () {
             const result = await kit.login({
                 permissionLevel: 'mock@interface',
             })
-            assert.isTrue(result.response.chain.equals(chains[3].id))
+            assert.isTrue(result.response.chain.equals(mockChainDefinitions[0].id))
             assert.isTrue(result.response.permissionLevel.actor.equals('mock'))
             assert.isTrue(result.response.permissionLevel.permission.equals('interface'))
         })
@@ -90,7 +91,7 @@ suite('walletPlugin', function () {
             const result = await kit.login({
                 permissionLevel: 'mock@interface',
             })
-            assert.isTrue(result.response.chain.equals(chains[0].id))
+            assert.isTrue(result.response.chain.equals(mockChainDefinitions[0].id))
             assert.isTrue(result.response.permissionLevel.actor.equals('mock'))
             assert.isTrue(result.response.permissionLevel.permission.equals('interface'))
         })
@@ -127,8 +128,8 @@ suite('walletPlugin', function () {
                 chain: chains[0].id,
             })
             assert.isTrue(result.response.chain.equals(chains[0].id))
-            assert.isTrue(result.response.permissionLevel.actor.equals('wharfkit1111'))
-            assert.isTrue(result.response.permissionLevel.permission.equals('test'))
+            assert.isTrue(result.response.permissionLevel.actor.equals('mock'))
+            assert.isTrue(result.response.permissionLevel.permission.equals('interface'))
         })
     })
     suite('supportedChains', function () {
@@ -137,7 +138,7 @@ suite('walletPlugin', function () {
                 requiresChainSelect: true,
                 requiresPermissionSelect: false,
                 supportedChains: [
-                    '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590', // mockUserInterface Default
+                    '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                 ],
             })
             const kit = new SessionKit({
@@ -163,6 +164,7 @@ suite('walletPlugin', function () {
             let error
             try {
                 await kit.login({
+                    chain: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
                     permissionLevel: 'mock@interface',
                 })
             } catch (err) {
@@ -197,6 +199,7 @@ suite('walletPlugin', function () {
             })
             const kit = new SessionKit({
                 ...defaultSessionKitOptions,
+                ui: new UserInterfaceHeadless(),
                 walletPlugins: [walletPlugin],
             })
             let error
