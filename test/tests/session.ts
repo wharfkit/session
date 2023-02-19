@@ -9,7 +9,6 @@ import {nodejsUsage} from './use-cases/general/nodejs'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockPermissionLevel} from '$test/utils/mock-config'
-import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
 import {mockSessionArgs} from '$test/utils/mock-session'
@@ -264,6 +263,7 @@ suite('session', function () {
                         ],
                         fetch: mockFetch, // Required for unit tests
                         storage: new MockStorage(),
+                        ui: new MockUserInterface(),
                         walletPlugins: [makeWallet()],
                     })
                     const {session} = await sessionKit.login({
@@ -285,6 +285,7 @@ suite('session', function () {
                         fetch: mockFetch, // Required for unit tests
                         storage: new MockStorage(),
                         transactPlugins: [new MockTransactPlugin()],
+                        ui: new MockUserInterface(),
                         walletPlugins: [makeWallet()],
                     })
                     const {session} = await sessionKit.login({permissionLevel: mockPermissionLevel})
@@ -303,6 +304,7 @@ suite('session', function () {
                         ],
                         fetch: mockFetch, // Required for unit tests
                         storage: new MockStorage(),
+                        ui: new MockUserInterface(),
                         walletPlugins: [makeWallet()],
                     })
                     const {session} = await sessionKit.login({
@@ -323,9 +325,6 @@ suite('session', function () {
         assert.isTrue(session.permission.equals(expectedPermission.permission))
     })
     suite('ui', function () {
-        test('default', async function () {
-            assert.instanceOf(session.ui, UserInterfaceHeadless)
-        })
         test('override', async function () {
             const testSession = new Session(mockSessionArgs, {
                 ...mockSessionOptions,

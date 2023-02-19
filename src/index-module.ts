@@ -1,7 +1,6 @@
 export * from './abi'
 export * from './kit'
 export * from './login'
-export * from './plugins'
 export * from './session'
 export * from './storage'
 export * from './transact'

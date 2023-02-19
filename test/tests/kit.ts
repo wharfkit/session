@@ -13,13 +13,7 @@ import {
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
-import {
-    mockChainDefinition,
-    mockChainDefinitions,
-    mockChainId,
-    mockPermissionLevel,
-} from '$test/utils/mock-config'
-import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
+import {mockChainDefinitions, mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
 

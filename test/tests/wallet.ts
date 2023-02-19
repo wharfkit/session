@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import SessionKit, {ChainDefinition, SessionKitOptions, UserInterfaceHeadless} from '$lib'
+import SessionKit, {ChainDefinition, SessionKitOptions} from '$lib'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
@@ -199,7 +199,6 @@ suite('walletPlugin', function () {
             })
             const kit = new SessionKit({
                 ...defaultSessionKitOptions,
-                ui: new UserInterfaceHeadless(),
                 walletPlugins: [walletPlugin],
             })
             let error

@@ -65,7 +65,9 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         request: SigningRequest,
         context: TransactContext
     ): Promise<TransactHookResponse> {
-        context.ui.status('Requesting resources from resource provider...')
+        if (context.ui) {
+            context.ui.status('Requesting resources from resource provider...')
+        }
         // Validate that this request is valid for the resource provider
         this.validateRequest(request, context)
 
@@ -83,7 +85,9 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
 
         // If the resource provider refused to process this request, return the original request without modification.
         if (response.status === 400) {
-            context.ui.status('Resource provider refused to sign this request.')
+            if (context.ui) {
+                context.ui.status('Resource provider refused to sign this request.')
+            }
             return {
                 request,
             }

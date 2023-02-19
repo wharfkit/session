@@ -1,8 +1,6 @@
 import {ABICache, ChainDefinition, TransactContext, TransactContextOptions} from '$lib'
 import {APIClient, FetchProvider, PermissionLevel} from '@greymass/eosio'
 
-import {UserInterfaceHeadless} from 'src/plugins/userinterface/headless'
-
 import {mockChainDefinition, mockUrl} from './mock-config'
 import {mockFetch} from '$test/utils/mock-fetch'
 
@@ -16,7 +14,6 @@ export const mockTransactContextOptions: TransactContextOptions = {
     client,
     fetch: mockFetch,
     permissionLevel: PermissionLevel.from('wharfkit1125@test'),
-    ui: new UserInterfaceHeadless(),
 }
 
 export function makeContext(): TransactContext {

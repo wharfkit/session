@@ -57,7 +57,7 @@ export interface TransactContextOptions {
     storage?: SessionStorage
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
-    ui: UserInterface
+    ui?: UserInterface
 }
 
 /**
@@ -79,7 +79,7 @@ export class TransactContext {
     readonly permissionLevel: PermissionLevel
     readonly storage?: SessionStorage
     readonly transactPluginsOptions: TransactPluginsOptions
-    readonly ui: UserInterface
+    readonly ui?: UserInterface
 
     constructor(options: TransactContextOptions) {
         this.abiProvider = options.abiProvider

@@ -14,7 +14,6 @@ import {
     LoginPlugin,
     UserInterfaceWalletPlugin,
 } from './login'
-import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {Session} from './session'
 import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
@@ -77,7 +76,7 @@ export class SessionKit {
     readonly storage: SessionStorage
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
-    readonly ui: UserInterface
+    readonly ui?: UserInterface
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -120,8 +119,6 @@ export class SessionKit {
         }
         if (options.ui) {
             this.ui = options.ui
-        } else {
-            this.ui = new UserInterfaceHeadless()
         }
         // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
@@ -148,6 +145,12 @@ export class SessionKit {
      *   D --> E[Session]
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
+        if (!this.ui) {
+            throw new Error(
+                'An instance of a UserInterface must be provided to utilize the login method.'
+            )
+        }
+
         // Create LoginContext for this login request.
         const context = new LoginContext({
             appName: this.appName,

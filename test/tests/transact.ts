@@ -26,6 +26,7 @@ import {mockPermissionLevel} from '$test/utils/mock-config'
 import {Transfer} from '$test/utils/setup/structs'
 import {mockSessionArgs, mockSessionOptions} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -412,6 +413,7 @@ suite('transact', function () {
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },
+                    ui: new MockUserInterface(),
                     walletPlugins: [makeWallet()],
                 })
                 const {session} = await sessionKit.login({
@@ -438,6 +440,7 @@ suite('transact', function () {
                     fetch: mockFetch, // Required for unit tests
                     storage: new MockStorage(),
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    ui: new MockUserInterface(),
                     walletPlugins: [makeWallet()],
                 })
                 const {session} = await sessionKit.login({

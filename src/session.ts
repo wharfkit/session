@@ -17,7 +17,6 @@ import {
 } from 'eosio-signing-request'
 
 import {ABICache} from './abi'
-import {UserInterfaceHeadless} from './plugins/userinterface/headless'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
@@ -77,7 +76,7 @@ export class Session {
     readonly storage?: SessionStorage
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
-    readonly ui: UserInterface
+    readonly ui?: UserInterface
     readonly walletPlugin: WalletPlugin
 
     /**
@@ -139,8 +138,6 @@ export class Session {
         }
         if (options.ui) {
             this.ui = options.ui
-        } else {
-            this.ui = new UserInterfaceHeadless()
         }
     }
 
@@ -330,8 +327,10 @@ export class Session {
             })
 
             // Notify the UI that a transaction is about to begin
-            await context.ui.onTransact()
-            context.ui.status('Preparing transaction...')
+            if (context.ui) {
+                await context.ui.onTransact()
+                context.ui.status('Preparing transaction...')
+            }
 
             // Process incoming TransactArgs and convert to a SigningRequest
             let request: SigningRequest = await this.createRequest(args, abiProvider)
@@ -383,7 +382,9 @@ export class Session {
             }
 
             // Notify the UI that we are now awaiting a signature from the WalletPlugin
-            context.ui.status('Awaiting transaction signature...')
+            if (context.ui) {
+                context.ui.status('Awaiting transaction signature...')
+            }
 
             // Resolve the SigningRequest and assign it to the TransactResult
             result.request = request
@@ -419,7 +420,9 @@ export class Session {
             }
 
             // Notify the UI that the signing process has completed and afterSign hooks are now processing.
-            context.ui.status('Signature received, post-processing...')
+            if (context.ui) {
+                context.ui.status('Signature received, post-processing...')
+            }
 
             // Run the `afterSign` hooks that were registered by the TransactPlugins
             for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
@@ -427,7 +430,9 @@ export class Session {
             // Broadcast transaction if requested
             if (willBroadcast) {
                 // Notify the UI that the transaction is about to be broadcast
-                context.ui.status('Broadcasting transaction...')
+                if (context.ui) {
+                    context.ui.status('Broadcasting transaction...')
+                }
 
                 // Assemble the SignedTransaction to broadcast
                 const signed = SignedTransaction.from({
@@ -439,7 +444,9 @@ export class Session {
                 result.response = await context.client.v1.chain.send_transaction(signed)
 
                 // Notify the UI that the transaction has been broadcast and afterBroadcast hooks are now processing.
-                context.ui.status('Transaction broadcast, post-processing...')
+                if (context.ui) {
+                    context.ui.status('Transaction broadcast, post-processing...')
+                }
 
                 // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
                 for (const hook of context.hooks.afterBroadcast)
@@ -447,7 +454,9 @@ export class Session {
             }
 
             // Notify the UI that the transaction has completed
-            await context.ui.onTransactResult()
+            if (context.ui) {
+                await context.ui.onTransactResult()
+            }
 
             // Return the TransactResult to the caller
             return result
@@ -456,11 +465,15 @@ export class Session {
                 const {json} = error.response
                 if (json.error && json.error.details) {
                     const e = new Error(json.error.details[0].message)
-                    this.ui.onError(e)
+                    if (this.ui) {
+                        this.ui.onError(e)
+                    }
                     throw e
                 }
             } else {
-                this.ui.onError(error)
+                if (this.ui) {
+                    this.ui.onError(error)
+                }
             }
             throw new Error(error)
         }
