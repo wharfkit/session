@@ -6,6 +6,7 @@ import {
     NameType,
     PermissionLevel,
     PermissionLevelType,
+    Serializer,
     SignedTransaction,
 } from '@greymass/eosio'
 import {
@@ -31,7 +32,7 @@ import {
 import {SessionStorage} from './storage'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {getFetch} from './utils'
-import {WalletPlugin, WalletPluginSignResponse} from './wallet'
+import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
 
 /**
@@ -59,6 +60,13 @@ export interface SessionOptions {
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
+}
+
+export interface SerializedSession {
+    actor: string
+    chain: string
+    permission: string
+    walletPlugin: SerializedWalletPlugin
 }
 
 /**
@@ -479,8 +487,8 @@ export class Session {
         }
     }
 
-    serialize = (): string =>
-        JSON.stringify({
+    serialize = (): SerializedSession =>
+        Serializer.objectify({
             chain: this.chain.id,
             actor: this.permissionLevel.actor,
             permission: this.permissionLevel.permission,

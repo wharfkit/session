@@ -203,7 +203,7 @@ suite('kit', function () {
         test('session', async function () {
             const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
-            const mockSerializedSession = JSON.parse(session.serialize())
+            const mockSerializedSession = session.serialize()
             const restored = await mockSessionKit.restore(mockSerializedSession)
             assertSessionMatchesMockSession(restored)
         })
@@ -213,7 +213,7 @@ suite('kit', function () {
                 walletPlugins: [new MockWalletPluginConfigs()],
             })
             const {session} = await sessionKit.login()
-            const mockSerializedSession = JSON.parse(session.serialize())
+            const mockSerializedSession = session.serialize()
             let error
             try {
                 await mockSessionKit.restore(mockSerializedSession)

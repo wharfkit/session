@@ -14,7 +14,7 @@ import {
     LoginPlugin,
     UserInterfaceWalletPlugin,
 } from './login'
-import {Session} from './session'
+import {SerializedSession, Session} from './session'
 import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
     AbstractTransactPlugin,
@@ -256,6 +256,9 @@ export class SessionKit {
         // Notify the UI that the login request has completed.
         context.ui.onLoginResult()
 
+        // Save the session to storage if it has a storage instance.
+        this.persistSession(session)
+
         // Return the results of the login request.
         return {
             context,
@@ -264,12 +267,56 @@ export class SessionKit {
         }
     }
 
-    restore(args: RestoreArgs, options?: LoginOptions): Session {
-        const walletPlugin = this.walletPlugins.find((p) => p.id === args.walletPlugin.id)
+    async logout(session?: Session) {
+        if (!this.storage) {
+            throw new Error('An instance of Storage must be provided to utilize the logout method.')
+        }
+        await this.storage.remove('session')
+        if (session) {
+            const sessions = await this.getSessions()
+            if (sessions) {
+                const serialized = session.serialize()
+                const other = sessions.filter((s: Record<string, any>) => {
+                    return (
+                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
+                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
+                        !Name.from(s.permission).equals(Name.from(serialized.permission))
+                    )
+                })
+                await this.storage.write('sessions', JSON.stringify(other))
+            }
+        } else {
+            await this.storage.remove('sessions')
+        }
+    }
+
+    async restore(args?: RestoreArgs, options?: LoginOptions): Promise<Session> {
+        // If no args were provided, attempt to default restore the session from storage.
+        if (!args && this.storage) {
+            const data = await this.storage.read('session')
+            if (data) {
+                args = JSON.parse(data)
+            }
+        }
+
+        if (!args) {
+            throw new Error('Either a RestoreArgs object or a Storage instance must be provided.')
+        }
+
+        // Ensure a WalletPlugin was found with the provided ID.
+        const walletPlugin = this.walletPlugins.find((p) => {
+            if (!args) {
+                return false
+            }
+            return p.id === args.walletPlugin.id
+        })
+
         if (!walletPlugin) {
             throw new Error(`No WalletPlugin found with the ID of: '${args.walletPlugin.id}'`)
         }
-        return new Session(
+
+        // Create a new session from the provided args.
+        const session = new Session(
             {
                 chain: this.getChainDefinition(args.chain),
                 permissionLevel: PermissionLevel.from({
@@ -280,6 +327,54 @@ export class SessionKit {
             },
             this.getSessionOptions(options)
         )
+
+        // Save the session to storage if it has a storage instance.
+        this.persistSession(session)
+
+        // Return the session
+        return session
+    }
+
+    async persistSession(session: Session) {
+        // TODO: Allow disabling of session persistence via kit options
+        // If no storage exists, do nothing.
+        if (!this.storage) {
+            return
+        }
+        // Serialize and save the current session to storage.
+        const serialized = session.serialize()
+        this.storage.write('session', JSON.stringify(serialized))
+        // Add the current session to the list of sessions, preventing duplication.
+        const existing = await this.storage.read('sessions')
+        if (existing) {
+            const sessions = JSON.parse(existing)
+            const other = sessions.filter((s: Record<string, any>) => {
+                return (
+                    !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
+                    !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
+                    !Name.from(s.permission).equals(Name.from(serialized.permission))
+                )
+            })
+            const orderedSessions = [...other, serialized]
+            // TODO: Sort sessions by chain, actor, and permission
+            this.storage.write('sessions', JSON.stringify(orderedSessions))
+        } else {
+            this.storage.write('sessions', JSON.stringify([serialized]))
+        }
+    }
+
+    async getSessions(): Promise<SerializedSession[]> {
+        if (!this.storage) {
+            throw new Error('No storage instance is available to retrieve sessions from.')
+        }
+        const data = await this.storage.read('sessions')
+        if (!data) return []
+        try {
+            const json = JSON.parse(data)
+            return json
+        } catch (e) {
+            throw new Error(`Failed to parse sessions from storage (${e})`)
+        }
     }
 
     getSessionOptions(options?: LoginOptions) {
