@@ -209,7 +209,7 @@ export class SessionKit {
         // Attempt to set the current chain to match the UI response
         if (uiLoginResponse.chainId) {
             // Ensure the chain ID returned by the UI is in the list of chains
-            if (!context.chains.some((c) => c.id.equals(uiLoginResponse.chainId))) {
+            if (!context.chains.some((c) => c.id.equals(uiLoginResponse.chainId!))) {
                 throw new Error(
                     'UserInterface did not return a chain ID matching the subset of chains.'
                 )
