@@ -167,6 +167,7 @@ export class SessionKit {
                     metadata: plugin.metadata,
                 }
             }),
+            storage: this.storage,
         })
 
         // Tell the UI a login request is beginning.

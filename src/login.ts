@@ -2,6 +2,7 @@ import {APIClient, FetchProvider, Name, PermissionLevel} from '@greymass/eosio'
 import {ChainDefinition, Fetch} from './types'
 import {UserInterface} from './ui'
 import {WalletPluginConfig, WalletPluginMetadata} from './wallet'
+import {SessionStorage} from './storage'
 
 export enum LoginHookTypes {
     beforeLogin = 'beforeLogin',
@@ -28,6 +29,7 @@ export interface LoginContextOptions {
     permissionLevel?: PermissionLevel
     walletPlugins?: UserInterfaceWalletPlugin[]
     ui: UserInterface
+    storage?: SessionStorage
 }
 
 export interface UserInterfaceRequirements {
@@ -64,6 +66,8 @@ export class LoginContext {
         requiresWalletSelect: true,
     }
     walletPlugins: UserInterfaceWalletPlugin[] = []
+    storage?: SessionStorage
+
     constructor(options: LoginContextOptions) {
         // this.client = options.client
         if (options.chains) {
@@ -79,6 +83,7 @@ export class LoginContext {
         options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
             plugin.register(this)
         })
+        this.storage = options.storage
     }
     addHook(t: LoginHookTypes, hook: LoginHook) {
         this.hooks[t].push(hook)
