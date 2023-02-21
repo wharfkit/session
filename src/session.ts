@@ -267,6 +267,8 @@ export class Session {
                 options
             )
         }
+        // Always set the broadcast flag to false on signing requests, Wharf needs to do it
+        request.setBroadcast(false)
         return request
     }
 
