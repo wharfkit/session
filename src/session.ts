@@ -97,6 +97,11 @@ export interface WalletPluginMetadata {
     download?: string
 }
 
+interface CreateRequestOptions {
+    abiProvider: AbiProvider
+    broadcast: boolean
+}
+
 export interface WalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
@@ -322,7 +327,10 @@ export class Session {
      * @param {AbiProvider} abiProvider
      * @returns Returns a SigningRequest
      */
-    async createRequest(args: TransactArgs, abiProvider: AbiProvider): Promise<SigningRequest> {
+    async createRequest(
+        args: TransactArgs,
+        {abiProvider, broadcast}: CreateRequestOptions
+    ): Promise<SigningRequest> {
         let request: SigningRequest
         const options = {
             abiProvider,
@@ -342,6 +350,9 @@ export class Session {
                 options
             )
         }
+
+        request.setBroadcast(broadcast)
+
         return request
     }
 
@@ -410,20 +421,6 @@ export class Session {
         await context.ui.onTransact(context)
         context.ui.status('Preparing transaction...')
 
-        // Process incoming TransactArgs and convert to a SigningRequest
-        let request: SigningRequest = await this.createRequest(args, abiProvider)
-
-        // Create TransactResult to eventually respond to this call with
-        const result: TransactResult = {
-            chain: this.chain,
-            request,
-            resolved: undefined,
-            revisions: new TransactRevisions(request),
-            signatures: [],
-            signer: this.permissionLevel,
-            transaction: undefined,
-        }
-
         // A flag to determine whether or not the request should be able to be modified by beforeSign hooks
         const allowModify =
             options && typeof options.allowModify !== 'undefined'
@@ -437,6 +434,23 @@ export class Session {
         // Whether or not the request should be broadcast during the transact call
         const willBroadcast =
             options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
+
+        // Process incoming TransactArgs and convert to a SigningRequest
+        let request: SigningRequest = await this.createRequest(args, {
+            abiProvider,
+            broadcast: !willBroadcast,
+        })
+
+        // Create TransactResult to eventually respond to this call with
+        const result: TransactResult = {
+            chain: this.chain,
+            request,
+            resolved: undefined,
+            revisions: new TransactRevisions(request),
+            signatures: [],
+            signer: this.permissionLevel,
+            transaction: undefined,
+        }
 
         // Call the `beforeSign` hooks that were registered by the TransactPlugins
         for (const hook of context.hooks.beforeSign) {
