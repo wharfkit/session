@@ -31,8 +31,8 @@ export interface PromptResponse {}
  * The response for a login call of a [[UserInterface]].
  */
 export interface UserInterfaceLoginResponse {
-    chainId: Checksum256Type
-    permissionLevel: PermissionLevelType
+    chainId?: Checksum256Type
+    permissionLevel?: PermissionLevelType
     walletPluginIndex: number
 }
 
