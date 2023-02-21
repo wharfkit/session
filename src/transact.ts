@@ -126,7 +126,10 @@ export class TransactContext {
         const abis = await request.fetchAbis(this.abiProvider)
 
         // Resolve the request and return
-        return request.resolve(abis, this.permissionLevel, header)
+        return request.resolve(abis, this.permissionLevel, {
+            ...header,
+            chainId: this.chain.id,
+        })
     }
 }
 /**
