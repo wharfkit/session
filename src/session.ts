@@ -354,8 +354,8 @@ export class Session {
                 transaction: undefined,
             }
 
-            // A flag to determine whether or not the request should be able to be modified by beforeSign hooks
-            const allowModify =
+            // A flag to determine whether or not the request can be modified by the beforeSign hooks or wallet plugins
+            let allowModify =
                 options && typeof options.allowModify !== 'undefined'
                     ? options.allowModify
                     : this.allowModify
@@ -386,6 +386,7 @@ export class Session {
                 // If signatures were returned, append them
                 if (response.signatures) {
                     result.signatures = [...result.signatures, ...response.signatures]
+                    allowModify = false
                 }
             }
 
@@ -408,9 +409,11 @@ export class Session {
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
 
-            // If a request was returned from the wallet, determine if its modified and was allowed to
+            // If a request was returned from the wallet, determine if it was modified, then if it was allowed.
             if (walletResponse.request) {
-                const requestWasModified = String(request) !== String(walletResponse.request)
+                const requestWasModified = !request
+                    .getRawTransaction()
+                    .equals(walletResponse.request.getRawTransaction())
                 if (requestWasModified) {
                     if (allowModify) {
                         result.request = walletResponse.request
@@ -421,7 +424,7 @@ export class Session {
                         result.transaction = result.resolved.resolvedTransaction
                     } else {
                         throw new Error(
-                            'Your wallet modified the transaction but the application did not allow it.'
+                            `The ${this.walletPlugin.metadata.name} plugin modified the transaction when it was not allowed to.`
                         )
                     }
                 }
