@@ -315,6 +315,11 @@ export class SessionKit {
             throw new Error(`No WalletPlugin found with the ID of: '${args.walletPlugin.id}'`)
         }
 
+        // If walletPlugin data was provided, set it on the walletPlugin instance.
+        if (args.walletPlugin.data) {
+            walletPlugin.data = args.walletPlugin.data
+        }
+
         // Create a new session from the provided args.
         const session = new Session(
             {

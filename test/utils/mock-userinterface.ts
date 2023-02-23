@@ -3,6 +3,7 @@ import {
     LoginContext,
     LoginOptions,
     PermissionLevel,
+    PromptResponse,
     UserInterface,
     UserInterfaceLoginResponse,
 } from '$lib'
@@ -49,8 +50,9 @@ export class MockUserInterface implements UserInterface {
     async onTransactResult() {
         this.log('onTransactResult')
     }
-    prompt(args) {
+    async prompt(args): Promise<PromptResponse> {
         this.log('prompt' + JSON.stringify(args))
+        return {}
     }
     status(message: string) {
         this.log(`status:('${message}')`)

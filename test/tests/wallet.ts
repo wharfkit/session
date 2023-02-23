@@ -6,7 +6,7 @@ import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
 import {makeMockAction} from '$test/utils/mock-transfer'
 import {MockStorage} from '$test/utils/mock-storage'
-import {mockChainDefinitions} from '$test/utils/mock-config'
+import {mockChainDefinitions, mockPrivateKey} from '$test/utils/mock-config'
 
 const chains = [
     ChainDefinition.from({
@@ -217,6 +217,7 @@ suite('walletPlugin', function () {
             test('allowModify: default (true)', async function () {
                 const walletPlugin = new MockWalletPluginConfigs(undefined, {
                     testModify: true,
+                    privateKey: mockPrivateKey,
                 })
                 const kit = new SessionKit({
                     ...defaultSessionKitOptions,
@@ -255,6 +256,7 @@ suite('walletPlugin', function () {
             test('allowModify: true', async function () {
                 const walletPlugin = new MockWalletPluginConfigs(undefined, {
                     testModify: true,
+                    privateKey: mockPrivateKey,
                 })
                 const kit = new SessionKit({
                     ...defaultSessionKitOptions,
@@ -267,6 +269,72 @@ suite('walletPlugin', function () {
                 })
                 await loginResult.session.transact({action: makeMockAction()}, {broadcast: false})
             })
+        })
+    })
+    suite('storage', function () {
+        test('empty data', async function () {
+            const walletPlugin = new MockWalletPluginConfigs()
+            const kit = new SessionKit({
+                ...defaultSessionKitOptions,
+                walletPlugins: [walletPlugin],
+            })
+            const response = await kit.login()
+            assert.deepEqual(response.session.serialize(), {
+                chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                actor: 'mock',
+                permission: 'interface',
+                walletPlugin: {
+                    id: 'MockWalletPluginConfigs',
+                    data: {},
+                },
+            })
+        })
+        test('persists data', async function () {
+            const walletPlugin = new MockWalletPluginConfigs(
+                {
+                    requiresChainSelect: true,
+                    requiresPermissionSelect: false,
+                },
+                {
+                    foo: 'baz',
+                }
+            )
+            const kit = new SessionKit({
+                ...defaultSessionKitOptions,
+                walletPlugins: [walletPlugin],
+            })
+            const response = await kit.login()
+            assert.deepEqual(response.session.serialize(), {
+                chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                actor: 'mock',
+                permission: 'interface',
+                walletPlugin: {
+                    id: 'MockWalletPluginConfigs',
+                    data: {
+                        foo: 'baz',
+                    },
+                },
+            })
+        })
+        test('restores data alongside session', async function () {
+            const serializedSession = {
+                chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                actor: 'mock',
+                permission: 'interface',
+                walletPlugin: {
+                    id: 'MockWalletPluginConfigs',
+                    data: {
+                        foo: 'bar',
+                    },
+                },
+            }
+            const walletPlugin = new MockWalletPluginConfigs()
+            const kit = new SessionKit({
+                ...defaultSessionKitOptions,
+                walletPlugins: [walletPlugin],
+            })
+            const session = await kit.restore(serializedSession)
+            assert.equal(session.walletPlugin.data.foo, 'bar')
         })
     })
 })

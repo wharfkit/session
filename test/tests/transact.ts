@@ -578,7 +578,7 @@ suite('transact', function () {
                 const digest = transaction.signingDigest(mockSessionArgs.chain.id)
                 const [signature] = result.signatures
                 const publicKey = signature.recoverDigest(digest)
-                assert.isTrue(publicKey.equals(wallet.privateKey.toPublic()))
+                assert.isTrue(publicKey.equals(wallet.data.privateKey.toPublic()))
             } else {
                 assert.fail('Transaction was not resolved from request.')
             }

@@ -9,17 +9,14 @@ import {
     SigningRequest,
     TransactContext,
     WalletPluginConfig,
+    WalletPluginData,
     WalletPluginSignResponse,
 } from '$lib'
 import {mockChainDefinition, mockPermissionLevel, mockPrivateKey} from './mock-config'
 import {makeMockAction} from './mock-transfer'
 
-export const privateKey = PrivateKey.from(mockPrivateKey)
-
 export function makeWallet() {
-    return new WalletPluginPrivateKey({
-        privateKey,
-    })
+    return new WalletPluginPrivateKey(PrivateKey.from(mockPrivateKey))
 }
 
 export class MockWalletPluginConfigs extends AbstractWalletPlugin {
@@ -27,11 +24,9 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         name: 'Mock Wallet Plugin',
         description: 'A mock wallet plugin for testing chain selection',
     }
-    privateKey: PrivateKey
     testModify = false
     config: WalletPluginConfig
-    options: Record<string, any>
-    constructor(config?: WalletPluginConfig, options: Record<string, any> = {}) {
+    constructor(config?: WalletPluginConfig, initialData: WalletPluginData = {}) {
         super()
         if (config) {
             this.config = config
@@ -41,19 +36,13 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
                 requiresPermissionSelect: false,
             }
         }
-        this.options = options
-        this.privateKey = PrivateKey.from(mockPrivateKey)
+        this.data = initialData
     }
     get id() {
         return 'MockWalletPluginConfigs'
     }
-    get data() {
-        return {
-            config: this.config,
-            options: this.options,
-        }
-    }
     async login(context: LoginContext) {
+        // Return the chain and permission level for this fake wallet
         return {
             chain: context.chain ? context.chain.id : ChainDefinition.from(mockChainDefinition).id,
             permissionLevel: context.permissionLevel || PermissionLevel.from(mockPermissionLevel),
@@ -63,8 +52,11 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         resolved: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse> {
+        if (context.storage) {
+            context.storage.write('testModify', this.data.testModify)
+        }
         // If the `testModify` flag is enabled, modify the transaction for testing purposes
-        if (this.options.testModify) {
+        if (this.data.testModify) {
             const request = await SigningRequest.create(
                 {action: makeMockAction('modified transaction')},
                 context.esrOptions
@@ -72,7 +64,8 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
             const modifiedResolved = await context.resolve(request)
             const transaction = Transaction.from(modifiedResolved.transaction)
             const digest = transaction.signingDigest(Checksum256.from(context.chain.id))
-            const signature = this.privateKey.signDigest(digest)
+            const privateKey = PrivateKey.from(this.data.privateKey)
+            const signature = privateKey.signDigest(digest)
             return {
                 request: request,
                 signatures: [signature],
@@ -81,7 +74,8 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
         // Otherwise sign what was returned
         const transaction = Transaction.from(resolved.transaction)
         const digest = transaction.signingDigest(Checksum256.from(context.chain.id))
-        const signature = this.privateKey.signDigest(digest)
+        const privateKey = PrivateKey.from(this.data.privateKey)
+        const signature = privateKey.signDigest(digest)
         return {
             signatures: [signature],
         }

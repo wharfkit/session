@@ -35,9 +35,7 @@ const sessionArgs = {
         url: mockUrl,
     },
     permissionLevel: mockPermissionLevel,
-    walletPlugin: new WalletPluginPrivateKey({
-        privateKey: mockPrivateKey,
-    }),
+    walletPlugin: new WalletPluginPrivateKey(mockPrivateKey),
 }
 
 /**

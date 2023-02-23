@@ -69,13 +69,27 @@ export interface WalletPluginSignResponse {
 }
 
 /**
+ * Persistent storage format for wallet specified data.
+ */
+export type WalletPluginData = Record<string, any>
+
+/**
+ * The serialized form of a [[WalletPlugin]] instance.
+ */
+export interface SerializedWalletPlugin {
+    id: string
+    data: WalletPluginData
+}
+
+/**
  * Interface which all 3rd party wallet plugins must implement.
  */
 export interface WalletPlugin {
     /** A URL friendly (lower case, no spaces, etc) ID for this plugin - Used in serialization */
     get id(): string
     /** A method to return the data that needs to persist for the plguin - Used in serialization */
-    get data(): Record<string, any>
+    get data(): WalletPluginData
+    set data(data: WalletPluginData)
     /** The [[SessionKit]] configuration parameters for this [[WalletPlugin]]. */
     config: WalletPluginConfig
     /** The metadata for the [[WalletPlugin]] itself. */
@@ -99,37 +113,35 @@ export interface WalletPlugin {
     /**
      * Serialize the [[WalletPlugin]] ID and data into a plain object.
      */
-    serialize(): Record<string, any>
+    serialize(): WalletPluginData
 }
 
 /**
  * Abstract class which all 3rd party [[WalletPlugin]] implementations may extend.
  */
 export abstract class AbstractWalletPlugin implements WalletPlugin {
+    _data: WalletPluginData = {}
     config: WalletPluginConfig = {
         requiresChainSelect: true,
         requiresPermissionSelect: false,
     }
     metadata: WalletPluginMetadata = {}
     abstract get id(): string
-    abstract get data(): Record<string, any>
     abstract login(context: LoginContext): Promise<WalletPluginLoginResponse>
     abstract sign(
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
+    get data(): WalletPluginData {
+        return this._data
+    }
+    set data(data: WalletPluginData) {
+        this._data = data
+    }
     serialize(): SerializedWalletPlugin {
         return {
             id: this.id,
             data: this.data,
         }
     }
-}
-
-/**
- * The serialized form of a [[WalletPlugin]] instance.
- */
-export interface SerializedWalletPlugin {
-    id: string
-    data: Record<string, any>
 }
