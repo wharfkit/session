@@ -28,7 +28,7 @@ const testKey = 'EOS6RMS3nvoN9StPzZizve6WdovaDkE5KkEcCDXW7LbepyAioMiK6'
 const noopKey = 'EOS8WUgppBZ1NjnGASYeLwQ3PkNLvdnfnchumsSpo6ApCAzbETczm'
 
 // Minimum RAM bytes to create an account
-const requiredRamBytes = 1598
+const requiredRamBytes = 1599
 
 /**
  * NOTHING BELOW SHOULD NEED MODIFICATION
@@ -127,6 +127,20 @@ const accounts: AccountDefinition[] = [
         cpuStake: undefined,
         netStake: undefined,
         ramBytes: 10000,
+    },
+    {
+        name: 'wharfkit1151',
+        balance: '5.0000 EOS',
+        cpuStake: undefined,
+        netStake: undefined,
+        ramBytes: undefined,
+    },
+    {
+        name: 'wharfkit1152',
+        balance: '5.0000 EOS',
+        cpuStake: '1.0000 EOS',
+        netStake: '1.0000 EOS',
+        ramBytes: undefined,
     },
     {
         name: 'wharfkitnoop',
@@ -240,18 +254,22 @@ async function createAccount(
 }
 
 async function createTestPermission(account: AccountDefinition): Promise<TransactResult> {
-    const session = new Session({
-        chain: {
-            id,
-            url,
+    const session = new Session(
+        {
+            chain: {
+                id,
+                url,
+            },
+            // fetch: mockFetch, // To record for debug
+            permissionLevel: `${account.name}@active`,
+            walletPlugin: new WalletPluginPrivateKey({
+                privateKey,
+            }),
         },
-        // fetch: mockFetch, // To record for debug
-        fetch,
-        permissionLevel: `${account.name}@active`,
-        walletPlugin: new WalletPluginPrivateKey({
-            privateKey,
-        }),
-    })
+        {
+            fetch,
+        }
+    )
     const actions = [
         // Buy the RAM required to create this permission from the master account
         // Also serves as a cosigner for the transaction's CPU/NET
@@ -370,18 +388,22 @@ async function createTestPermission(account: AccountDefinition): Promise<Transac
 }
 
 async function run() {
-    const masterSession = new Session({
-        chain: {
-            id,
-            url,
+    const masterSession = new Session(
+        {
+            chain: {
+                id,
+                url,
+            },
+            // fetch: mockFetch, // To record for debug
+            permissionLevel,
+            walletPlugin: new WalletPluginPrivateKey({
+                privateKey,
+            }),
         },
-        // fetch: mockFetch, // To record for debug
-        fetch,
-        permissionLevel,
-        walletPlugin: new WalletPluginPrivateKey({
-            privateKey,
-        }),
-    })
+        {
+            fetch,
+        }
+    )
 
     // Create accounts
     for (const account of accounts) {
