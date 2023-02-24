@@ -1,6 +1,8 @@
 import {Checksum256Type, PermissionLevelType} from '@greymass/eosio'
+
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
+import {Cancelable} from './types'
 
 /**
  * The arguments for a [[UserInterface.prompt]] call.
@@ -15,10 +17,15 @@ export interface PromptArgs {
  * The different types of elements that can be used in a [[PromptArgs]].
  */
 export interface PromptElement {
-    type: 'button' | 'countdown' | 'qr'
+    type: 'accept' | 'asset' | 'button' | 'countdown' | 'qr'
     label?: string
     data?: unknown
 }
+
+/**
+ * The response for a [[UserInterface.prompt]] call.
+ */
+export interface PromptResponse {}
 
 /**
  * The response for a login call of a [[UserInterface]].
@@ -46,7 +53,7 @@ export interface UserInterface {
     /** Inform the UI that a transact call has completed **/
     onTransactResult: () => Promise<void>
     /** Prompt the user with a custom UI element **/
-    prompt: (args: PromptArgs) => void
+    prompt: (args: PromptArgs) => Cancelable<PromptResponse>
     /** Update the displayed modal status from a TransactPlugin **/
     status: (message: string) => void
 }
@@ -61,6 +68,6 @@ export abstract class AbstractUserInterface implements UserInterface {
     abstract onLoginResult(): Promise<void>
     abstract onTransact(): Promise<void>
     abstract onTransactResult(): Promise<void>
-    abstract prompt(args: PromptArgs): void
+    abstract prompt(args: PromptArgs): Cancelable<PromptResponse>
     abstract status(message: string): void
 }

@@ -1,8 +1,11 @@
 import {
+    cancelable,
+    Cancelable,
     Checksum256,
     LoginContext,
     LoginOptions,
     PermissionLevel,
+    PromptArgs,
     PromptResponse,
     UserInterface,
     UserInterfaceLoginResponse,
@@ -10,7 +13,8 @@ import {
 
 export class MockUserInterface implements UserInterface {
     readonly logging = false
-    messages: string[] = []
+    public messages: string[] = []
+
     log(message: string) {
         this.messages.push(message)
         if (this.logging) {
@@ -18,6 +22,7 @@ export class MockUserInterface implements UserInterface {
             console.info('MockUserInterface', message)
         }
     }
+
     async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
         let chainId = context.chain?.id
         if (!chainId) {
@@ -33,27 +38,37 @@ export class MockUserInterface implements UserInterface {
             walletPluginIndex: 0,
         }
     }
+
     async onError(error: Error) {
         this.log('onError: ' + JSON.stringify(error))
     }
+
     async onLogin(options?: LoginOptions) {
         this.log('onLogin: ' + JSON.stringify(options))
     }
+
     async onLoginResult() {
         this.log('onLoginResult')
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTransact() {
         this.log('onTransactResult')
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTransactResult() {
         this.log('onTransactResult')
     }
-    async prompt(args): Promise<PromptResponse> {
+
+    prompt(args: PromptArgs): Cancelable<PromptResponse> {
         this.log('prompt' + JSON.stringify(args))
-        return {}
+        return cancelable(new Promise(() => {}), (canceled) => {
+            // do things to cancel promise
+            throw canceled
+        })
     }
+
     status(message: string) {
         this.log(`status:('${message}')`)
     }

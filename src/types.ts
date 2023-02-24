@@ -38,3 +38,44 @@ export class ChainDefinition extends Struct {
 }
 
 export type ChainDefinitionType = ChainDefinition | {id: Checksum256Type; url: string}
+
+/**
+ * Cancelable promises
+ *
+ * https://stackoverflow.com/questions/46461801/possible-to-add-a-cancel-method-to-promise-in-typescript/46464377#46464377
+ */
+
+export class Canceled extends Error {
+    constructor(reason) {
+        super(reason)
+        Object.setPrototypeOf(this, Canceled.prototype)
+    }
+}
+
+export interface Cancelable<T> extends Promise<T> {
+    cancel(reason?: string): Cancelable<T>
+}
+
+export function cancelable<T>(
+    promise: Promise<T>,
+    onCancel?: (canceled: Canceled) => void
+): Cancelable<T> {
+    let cancel: ((reason: string) => Cancelable<T>) | null = null
+    const cancelable: Cancelable<T> = <Cancelable<T>>new Promise((resolve, reject) => {
+        cancel = (reason = '') => {
+            try {
+                if (onCancel) {
+                    onCancel(new Canceled(reason))
+                }
+            } catch (e) {
+                reject(e)
+            }
+            return cancelable
+        }
+        promise.then(resolve, reject)
+    })
+    if (cancel) {
+        cancelable.cancel = cancel
+    }
+    return cancelable
+}
