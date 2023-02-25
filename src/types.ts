@@ -46,26 +46,28 @@ export type ChainDefinitionType = ChainDefinition | {id: Checksum256Type; url: s
  */
 
 export class Canceled extends Error {
-    constructor(reason) {
+    silent = false
+    constructor(reason, silent = false) {
         super(reason)
+        this.silent = silent
         Object.setPrototypeOf(this, Canceled.prototype)
     }
 }
 
 export interface Cancelable<T> extends Promise<T> {
-    cancel(reason?: string): Cancelable<T>
+    cancel(reason?: string, silent?: boolean): Cancelable<T>
 }
 
 export function cancelable<T>(
     promise: Promise<T>,
     onCancel?: (canceled: Canceled) => void
 ): Cancelable<T> {
-    let cancel: ((reason: string) => Cancelable<T>) | null = null
+    let cancel: ((reason: string, silent: boolean) => Cancelable<T>) | null = null
     const cancelable: Cancelable<T> = <Cancelable<T>>new Promise((resolve, reject) => {
-        cancel = (reason = '') => {
+        cancel = (reason = '', silent = false) => {
             try {
                 if (onCancel) {
-                    onCancel(new Canceled(reason))
+                    onCancel(new Canceled(reason, silent))
                 }
             } catch (e) {
                 reject(e)
