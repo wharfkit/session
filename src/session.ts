@@ -327,6 +327,7 @@ export class Session {
                 abiProvider,
                 chain: this.chain,
                 client: this.client,
+                createRequest: (args: TransactArgs) => this.createRequest(args, abiProvider),
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
                 storage: this.storage,

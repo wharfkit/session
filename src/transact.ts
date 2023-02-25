@@ -52,6 +52,7 @@ export interface TransactContextOptions {
     abiProvider: AbiProvider
     chain: ChainDefinition
     client: APIClient
+    createRequest: (args: TransactArgs) => Promise<SigningRequest>
     fetch: Fetch
     permissionLevel: PermissionLevel
     storage?: SessionStorage
@@ -70,6 +71,7 @@ export class TransactContext {
     readonly abiProvider: AbiProvider
     readonly chain: ChainDefinition
     readonly client: APIClient
+    readonly createRequest: (args: TransactArgs) => Promise<SigningRequest>
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
         afterBroadcast: [],
@@ -85,6 +87,7 @@ export class TransactContext {
         this.abiProvider = options.abiProvider
         this.chain = options.chain
         this.client = options.client
+        this.createRequest = options.createRequest
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
         if (options.storage) {
