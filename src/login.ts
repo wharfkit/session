@@ -48,6 +48,7 @@ export interface UserInterfaceWalletPlugin {
  * provide a way for plugins to add hooks into the process.
  */
 export class LoginContext {
+    appName: Name | undefined
     // client: APIClient
     chain?: ChainDefinition
     chains: ChainDefinition[] = []
@@ -65,6 +66,7 @@ export class LoginContext {
     }
     walletPlugins: UserInterfaceWalletPlugin[] = []
     constructor(options: LoginContextOptions) {
+        this.appName = options.appName
         // this.client = options.client
         if (options.chains) {
             this.chains = options.chains
