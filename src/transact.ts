@@ -31,7 +31,8 @@ export enum TransactHookTypes {
 
 export type TransactHook = (
     request: SigningRequest,
-    context: TransactContext
+    context: TransactContext,
+    result?: TransactResult
 ) => Promise<TransactHookResponse | void>
 
 export interface TransactHooks {

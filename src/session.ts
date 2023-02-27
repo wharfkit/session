@@ -466,7 +466,7 @@ export class Session {
 
                 // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
                 for (const hook of context.hooks.afterBroadcast)
-                    await hook(result.request.clone(), context)
+                    await hook(result.request.clone(), context, result)
             }
 
             // Notify the UI that the transaction has completed
