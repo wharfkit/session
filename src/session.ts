@@ -378,18 +378,20 @@ export class Session {
                 // Get the response of the hook by passing a cloned request.
                 const response = await hook(request.clone(), context)
 
-                // Save revision history for developers to debug modifications to requests.
-                result.revisions.addRevision(response, String(hook), allowModify)
+                if (response) {
+                    // Save revision history for developers to debug modifications to requests.
+                    result.revisions.addRevision(response, String(hook), allowModify)
 
-                // If modification is allowed, change the current request.
-                if (allowModify) {
-                    request = await this.updateRequest(request, response.request, abiProvider)
-                }
+                    // If modification is allowed, change the current request.
+                    if (allowModify) {
+                        request = await this.updateRequest(request, response.request, abiProvider)
+                    }
 
-                // If signatures were returned, append them
-                if (response.signatures) {
-                    result.signatures = [...result.signatures, ...response.signatures]
-                    allowModify = false
+                    // If signatures were returned, append them
+                    if (response.signatures) {
+                        result.signatures = [...result.signatures, ...response.signatures]
+                        allowModify = false
+                    }
                 }
             }
 
