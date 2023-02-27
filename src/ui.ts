@@ -17,7 +17,7 @@ export interface PromptArgs {
  * The different types of elements that can be used in a [[PromptArgs]].
  */
 export interface PromptElement {
-    type: 'accept' | 'asset' | 'button' | 'countdown' | 'qr'
+    type: 'accept' | 'asset' | 'close' | 'countdown' | 'link' | 'qr'
     label?: string
     data?: unknown
 }
