@@ -23,6 +23,16 @@ export const chainNames: Map<Checksum256Type, string> = new Map([
     ['f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12', 'WAX (Testnet)'],
 ])
 
+@Struct.type('explorer_definition')
+export class ExplorerDefinition extends Struct {
+    @Struct.field('string') declare prefix: string
+    @Struct.field('string') declare suffix: string
+
+    public url(id: string) {
+        return `${this.prefix}${id}${this.suffix}`
+    }
+}
+
 /**
  * The information required to interact with a given chain.
  */
@@ -30,6 +40,7 @@ export const chainNames: Map<Checksum256Type, string> = new Map([
 export class ChainDefinition extends Struct {
     @Struct.field('checksum256') declare id: Checksum256
     @Struct.field('string') declare url: string
+    @Struct.field(ExplorerDefinition, {optional: true}) declare explorer?: ExplorerDefinition
 
     get name() {
         const id = String(this.id)
