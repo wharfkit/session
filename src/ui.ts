@@ -47,11 +47,19 @@ export interface UserInterface {
     /** Inform the UI that a login call has started **/
     onLogin: () => Promise<void>
     /** Inform the UI that a login call has completed **/
-    onLoginResult: () => Promise<void>
+    onLoginComplete: () => Promise<void>
     /** Inform the UI that a transact call has started **/
     onTransact: () => Promise<void>
     /** Inform the UI that a transact call has completed **/
-    onTransactResult: () => Promise<void>
+    onTransactComplete: () => Promise<void>
+    /** Inform the UI that a transact call has started signing the transaction **/
+    onSign: () => Promise<void>
+    /** Inform the UI that a transact call has completed signing the transaction **/
+    onSignComplete: () => Promise<void>
+    /** Inform the UI that a transact call has started broadcasting the transaction **/
+    onBroadcast: () => Promise<void>
+    /** Inform the UI that a transact call has completed broadcasting the transaction **/
+    onBroadcastComplete: () => Promise<void>
     /** Prompt the user with a custom UI element **/
     prompt: (args: PromptArgs) => Cancelable<PromptResponse>
     /** Update the displayed modal status from a TransactPlugin **/
@@ -65,9 +73,13 @@ export abstract class AbstractUserInterface implements UserInterface {
     abstract login(context: LoginContext): Promise<UserInterfaceLoginResponse>
     abstract onError(error: Error): Promise<void>
     abstract onLogin(options?: LoginOptions): Promise<void>
-    abstract onLoginResult(): Promise<void>
+    abstract onLoginComplete(): Promise<void>
     abstract onTransact(): Promise<void>
-    abstract onTransactResult(): Promise<void>
+    abstract onTransactComplete(): Promise<void>
+    abstract onSign(): Promise<void>
+    abstract onSignComplete(): Promise<void>
+    abstract onBroadcast(): Promise<void>
+    abstract onBroadcastComplete(): Promise<void>
     abstract prompt(args: PromptArgs): Cancelable<PromptResponse>
     abstract status(message: string): void
 }

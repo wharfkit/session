@@ -170,7 +170,7 @@ export class SessionKit {
         })
 
         // Tell the UI a login request is beginning.
-        context.ui.onLogin()
+        await context.ui.onLogin()
 
         // Predetermine chain (if possible) to prevent uneeded UI interactions.
         if (options && options.chain) {
@@ -254,7 +254,7 @@ export class SessionKit {
         )
 
         // Notify the UI that the login request has completed.
-        context.ui.onLoginResult()
+        await context.ui.onLoginComplete()
 
         // Save the session to storage if it has a storage instance.
         this.persistSession(session)

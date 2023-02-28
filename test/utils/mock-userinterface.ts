@@ -1,4 +1,5 @@
 import {
+    AbstractUserInterface,
     cancelable,
     Cancelable,
     Checksum256,
@@ -11,7 +12,7 @@ import {
     UserInterfaceLoginResponse,
 } from '$lib'
 
-export class MockUserInterface implements UserInterface {
+export class MockUserInterface extends AbstractUserInterface implements UserInterface {
     readonly logging = false
     public messages: string[] = []
 
@@ -47,18 +48,32 @@ export class MockUserInterface implements UserInterface {
         this.log('onLogin: ' + JSON.stringify(options))
     }
 
-    async onLoginResult() {
-        this.log('onLoginResult')
+    async onLoginComplete() {
+        this.log('onLoginComplete')
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTransact() {
-        this.log('onTransactResult')
+        this.log('onTransact')
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async onTransactResult() {
-        this.log('onTransactResult')
+    async onTransactComplete() {
+        this.log('onTransactComplete')
+    }
+
+    async onSign() {
+        this.log('onSign')
+    }
+
+    async onSignComplete() {
+        this.log('onSignComplete')
+    }
+
+    async onBroadcast() {
+        this.log('onBroadcast')
+    }
+
+    async onBroadcastComplete() {
+        this.log('onBroadcastComplete')
     }
 
     prompt(args: PromptArgs): Cancelable<PromptResponse> {
