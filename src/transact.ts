@@ -51,6 +51,7 @@ export interface TransactHookResponse {
  */
 export interface TransactContextOptions {
     abiProvider: AbiProvider
+    appName?: Name
     chain: ChainDefinition
     client: APIClient
     createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -70,6 +71,7 @@ export interface TransactContextOptions {
  */
 export class TransactContext {
     readonly abiProvider: AbiProvider
+    readonly appName: Name | undefined
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -86,6 +88,7 @@ export class TransactContext {
 
     constructor(options: TransactContextOptions) {
         this.abiProvider = options.abiProvider
+        this.appName = options.appName
         this.chain = options.chain
         this.client = options.client
         this.createRequest = options.createRequest

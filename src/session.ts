@@ -325,6 +325,7 @@ export class Session {
             // The context object for this transaction
             const context = new TransactContext({
                 abiProvider,
+                appName: this.appName,
                 chain: this.chain,
                 client: this.client,
                 createRequest: (args: TransactArgs) => this.createRequest(args, abiProvider),
