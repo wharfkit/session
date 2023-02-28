@@ -2,7 +2,7 @@ import {Checksum256Type, PermissionLevelType} from '@greymass/eosio'
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
-import {Cancelable} from './types'
+import {Cancelable, LocaleDefinitions} from './types'
 
 /**
  * The arguments for a [[UserInterface.prompt]] call.
@@ -37,6 +37,14 @@ export interface UserInterfaceLoginResponse {
 }
 
 /**
+ * The options to pass to [[UserInterface.translate]].
+ */
+export interface UserInterfaceTranslateOptions {
+    default: string
+    [key: string]: unknown
+}
+
+/**
  * Interface which all 3rd party user interface plugins must implement.
  */
 export interface UserInterface {
@@ -64,6 +72,14 @@ export interface UserInterface {
     prompt: (args: PromptArgs) => Cancelable<PromptResponse>
     /** Update the displayed modal status from a TransactPlugin **/
     status: (message: string) => void
+    /** Translate a string using the UI's language **/
+    translate: (key: string, options?: UserInterfaceTranslateOptions, namespace?: string) => string
+    /** Returns a translator for a specific namespace */
+    getTranslate: (
+        namespace?: string
+    ) => (key: string, options?: UserInterfaceTranslateOptions) => string
+    /** Programmatically add new localization strings to the  user interface */
+    addTranslations: (translations: LocaleDefinitions) => void
 }
 
 /**
@@ -82,4 +98,25 @@ export abstract class AbstractUserInterface implements UserInterface {
     abstract onBroadcastComplete(): Promise<void>
     abstract prompt(args: PromptArgs): Cancelable<PromptResponse>
     abstract status(message: string): void
+    translate(key: string, options?: UserInterfaceTranslateOptions, namespace?: string): string {
+        throw new Error(
+            'The `translate` method must be implemented in this UserInterface. Called with: ' +
+                JSON.stringify({
+                    key,
+                    options,
+                    namespace,
+                })
+        )
+    }
+    getTranslate(
+        namespace?: string | undefined
+    ): (key: string, options?: UserInterfaceTranslateOptions | undefined) => string {
+        return (key, options) => this.translate(key, options, namespace)
+    }
+    addTranslations(translations: LocaleDefinitions) {
+        throw new Error(
+            'The `addTranslations` method must be implemented in this UserInterface. Called with: ' +
+                JSON.stringify(translations)
+        )
+    }
 }

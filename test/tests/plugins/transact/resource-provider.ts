@@ -44,6 +44,7 @@ interface ResourceProviderResponse {
 export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
     readonly allowFees: boolean = false
     readonly url?: string
+    id = 'mock-transact-resource-provider-plugin'
 
     constructor(options: MockTransactResourceProviderOptions) {
         super()

@@ -87,4 +87,8 @@ export class MockUserInterface extends AbstractUserInterface implements UserInte
     status(message: string) {
         this.log(`status:('${message}')`)
     }
+
+    addTranslations(): void {
+        this.log('addTranslations')
+    }
 }

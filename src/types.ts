@@ -50,6 +50,8 @@ export class ChainDefinition extends Struct {
 
 export type ChainDefinitionType = ChainDefinition | {id: Checksum256Type; url: string}
 
+export type LocaleDefinitions = Record<string, any>
+
 /**
  * Cancelable promises
  *

@@ -336,6 +336,7 @@ suite('transact', function () {
                     }
                 }
                 const debugPlugin = {
+                    id: 'debug-plugin',
                     register(context) {
                         context.addHook(TransactHookTypes.beforeSign, debugHook)
                         context.addHook(TransactHookTypes.afterSign, debugHook)

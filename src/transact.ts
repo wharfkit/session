@@ -18,7 +18,7 @@ import {
 } from 'eosio-signing-request'
 
 import {SessionStorage} from './storage'
-import {ChainDefinition, Fetch} from './types'
+import {ChainDefinition, Fetch, LocaleDefinitions} from './types'
 import {UserInterface} from './ui'
 
 export type TransactPluginsOptions = Record<string, unknown>
@@ -45,6 +45,8 @@ export interface TransactHookResponse {
     request: SigningRequest
     signatures?: Signature[]
 }
+
+export type TransactHookResponseType = TransactHookResponse | void
 
 /**
  * Options for creating a new context for a [[Session.transact]] call.
@@ -269,6 +271,11 @@ export interface TransactResult {
  * Interface which a [[Session.transact]] plugin must implement.
  */
 export interface TransactPlugin {
+    /** A URL friendly (lower case, no spaces, etc) ID for this plugin - Used in serialization */
+    get id(): string
+    /** Any translations this plugin requires */
+    translations?: LocaleDefinitions
+    /** A function that registers hooks into the transaction flow */
     register: (context: TransactContext) => void
 }
 
@@ -276,10 +283,15 @@ export interface TransactPlugin {
  * Abstract class for [[Session.transact]] plugins to extend.
  */
 export abstract class AbstractTransactPlugin implements TransactPlugin {
+    translations?: LocaleDefinitions
     abstract register(context: TransactContext): void
+    abstract get id(): string
 }
 
 export class BaseTransactPlugin extends AbstractTransactPlugin {
+    get id() {
+        return 'base-transact-plugin'
+    }
     register() {
         // console.log('Register hooks via context.addHook')
     }

@@ -30,7 +30,7 @@ import {
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from './types'
 import {getFetch} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
@@ -361,6 +361,12 @@ export class Session {
             if (context.ui) {
                 // Notify the UI that a transaction is about to begin
                 await context.ui.onTransact()
+                // Merge in any new localization strings from the plugins
+                for (const translation of transactPlugins.map((transactPlugin) =>
+                    this.getPluginTranslations(transactPlugin)
+                )) {
+                    context.ui.addTranslations(translation)
+                }
             }
 
             // Process incoming TransactArgs and convert to a SigningRequest
@@ -498,4 +504,18 @@ export class Session {
             permission: this.permissionLevel.permission,
             walletPlugin: this.walletPlugin.serialize(),
         })
+
+    getPluginTranslations(transactPlugin: TransactPlugin): LocaleDefinitions {
+        if (!transactPlugin.translations) {
+            return {}
+        }
+        const prefixed = {}
+        const languages = Object.keys(transactPlugin.translations)
+        languages.forEach((lang) => {
+            if (transactPlugin.translations) {
+                prefixed[lang] = {[transactPlugin.id]: transactPlugin.translations[lang]}
+            }
+        })
+        return prefixed
+    }
 }
