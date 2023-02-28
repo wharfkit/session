@@ -1,4 +1,7 @@
 import {APIClient, FetchProvider, Name, PermissionLevel} from '@greymass/eosio'
+import {SigningRequestEncodingOptions} from 'eosio-signing-request'
+import zlib from 'pako'
+
 import {ChainDefinition, Fetch} from './types'
 import {UserInterface} from './ui'
 import {WalletPluginConfig, WalletPluginMetadata} from './wallet'
@@ -87,6 +90,11 @@ export class LoginContext {
     }
     getClient(chain: ChainDefinition): APIClient {
         return new APIClient({provider: new FetchProvider(chain.url, {fetch: this.fetch})})
+    }
+    get esrOptions(): SigningRequestEncodingOptions {
+        return {
+            zlib,
+        }
     }
 }
 
