@@ -319,8 +319,29 @@ export class Session {
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
         try {
+            // The number of seconds before this transaction expires
+            const expireSeconds =
+                options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
+
+            // Whether or not the request should be broadcast during the transact call
+            const willBroadcast =
+                options && typeof options.broadcast !== 'undefined'
+                    ? options.broadcast
+                    : this.broadcast
+
             // The abi provider to use for this transaction, falling back to the session instance
             const abiProvider = options?.abiProvider || this.abiProvider
+
+            // The TransactPlugins to use for this transaction, falling back to the session instance
+            const transactPlugins = options?.transactPlugins || this.transactPlugins
+            const transactPluginsOptions =
+                options?.transactPluginsOptions || this.transactPluginsOptions
+
+            // A flag to determine whether or not the request can be modified by the beforeSign hooks or wallet plugins
+            let allowModify =
+                options && typeof options.allowModify !== 'undefined'
+                    ? options.allowModify
+                    : this.allowModify
 
             // The context object for this transaction
             const context = new TransactContext({
@@ -332,9 +353,8 @@ export class Session {
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
                 storage: this.storage,
-                transactPlugins: options?.transactPlugins || this.transactPlugins,
-                transactPluginsOptions:
-                    options?.transactPluginsOptions || this.transactPluginsOptions,
+                transactPlugins,
+                transactPluginsOptions,
                 ui: this.ui,
             })
 
@@ -356,22 +376,6 @@ export class Session {
                 signer: this.permissionLevel,
                 transaction: undefined,
             }
-
-            // A flag to determine whether or not the request can be modified by the beforeSign hooks or wallet plugins
-            let allowModify =
-                options && typeof options.allowModify !== 'undefined'
-                    ? options.allowModify
-                    : this.allowModify
-
-            // The number of seconds before this transaction expires
-            const expireSeconds =
-                options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
-
-            // Whether or not the request should be broadcast during the transact call
-            const willBroadcast =
-                options && typeof options.broadcast !== 'undefined'
-                    ? options.broadcast
-                    : this.broadcast
 
             // Call the `beforeSign` hooks that were registered by the TransactPlugins
             for (const hook of context.hooks.beforeSign) {
