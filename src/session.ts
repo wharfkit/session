@@ -338,10 +338,9 @@ export class Session {
                 ui: this.ui,
             })
 
-            // Notify the UI that a transaction is about to begin
             if (context.ui) {
+                // Notify the UI that a transaction is about to begin
                 await context.ui.onTransact()
-                context.ui.status('Preparing transaction...')
             }
 
             // Process incoming TransactArgs and convert to a SigningRequest
