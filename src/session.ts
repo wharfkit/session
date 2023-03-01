@@ -411,11 +411,20 @@ export class Session {
             result.resolved = await context.resolve(request, expireSeconds)
             result.transaction = result.resolved.resolvedTransaction
 
+            // Merge in any new localization strings from the wallet plugin
+            if (context.ui) {
+                await context.ui.onSign()
+            }
+
             // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
             const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
                 result.resolved,
                 context
             )
+
+            if (context.ui) {
+                await context.ui.onSignComplete()
+            }
 
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
