@@ -45,6 +45,15 @@ export interface UserInterfaceTranslateOptions {
 }
 
 /**
+ * The translate function the UserInterface expects and uses.
+ */
+export type UserInterfaceTranslateFunction = (
+    key: string,
+    options?: UserInterfaceTranslateOptions,
+    namespace?: string
+) => string
+
+/**
  * Interface which all 3rd party user interface plugins must implement.
  */
 export interface UserInterface {
@@ -73,11 +82,9 @@ export interface UserInterface {
     /** Update the displayed modal status from a TransactPlugin **/
     status: (message: string) => void
     /** Translate a string using the UI's language **/
-    translate: (key: string, options?: UserInterfaceTranslateOptions, namespace?: string) => string
+    translate: UserInterfaceTranslateFunction
     /** Returns a translator for a specific namespace */
-    getTranslate: (
-        namespace?: string
-    ) => (key: string, options?: UserInterfaceTranslateOptions) => string
+    getTranslate: (namespace?: string) => UserInterfaceTranslateFunction
     /** Programmatically add new localization strings to the  user interface */
     addTranslations: (translations: LocaleDefinitions) => void
 }
@@ -108,9 +115,7 @@ export abstract class AbstractUserInterface implements UserInterface {
                 })
         )
     }
-    getTranslate(
-        namespace?: string | undefined
-    ): (key: string, options?: UserInterfaceTranslateOptions | undefined) => string {
+    getTranslate(namespace?: string | undefined): UserInterfaceTranslateFunction {
         return (key, options) => this.translate(key, options, namespace)
     }
     addTranslations(translations: LocaleDefinitions) {
