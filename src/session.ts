@@ -414,6 +414,7 @@ export class Session {
             // Merge in any new localization strings from the wallet plugin
             if (context.ui) {
                 await context.ui.onSign()
+                context.ui.addTranslations(this.getPluginTranslations(this.walletPlugin))
             }
 
             // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
@@ -514,7 +515,7 @@ export class Session {
             walletPlugin: this.walletPlugin.serialize(),
         })
 
-    getPluginTranslations(transactPlugin: TransactPlugin): LocaleDefinitions {
+    getPluginTranslations(transactPlugin: TransactPlugin | WalletPlugin): LocaleDefinitions {
         if (!transactPlugin.translations) {
             return {}
         }

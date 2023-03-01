@@ -3,6 +3,7 @@ import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
+import {LocaleDefinitions} from './types'
 
 /**
  * The static configuration of a [[WalletPlugin]].
@@ -94,6 +95,8 @@ export interface WalletPlugin {
     config: WalletPluginConfig
     /** The metadata for the [[WalletPlugin]] itself. */
     metadata: WalletPluginMetadata
+    /** Any translations this plugin requires */
+    translations?: LocaleDefinitions
     /**
      * Request the [[WalletPlugin]] to log in a user and return a [[WalletPluginLoginResponse]].
      *
@@ -126,6 +129,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         requiresPermissionSelect: false,
     }
     metadata: WalletPluginMetadata = {}
+    translations?: LocaleDefinitions
     abstract get id(): string
     abstract login(context: LoginContext): Promise<WalletPluginLoginResponse>
     abstract sign(
