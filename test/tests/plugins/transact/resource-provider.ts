@@ -1,12 +1,11 @@
 import {assert} from 'chai'
-import zlib from 'pako'
 
-import {ABIDef, Action, Asset, AssetType, Name, Signature, Struct} from '@greymass/eosio'
+import {Action, Asset, AssetType, Name, Signature, Struct} from '@greymass/eosio'
 
 import {
-    AbiProvider,
     AbstractTransactPlugin,
     Session,
+    SessionArgs,
     SessionOptions,
     SigningRequest,
     TransactContext,
@@ -16,7 +15,6 @@ import {
 
 import {mockChainId, mockUrl} from '$test/utils/mock-config'
 import {mockFetch} from '$test/utils/mock-fetch'
-import {makeMockAction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 
 const wallet = makeWallet()
@@ -46,6 +44,7 @@ interface ResourceProviderResponse {
 export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
     readonly allowFees: boolean = false
     readonly url?: string
+    id = 'mock-transact-resource-provider-plugin'
 
     constructor(options: MockTransactResourceProviderOptions) {
         super()
@@ -67,6 +66,9 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         request: SigningRequest,
         context: TransactContext
     ): Promise<TransactHookResponse> {
+        if (context.ui) {
+            context.ui.status('Requesting resources from resource provider...')
+        }
         // Validate that this request is valid for the resource provider
         this.validateRequest(request, context)
 
@@ -84,6 +86,9 @@ export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
 
         // If the resource provider refused to process this request, return the original request without modification.
         if (response.status === 400) {
+            if (context.ui) {
+                context.ui.status('Resource provider refused to sign this request.')
+            }
             return {
                 request,
             }
@@ -183,19 +188,22 @@ const mockResourceProviderPlugin = new MockTransactResourceProviderPlugin({
     url: 'https://jungle4.greymass.com/v1/resource_provider/request_transaction',
 })
 
-const mockSessionOptions: SessionOptions = {
+const mockSessionArgs: SessionArgs = {
     chain: {
         id: mockChainId,
         url: mockUrl,
     },
+    permissionLevel: 'wharfkit1131@test',
+    walletPlugin: wallet,
+}
+
+const mockSessionOptions: SessionOptions = {
     /**
      * NOT required for normal usage of wharfkit/session
      * This is only required to execute sucessfully in a unit test environment.
      */
     fetch: mockFetch,
-    permissionLevel: 'wharfkit1131@test',
     transactPlugins: [mockResourceProviderPlugin],
-    walletPlugin: wallet,
 }
 
 @Struct.type('transfer')
@@ -210,7 +218,7 @@ export const resourceProviderPlugin = () => {
     suite('resource provider', function () {
         test('provides free transaction', async function () {
             this.slow(10000)
-            const session = new Session(mockSessionOptions)
+            const session = new Session(mockSessionArgs, mockSessionOptions)
             const action = {
                 authorization: [
                     {

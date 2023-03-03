@@ -1,3 +1,4 @@
+import zlib from 'pako'
 import {
     APIClient,
     FetchProvider,
@@ -5,7 +6,7 @@ import {
     NameType,
     PermissionLevel,
     PermissionLevelType,
-    Signature,
+    Serializer,
     SignedTransaction,
 } from '@greymass/eosio'
 import {
@@ -13,10 +14,9 @@ import {
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
-    ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
-import zlib from 'pako'
+
 import {ABICache} from './abi'
 import {
     AbstractTransactPlugin,
@@ -29,71 +29,91 @@ import {
     TransactResult,
     TransactRevisions,
 } from './transact'
-
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
+import {SessionStorage} from './storage'
+import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from './types'
 import {getFetch} from './utils'
-
-export interface WalletPluginOptions {
-    name?: string
-}
-
-export interface WalletPluginContext {
-    chain: ChainDefinition
-    permissionLevel: PermissionLevelType | string
-}
-
-export interface WalletPluginLoginOptions {
-    appName: Name
-    chains: ChainDefinition[]
-    context: WalletPluginContext
-}
-
-export interface WalletPluginLoginResponse {
-    chain: ChainDefinition
-    permissionLevel: PermissionLevel
-}
-
-export interface WalletPlugin {
-    login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
-}
-
-export abstract class AbstractWalletPlugin implements WalletPlugin {
-    public abstract login(options: WalletPluginLoginOptions): WalletPluginLoginResponse
-    public abstract sign(chain: ChainDefinition, transaction: ResolvedSigningRequest): Signature
-}
+import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
+import {UserInterface} from './ui'
 
 /**
- * Options for creating a new instance of a [[Session]].
+ * Arguments required to create a new [[Session]].
  */
-export interface SessionOptions {
+export interface SessionArgs {
     actor?: NameType
-    allowModify?: boolean
-    broadcast?: boolean
     chain: ChainDefinitionType
-    expireSeconds?: number
-    fetch?: Fetch
     permission?: NameType
     permissionLevel?: PermissionLevelType | string
-    transactPlugins?: AbstractTransactPlugin[]
-    transactPluginsOptions?: TransactPluginsOptions
     walletPlugin: WalletPlugin
 }
 
+/**
+ * Options for creating a new [[Session]].
+ */
+export interface SessionOptions {
+    abiProvider?: AbiProvider
+    allowModify?: boolean
+    appName?: NameType
+    broadcast?: boolean
+    expireSeconds?: number
+    fetch?: Fetch
+    storage?: SessionStorage
+    transactPlugins?: AbstractTransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+    ui?: UserInterface
+}
+
+export interface SerializedSession {
+    actor: string
+    chain: string
+    permission: string
+    walletPlugin: SerializedWalletPlugin
+}
+
+/**
+ * A representation of a session to interact with a specific blockchain account.
+ */
 export class Session {
-    readonly abiCache = ABICache
+    readonly appName: Name | undefined
+    readonly abiProvider: AbiProvider
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly permissionLevel: PermissionLevel
+    readonly storage?: SessionStorage
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
-    readonly wallet: WalletPlugin
+    readonly ui?: UserInterface
+    readonly walletPlugin: WalletPlugin
 
-    constructor(options: SessionOptions) {
-        this.chain = ChainDefinition.from(options.chain)
+    /**
+     * The constructor of the `Session` class.
+     *
+     * @param options SessionOptions
+     */
+    constructor(args: SessionArgs, options: SessionOptions = {}) {
+        // Set the ChainDefinition for this session
+        this.chain = ChainDefinition.from(args.chain)
+
+        // Determine the permission level to use for this session
+        if (args.permissionLevel) {
+            this.permissionLevel = PermissionLevel.from(args.permissionLevel)
+        } else if (args.actor && args.permission) {
+            this.permissionLevel = PermissionLevel.from(`${args.actor}@${args.permission}`)
+        } else {
+            throw new Error(
+                'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
+            )
+        }
+
+        // Set the WalletPlugin for this session
+        this.walletPlugin = args.walletPlugin
+
+        // Handle all the optional values provided
+        if (options.appName) {
+            this.appName = Name.from(options.appName)
+        }
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
         }
@@ -108,6 +128,9 @@ export class Session {
         } else {
             this.fetch = getFetch(options)
         }
+        if (options.storage) {
+            this.storage = options.storage
+        }
         if (options.transactPlugins) {
             this.transactPlugins = options.transactPlugins
         } else {
@@ -116,31 +139,44 @@ export class Session {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        if (options.permissionLevel) {
-            this.permissionLevel = PermissionLevel.from(options.permissionLevel)
-        } else if (options.actor && options.permission) {
-            this.permissionLevel = PermissionLevel.from(`${options.actor}@${options.permission}`)
+        if (options.abiProvider) {
+            this.abiProvider = options.abiProvider
         } else {
-            throw new Error(
-                'Either a permissionLevel or actor/permission must be provided when creating a new Session.'
-            )
+            this.abiProvider = new ABICache(this.client)
         }
-        this.wallet = options.walletPlugin
+        if (options.ui) {
+            this.ui = options.ui
+        }
     }
 
+    /**
+     * Returns the name of the actor that is being used for this session.
+     */
     get actor(): Name {
         return this.permissionLevel.actor
     }
 
+    /**
+     * Returns the name of the permission that is being used for this session.
+     */
     get permission(): Name {
         return this.permissionLevel.permission
     }
 
+    /**
+     * Returns an APIClient configured for this session.
+     */
     get client(): APIClient {
         return new APIClient({provider: new FetchProvider(this.chain.url, {fetch: this.fetch})})
     }
 
-    upgradeTransaction(args) {
+    /**
+     * Templates in any missing fields from partial transactions.
+     *
+     * @param args TransactArgs
+     * @returns TransactArgs
+     */
+    upgradeTransaction(args: TransactArgs): TransactArgs {
         // eosjs transact compat: upgrade to transaction if args have any header fields
         const anyArgs = args as any
         if (
@@ -170,8 +206,11 @@ export class Session {
     /**
      * Lifted from @greymass/eosio-signing-request.
      *
+     * Copy of: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
+     *
      * TODO: Remove. This will no longer be needed once the `clone` functionality in ESR is updated
      */
+    /* istanbul ignore next */
     private storageType(version: number): typeof RequestDataV3 | typeof RequestDataV2 {
         return version === 2 ? RequestDataV2 : RequestDataV3
     }
@@ -179,10 +218,13 @@ export class Session {
     /**
      * Create a clone of the given SigningRequest
      *
-     * @param {SigningRequest} request
-     * @param {AbiProvider} abiProvider
+     * Overrides: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112
+     *
+     * @param {SigningRequest} request The SigningRequest to clone
+     * @param {AbiProvider} abiProvider The AbiProvider to use for the clone
      * @returns Returns a cloned SigningRequest with updated abiProvider and zlib
      */
+    /* istanbul ignore next */
     cloneRequest(request: SigningRequest, abiProvider: AbiProvider): SigningRequest {
         // Lifted from @greymass/eosio-signing-request method `clone()`
         // This was done to modify the zlib and abiProvider
@@ -225,6 +267,8 @@ export class Session {
                 options
             )
         }
+        // Always set the broadcast flag to false on signing requests, Wharf needs to do it
+        request.setBroadcast(false)
         return request
     }
 
@@ -274,93 +318,214 @@ export class Session {
      *   F --> G[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
-        const abiCache = new ABICache(this.client)
+        try {
+            // The number of seconds before this transaction expires
+            const expireSeconds =
+                options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
 
-        // The context for this transaction
-        const context = new TransactContext({
-            abiCache,
-            client: this.client,
-            fetch: this.fetch,
-            permissionLevel: this.permissionLevel,
-            transactPlugins: options?.transactPlugins || this.transactPlugins,
-            transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
-        })
+            // Whether or not the request should be broadcast during the transact call
+            const willBroadcast =
+                options && typeof options.broadcast !== 'undefined'
+                    ? options.broadcast
+                    : this.broadcast
 
-        // Process TransactArgs and convert to a SigningRequest
-        let request: SigningRequest = await this.createRequest(args, abiCache)
+            // The abi provider to use for this transaction, falling back to the session instance
+            const abiProvider = options?.abiProvider || this.abiProvider
 
-        // Create response template to this transact call
-        const result: TransactResult = {
-            chain: this.chain,
-            request,
-            resolved: undefined,
-            revisions: new TransactRevisions(request),
-            signatures: [],
-            signer: this.permissionLevel,
-            transaction: undefined,
-        }
+            // The TransactPlugins to use for this transaction, falling back to the session instance
+            const transactPlugins = options?.transactPlugins || this.transactPlugins
+            const transactPluginsOptions =
+                options?.transactPluginsOptions || this.transactPluginsOptions
 
-        // Whether or not the request should be able to be modified by beforeSign hooks
-        const allowModify =
-            options && typeof options.allowModify !== 'undefined'
-                ? options.allowModify
-                : this.allowModify
+            // A flag to determine whether or not the request can be modified by the beforeSign hooks or wallet plugins
+            let allowModify =
+                options && typeof options.allowModify !== 'undefined'
+                    ? options.allowModify
+                    : this.allowModify
 
-        // The number of seconds before this transaction expires
-        const expireSeconds =
-            options && options.expireSeconds ? options.expireSeconds : this.expireSeconds
-
-        // Whether or not the request should be broadcast during the transact call
-        const willBroadcast =
-            options && typeof options.broadcast !== 'undefined' ? options.broadcast : this.broadcast
-
-        // Run the `beforeSign` hooks
-        for (const hook of context.hooks.beforeSign) {
-            // Get the response of the hook by passing a clonied request.
-            const response = await hook(request.clone(), context)
-
-            // Save revision history for developers to debug modifications to requests.
-            result.revisions.addRevision(response, String(hook), allowModify)
-
-            // If modification is allowed, change the current request.
-            if (allowModify) {
-                request = await this.updateRequest(request, response.request, abiCache)
-            }
-            // If signatures were returned, append them
-            if (response.signatures) {
-                result.signatures = [...result.signatures, ...response.signatures]
-            }
-        }
-
-        // Resolve the SigningRequest and assign it to the TransactResult
-        result.request = request
-        result.resolved = await context.resolve(request, expireSeconds)
-        result.transaction = result.resolved.resolvedTransaction
-
-        // Sign transaction based on wallet plugin
-        const signature = await this.wallet.sign(this.chain, result.resolved)
-        result.signatures.push(signature)
-
-        // Run the `afterSign` hooks
-        for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
-
-        // Broadcast transaction if requested
-        if (willBroadcast) {
-            // Assemble the signed transaction to broadcast
-            const signed = SignedTransaction.from({
-                ...result.resolved.transaction,
-                signatures: result.signatures,
+            // The context object for this transaction
+            const context = new TransactContext({
+                abiProvider,
+                appName: this.appName,
+                chain: this.chain,
+                client: this.client,
+                createRequest: (args: TransactArgs) => this.createRequest(args, abiProvider),
+                fetch: this.fetch,
+                permissionLevel: this.permissionLevel,
+                storage: this.storage,
+                transactPlugins,
+                transactPluginsOptions,
+                ui: this.ui,
             })
 
-            // Broadcast the signed transaction
-            result.response = await context.client.v1.chain.send_transaction(signed)
+            if (context.ui) {
+                // Notify the UI that a transaction is about to begin
+                await context.ui.onTransact()
+                // Merge in any new localization strings from the plugins
+                for (const translation of transactPlugins.map((transactPlugin) =>
+                    this.getPluginTranslations(transactPlugin)
+                )) {
+                    context.ui.addTranslations(translation)
+                }
+            }
 
-            // Run the `afterBroadcast` hooks
-            for (const hook of context.hooks.afterBroadcast)
-                await hook(result.request.clone(), context)
+            // Process incoming TransactArgs and convert to a SigningRequest
+            let request: SigningRequest = await this.createRequest(args, abiProvider)
+
+            // Create TransactResult to eventually respond to this call with
+            const result: TransactResult = {
+                chain: this.chain,
+                request,
+                resolved: undefined,
+                revisions: new TransactRevisions(request),
+                signatures: [],
+                signer: this.permissionLevel,
+                transaction: undefined,
+            }
+
+            // Call the `beforeSign` hooks that were registered by the TransactPlugins
+            for (const hook of context.hooks.beforeSign) {
+                // Get the response of the hook by passing a cloned request.
+                const response = await hook(request.clone(), context)
+
+                if (response) {
+                    // Save revision history for developers to debug modifications to requests.
+                    result.revisions.addRevision(response, String(hook), allowModify)
+
+                    // If modification is allowed, change the current request.
+                    if (allowModify) {
+                        request = await this.updateRequest(request, response.request, abiProvider)
+                    }
+
+                    if (response.signatures) {
+                        // If signatures were returned, append them
+                        result.signatures = [...result.signatures, ...response.signatures]
+                        // Disable any further modifications to the request if the request was signed
+                        allowModify = false
+                    }
+                }
+            }
+
+            // Resolve the final SigningRequest and assign it to the TransactResult
+            result.request = request
+            result.resolved = await context.resolve(request, expireSeconds)
+            result.transaction = result.resolved.resolvedTransaction
+
+            // Merge in any new localization strings from the wallet plugin
+            if (context.ui) {
+                await context.ui.onSign()
+                context.ui.addTranslations(this.getPluginTranslations(this.walletPlugin))
+            }
+
+            // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
+            const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
+                result.resolved,
+                context
+            )
+
+            if (context.ui) {
+                await context.ui.onSignComplete()
+            }
+
+            // Merge signatures in to the TransactResult
+            result.signatures.push(...walletResponse.signatures)
+
+            // If a request was returned from the wallet, determine if it was modified, then if it was allowed.
+            if (walletResponse.request) {
+                const requestWasModified = !request
+                    .getRawTransaction()
+                    .equals(walletResponse.request.getRawTransaction())
+                if (requestWasModified) {
+                    if (allowModify) {
+                        result.request = walletResponse.request
+                        result.resolved = await context.resolve(
+                            walletResponse.request,
+                            expireSeconds
+                        )
+                        result.transaction = result.resolved.resolvedTransaction
+                    } else {
+                        throw new Error(
+                            `The ${this.walletPlugin.metadata.name} plugin modified the transaction when it was not allowed to.`
+                        )
+                    }
+                }
+            }
+
+            // Run the `afterSign` hooks that were registered by the TransactPlugins
+            for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
+
+            if (willBroadcast) {
+                if (context.ui) {
+                    // Notify the UI that broadcast logic will be run against the transaction
+                    await context.ui.onBroadcast()
+                }
+
+                // Assemble the SignedTransaction to broadcast
+                const signed = SignedTransaction.from({
+                    ...result.resolved.transaction,
+                    signatures: result.signatures,
+                })
+
+                // Broadcast the SignedTransaction and save the API response to the TransactResult
+                result.response = await context.client.v1.chain.send_transaction(signed)
+
+                // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
+                for (const hook of context.hooks.afterBroadcast)
+                    await hook(result.request.clone(), context, result)
+
+                if (context.ui) {
+                    // Notify the UI that the transaction has completed the broadcast logic
+                    await context.ui.onBroadcastComplete()
+                }
+            }
+
+            // Notify the UI that the transaction has completed
+            if (context.ui) {
+                await context.ui.onTransactComplete()
+            }
+
+            // Return the TransactResult to the caller
+            return result
+        } catch (error: any) {
+            // TODO: Improve API response detection and error handling
+            // Possible plugin that interprets them?
+            if (error.response && error.response.json) {
+                const {json} = error.response
+                if (json.error && json.error.details) {
+                    const e = new Error(json.error.details[0].message)
+                    if (this.ui) {
+                        await this.ui.onError(e)
+                    }
+                    throw e
+                }
+            } else {
+                if (this.ui) {
+                    await this.ui.onError(error)
+                }
+            }
+            throw new Error(error)
         }
+    }
 
-        return result
+    serialize = (): SerializedSession =>
+        Serializer.objectify({
+            chain: this.chain.id,
+            actor: this.permissionLevel.actor,
+            permission: this.permissionLevel.permission,
+            walletPlugin: this.walletPlugin.serialize(),
+        })
+
+    getPluginTranslations(transactPlugin: TransactPlugin | WalletPlugin): LocaleDefinitions {
+        if (!transactPlugin.translations) {
+            return {}
+        }
+        const prefixed = {}
+        const languages = Object.keys(transactPlugin.translations)
+        languages.forEach((lang) => {
+            if (transactPlugin.translations) {
+                prefixed[lang] = {[transactPlugin.id]: transactPlugin.translations[lang]}
+            }
+        })
+        return prefixed
     }
 }
-export {AbstractTransactPlugin}

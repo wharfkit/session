@@ -3,39 +3,54 @@ import {assert} from 'chai'
 import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
-import {SigningRequest} from '$lib'
+import {SigningRequest, TransactContext} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
-import {makeContext} from '$test/utils/mock-context'
+import {makeContext, mockTransactContextOptions} from '$test/utils/mock-context'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const context = makeContext()
 
 suite('context', function () {
     suite('abiProvider', function () {
         test('has default', function () {
-            assert.isDefined(context.abiCache)
+            assert.isDefined(context.abiProvider)
         })
         test('fetches ABIs', async function () {
-            const result = await context.abiCache.getAbi(Name.from('eosio.token'))
+            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
             const abi = ABI.from(result)
             assert.instanceOf(result, ABI)
             assert.equal(abi.version, 'eosio::abi/1.2')
         })
         test('caches ABIs', async function () {
-            const result = await context.abiCache.getAbi(Name.from('eosio.token'))
+            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
             const abi = ABI.from(result)
             assert.instanceOf(result, ABI)
             assert.equal(abi.version, 'eosio::abi/1.2')
         })
     })
-    suite('esrOptions', function () {
-        test('has abiProvider', function () {
-            assert.isDefined(context.esrOptions.abiProvider)
-            assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+    suite('getters', function () {
+        test('accountName', function () {
+            assert.isTrue(
+                context.accountName.equals('wharfkit1125'),
+                `Expected 'wharfkit1125', got '${context.accountName}'`
+            )
         })
-        test('has zlib', function () {
-            assert.isDefined(context.esrOptions.zlib)
-            assert.instanceOf(context.esrOptions.zlib, Object)
+        test('permissionName', function () {
+            assert.isTrue(
+                context.permissionName.equals('test'),
+                `Expected 'test', got '${context.permissionName}'`
+            )
+        })
+        suite('esrOptions', function () {
+            test('has abiProvider', function () {
+                assert.isDefined(context.esrOptions.abiProvider)
+                assert.isFunction(context.esrOptions.abiProvider?.getAbi)
+            })
+            test('has zlib', function () {
+                assert.isDefined(context.esrOptions.zlib)
+                assert.instanceOf(context.esrOptions.zlib, Object)
+            })
         })
     })
     suite('resolve', function () {

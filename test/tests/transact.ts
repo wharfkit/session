@@ -1,14 +1,13 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {Action, Name, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
     ABICache,
     ChainDefinition,
     Session,
-    SessionOptions,
     TransactContext,
     TransactHookTypes,
 } from '$lib'
@@ -25,27 +24,19 @@ import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockPermissionLevel} from '$test/utils/mock-config'
 import {Transfer} from '$test/utils/setup/structs'
+import {mockSessionArgs, mockSessionOptions} from '$test/utils/mock-session'
+import {MockStorage} from '$test/utils/mock-storage'
+import {MockUserInterface} from '$test/utils/mock-userinterface'
 
 const client = makeClient()
 const wallet = makeWallet()
-
-const mockSessionOptions: SessionOptions = {
-    broadcast: false, // Disable broadcasting by default for tests, enable when required.
-    chain: ChainDefinition.from({
-        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-        url: 'https://jungle4.greymass.com',
-    }),
-    fetch: mockFetch, // Required for unit tests
-    permissionLevel: PermissionLevel.from(mockPermissionLevel),
-    walletPlugin: wallet,
-}
 
 async function mockData() {
     const info = await client.v1.chain.get_info()
     const action = await makeMockAction()
     const actions = await makeMockActions()
     const transaction = await makeMockTransaction(info)
-    const session = new Session(mockSessionOptions)
+    const session = new Session(mockSessionArgs, mockSessionOptions)
     return {
         action,
         actions,
@@ -167,11 +158,11 @@ suite('transact', function () {
             })
             test('object maintains payload metadata', async function () {
                 const {action, session} = await mockData()
-                const abiCache = new ABICache(this.client)
+                const abiProvider = new ABICache(this.client)
                 const request = await SigningRequest.create(
                     {action},
                     {
-                        abiProvider: abiCache,
+                        abiProvider,
                         zlib,
                     }
                 )
@@ -252,14 +243,8 @@ suite('transact', function () {
         suite('broadcast', function () {
             test('default: true', async function () {
                 const {action} = await mockData()
-                const session = new Session({
-                    chain: ChainDefinition.from({
-                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                        url: 'https://jungle4.greymass.com',
-                    }),
-                    fetch: mockFetch, // Required for unit tests
-                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                    walletPlugin: wallet,
+                const session = new Session(mockSessionArgs, {
+                    fetch: mockSessionOptions.fetch,
                 })
                 const result = await session.transact({action})
                 assert.isDefined(result.response)
@@ -281,15 +266,7 @@ suite('transact', function () {
         suite('expireSeconds', function () {
             test('default: 120', async function () {
                 const {action} = await mockData()
-                const session = new Session({
-                    chain: ChainDefinition.from({
-                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                        url: 'https://jungle4.greymass.com',
-                    }),
-                    fetch: mockFetch, // Required for unit tests
-                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                    walletPlugin: wallet,
-                })
+                const session = new Session(mockSessionArgs, mockSessionOptions)
                 const result = await session.transact({action}, {broadcast: false})
                 // Get the chain info to get the current head block time from test cache
                 const {head_block_time} = await session.client.v1.chain.get_info()
@@ -301,15 +278,7 @@ suite('transact', function () {
             })
             test('override: 60', async function () {
                 const {action} = await mockData()
-                const session = new Session({
-                    chain: ChainDefinition.from({
-                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                        url: 'https://jungle4.greymass.com',
-                    }),
-                    fetch: mockFetch, // Required for unit tests
-                    permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                    walletPlugin: wallet,
-                })
+                const session = new Session(mockSessionArgs, mockSessionOptions)
                 const expireSeconds = 60
                 const result = await session.transact({action}, {broadcast: false, expireSeconds})
                 // Get the chain info to get the current head block time from test cache
@@ -324,7 +293,7 @@ suite('transact', function () {
         suite('transactPlugins', function () {
             test('inherit', async function () {
                 const {action} = await mockData()
-                const session = new Session({
+                const session = new Session(mockSessionArgs, {
                     ...mockSessionOptions,
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                 })
@@ -357,6 +326,7 @@ suite('transact', function () {
                 const debugHook = async (request: SigningRequest, context: TransactContext) => {
                     // Log the output
                     if (context.transactPluginsOptions.logging) {
+                        // eslint-disable-next-line no-console
                         console.log(Serializer.objectify(request.getRawTransaction()))
                     }
                     // Return the request and no additional signatures
@@ -366,6 +336,7 @@ suite('transact', function () {
                     }
                 }
                 const debugPlugin = {
+                    id: 'debug-plugin',
                     register(context) {
                         context.addHook(TransactHookTypes.beforeSign, debugHook)
                         context.addHook(TransactHookTypes.afterSign, debugHook)
@@ -391,7 +362,7 @@ suite('transact', function () {
         suite('transactPluginsOptions', function () {
             test('transact', async function () {
                 const {action} = await mockData()
-                const session = new Session({
+                const session = new Session(mockSessionArgs, {
                     ...mockSessionOptions,
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                 })
@@ -412,7 +383,7 @@ suite('transact', function () {
             })
             test('session constructor', async function () {
                 const {action} = await mockData()
-                const session = new Session({
+                const session = new Session(mockSessionArgs, {
                     ...mockSessionOptions,
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
@@ -438,13 +409,17 @@ suite('transact', function () {
                         },
                     ],
                     fetch: mockFetch, // Required for unit tests
+                    storage: new MockStorage(),
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },
+                    ui: new MockUserInterface(),
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login()
+                const {session} = await sessionKit.login({
+                    permissionLevel: mockPermissionLevel,
+                })
                 const result = await session.transact({action})
                 assetValidTransactResponse(result)
                 if (result && result.transaction && result.transaction.actions) {
@@ -464,10 +439,13 @@ suite('transact', function () {
                         },
                     ],
                     fetch: mockFetch, // Required for unit tests
+                    storage: new MockStorage(),
                     transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    ui: new MockUserInterface(),
                     walletPlugins: [makeWallet()],
                 })
-                const session = await sessionKit.login({
+                const {session} = await sessionKit.login({
+                    permissionLevel: mockPermissionLevel,
                     transactPluginsOptions: {
                         disableExamplePlugin: true,
                     },
@@ -598,10 +576,10 @@ suite('transact', function () {
             const result = await session.transact({action})
             const transaction = result.resolved?.transaction
             if (transaction) {
-                const digest = transaction.signingDigest(mockSessionOptions.chain.id)
+                const digest = transaction.signingDigest(mockSessionArgs.chain.id)
                 const [signature] = result.signatures
                 const publicKey = signature.recoverDigest(digest)
-                assert.isTrue(publicKey.equals(wallet.privateKey.toPublic()))
+                assert.isTrue(publicKey.equals(wallet.data.privateKey.toPublic()))
             } else {
                 assert.fail('Transaction was not resolved from request.')
             }

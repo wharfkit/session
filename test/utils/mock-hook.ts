@@ -25,6 +25,7 @@ export async function mockTransactHook(request: SigningRequest): Promise<Transac
 }
 
 export class MockTransactPlugin extends AbstractTransactPlugin {
+    id = 'mock-transact-plugin'
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactHook)
         context.addHook(TransactHookTypes.afterSign, mockTransactHook)
@@ -72,12 +73,14 @@ export async function mockTransactResourceProviderPresignHook(
 }
 
 export class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
+    id = 'mock-transact-resource-provider-plugin'
     register(context: TransactContext): void {
         context.addHook(TransactHookTypes.beforeSign, mockTransactResourceProviderPresignHook)
     }
 }
 
 export const mockTransactActionPrependerPlugin = {
+    id: 'mock-transact-action-prepender-plugin',
     register: (context) =>
         context.addHook(TransactHookTypes.beforeSign, async (request, context) => ({
             request: await SigningRequest.create(
@@ -105,6 +108,7 @@ export const mockTransactActionPrependerPlugin = {
 }
 
 export const mockMetadataFooWriterPlugin = {
+    id: 'mock-metadata-foo-writer-plugin',
     register: (context) =>
         context.addHook(TransactHookTypes.beforeSign, async (request) => {
             request.setInfoKey('foo', 'baz')

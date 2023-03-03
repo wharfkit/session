@@ -1,3 +1,4 @@
+import zlib from 'pako'
 import {
     AnyAction,
     AnyTransaction,
@@ -9,15 +10,16 @@ import {
     Signature,
 } from '@greymass/eosio'
 import {
+    AbiProvider,
     ResolvedSigningRequest,
     ResolvedTransaction,
     SigningRequest,
     SigningRequestEncodingOptions,
 } from 'eosio-signing-request'
-import zlib from 'pako'
-import {ABICache} from './abi'
 
-import {ChainDefinition, Fetch} from './types'
+import {SessionStorage} from './storage'
+import {ChainDefinition, Fetch, LocaleDefinitions} from './types'
+import {UserInterface} from './ui'
 
 export type TransactPluginsOptions = Record<string, unknown>
 
@@ -29,8 +31,9 @@ export enum TransactHookTypes {
 
 export type TransactHook = (
     request: SigningRequest,
-    context: TransactContext
-) => Promise<TransactHookResponse>
+    context: TransactContext,
+    result?: TransactResult
+) => Promise<TransactHookResponse | void>
 
 export interface TransactHooks {
     afterSign: TransactHook[]
@@ -43,16 +46,23 @@ export interface TransactHookResponse {
     signatures?: Signature[]
 }
 
+export type TransactHookResponseType = TransactHookResponse | void
+
 /**
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
-    abiCache?: ABICache
+    abiProvider: AbiProvider
+    appName?: Name
+    chain: ChainDefinition
     client: APIClient
+    createRequest: (args: TransactArgs) => Promise<SigningRequest>
     fetch: Fetch
     permissionLevel: PermissionLevel
+    storage?: SessionStorage
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    ui?: UserInterface
 }
 
 /**
@@ -62,8 +72,11 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    readonly abiCache: ABICache
+    readonly abiProvider: AbiProvider
+    readonly appName: Name | undefined
+    readonly chain: ChainDefinition
     readonly client: APIClient
+    readonly createRequest: (args: TransactArgs) => Promise<SigningRequest>
     readonly fetch: Fetch
     readonly hooks: TransactHooks = {
         afterBroadcast: [],
@@ -71,18 +84,23 @@ export class TransactContext {
         beforeSign: [],
     }
     readonly permissionLevel: PermissionLevel
+    readonly storage?: SessionStorage
     readonly transactPluginsOptions: TransactPluginsOptions
+    readonly ui?: UserInterface
 
     constructor(options: TransactContextOptions) {
-        if (options.abiCache) {
-            this.abiCache = options.abiCache
-        } else {
-            this.abiCache = new ABICache(options.client)
-        }
+        this.abiProvider = options.abiProvider
+        this.appName = options.appName
+        this.chain = options.chain
         this.client = options.client
+        this.createRequest = options.createRequest
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
+        if (options.storage) {
+            this.storage = options.storage
+        }
         this.transactPluginsOptions = options.transactPluginsOptions || {}
+        this.ui = options.ui
         options.transactPlugins?.forEach((plugin: AbstractTransactPlugin) => {
             plugin.register(this)
         })
@@ -98,7 +116,7 @@ export class TransactContext {
 
     get esrOptions(): SigningRequestEncodingOptions {
         return {
-            abiProvider: new ABICache(this.client),
+            abiProvider: this.abiProvider,
             zlib,
         }
     }
@@ -114,10 +132,13 @@ export class TransactContext {
         const header = info.getTransactionHeader(expireSeconds)
 
         // Load ABIs required to resolve this request
-        const abis = await request.fetchAbis(this.abiCache)
+        const abis = await request.fetchAbis(this.abiProvider)
 
         // Resolve the request and return
-        return request.resolve(abis, this.permissionLevel, header)
+        return request.resolve(abis, this.permissionLevel, {
+            ...header,
+            chainId: this.chain.id,
+        })
     }
 }
 /**
@@ -139,6 +160,10 @@ export interface TransactArgs {
  * Options for the [[Session.transact]] method.
  */
 export interface TransactOptions {
+    /**
+     * An optional AbiProvider to control how ABIs are loaded.
+     */
+    abiProvider?: AbiProvider
     /**
      * Whether to allow the signer to make modifications to the request
      * (e.g. applying a cosigner action to pay for resources).
@@ -200,7 +225,7 @@ export class TransactRevisions {
     constructor(request: SigningRequest) {
         this.addRevision({request, signatures: []}, 'original', true)
     }
-    public addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
+    addRevision(response: TransactHookResponse, code: string, allowModify: boolean) {
         // Determine if the new response modifies the request
         let modified = false
         const previous = this.revisions[this.revisions.length - 1]
@@ -246,6 +271,11 @@ export interface TransactResult {
  * Interface which a [[Session.transact]] plugin must implement.
  */
 export interface TransactPlugin {
+    /** A URL friendly (lower case, no spaces, etc) ID for this plugin - Used in serialization */
+    get id(): string
+    /** Any translations this plugin requires */
+    translations?: LocaleDefinitions
+    /** A function that registers hooks into the transaction flow */
     register: (context: TransactContext) => void
 }
 
@@ -253,10 +283,15 @@ export interface TransactPlugin {
  * Abstract class for [[Session.transact]] plugins to extend.
  */
 export abstract class AbstractTransactPlugin implements TransactPlugin {
-    public abstract register(context: TransactContext): void
+    translations?: LocaleDefinitions
+    abstract register(context: TransactContext): void
+    abstract get id(): string
 }
 
 export class BaseTransactPlugin extends AbstractTransactPlugin {
+    get id() {
+        return 'base-transact-plugin'
+    }
     register() {
         // console.log('Register hooks via context.addHook')
     }
