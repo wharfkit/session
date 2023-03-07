@@ -204,6 +204,7 @@ export class SessionKit {
         if (
             context.uiRequirements.requiresChainSelect ||
             context.uiRequirements.requiresPermissionSelect ||
+            context.uiRequirements.requiresPermissionEntry ||
             context.uiRequirements.requiresWalletSelect
         ) {
             // Perform UserInterface.login() flow to get determine the chain, permission, and WalletPlugin.

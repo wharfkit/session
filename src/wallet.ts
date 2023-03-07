@@ -14,9 +14,13 @@ export interface WalletPluginConfig {
      */
     requiresChainSelect: boolean
     /**
-     * Indicates if the [[WalletPlugin]] requires the user to manually select a permission to use.
+     * Indicates if the [[WalletPlugin]] requires the user to select a permission to use from a list.
      */
     requiresPermissionSelect: boolean
+    /**
+     * Indicates if the [[WalletPlugin]] requires the user to manually enter a permission to use.
+     */
+    requiresPermissionEntry?: boolean
     /**
      * If set, indicates which blockchains are compatible with this [[WalletPlugin]].
      */
@@ -127,6 +131,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
     config: WalletPluginConfig = {
         requiresChainSelect: true,
         requiresPermissionSelect: false,
+        requiresPermissionEntry: false,
     }
     metadata: WalletPluginMetadata = {}
     translations?: LocaleDefinitions

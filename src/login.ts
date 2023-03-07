@@ -36,6 +36,7 @@ export interface LoginContextOptions {
 export interface UserInterfaceRequirements {
     requiresChainSelect: boolean
     requiresPermissionSelect: boolean
+    requiresPermissionEntry: boolean
     requiresWalletSelect: boolean
 }
 
@@ -65,6 +66,7 @@ export class LoginContext {
     uiRequirements: UserInterfaceRequirements = {
         requiresChainSelect: true,
         requiresPermissionSelect: true,
+        requiresPermissionEntry: false,
         requiresWalletSelect: true,
     }
     walletPlugins: UserInterfaceWalletPlugin[] = []
