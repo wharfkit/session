@@ -262,9 +262,7 @@ async function createTestPermission(account: AccountDefinition): Promise<Transac
             },
             // fetch: mockFetch, // To record for debug
             permissionLevel: `${account.name}@active`,
-            walletPlugin: new WalletPluginPrivateKey({
-                privateKey,
-            }),
+            walletPlugin: new WalletPluginPrivateKey(privateKey),
         },
         {
             fetch,
@@ -396,9 +394,7 @@ async function run() {
             },
             // fetch: mockFetch, // To record for debug
             permissionLevel,
-            walletPlugin: new WalletPluginPrivateKey({
-                privateKey,
-            }),
+            walletPlugin: new WalletPluginPrivateKey(privateKey),
         },
         {
             fetch,
