@@ -58,6 +58,7 @@
         "tsconfig-paths": "^4.1.1",
         "typedoc": "^0.23.14",
         "typedoc-plugin-mermaid": "^1.9.0",
-        "typescript": "^4.1.2"
+        "typescript": "^4.1.2",
+        "yarn-deduplicate": "^6.0.1"
     }
 }
