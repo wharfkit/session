@@ -5825,7 +5825,7 @@
         elliptic.eddsa = eddsa;
     })(elliptic);
     /**
-     * EOSIO Core v0.6.4
+     * EOSIO Core v0.6.9
      * https://github.com/greymass/eosio-core
      *
      * @license
@@ -5957,9 +5957,6 @@
         return isAlienInstance;
     }
     class Bytes {
-        constructor(array = new Uint8Array) {
-            this.array = array;
-        }
         static from(value, encoding) {
             if (isInstanceOf(value, this)) {
                 return value;
@@ -6010,6 +6007,9 @@
                 return true;
             }
             return false;
+        }
+        constructor(array = new Uint8Array) {
+            this.array = array;
         }
         get length() {
             return this.array.byteLength;
@@ -6085,13 +6085,6 @@
     }
     Bytes.abiName = "bytes";
     class Checksum {
-        constructor(array) {
-            const byteSize = this.constructor.byteSize;
-            if (array.byteLength !== byteSize) {
-                throw new Error(`Checksum size mismatch, expected ${byteSize} bytes got ${array.byteLength}`);
-            }
-            this.array = array;
-        }
         static from(value) {
             if (isInstanceOf(value, this)) {
                 return value;
@@ -6106,6 +6099,13 @@
         }
         static abiDefault() {
             return new this(new Uint8Array(this.byteSize));
+        }
+        constructor(array) {
+            const byteSize = this.constructor.byteSize;
+            if (array.byteLength !== byteSize) {
+                throw new Error(`Checksum size mismatch, expected ${byteSize} bytes got ${array.byteLength}`);
+            }
+            this.array = array;
         }
         equals(other) {
             const self = this.constructor;
@@ -6209,19 +6209,6 @@
         KeyType.from = from;
     })(KeyType || (KeyType = {}));
     class Int {
-        constructor(value) {
-            const self = this.constructor;
-            if (self.isSigned === undefined || self.byteWidth === undefined) {
-                throw new Error("Cannot instantiate abstract class Int");
-            }
-            if (value.gt(self.max)) {
-                throw new Error(`Number ${value} overflows ${self.abiName}`);
-            }
-            if (value.lt(self.min)) {
-                throw new Error(`Number ${value} underflows ${self.abiName}`);
-            }
-            this.value = value;
-        }
         static get max() {
             return new BN$8(2).pow(new BN$8(this.byteWidth * 8 - (this.isSigned ? 1 : 0))).isubn(1);
         }
@@ -6314,6 +6301,19 @@
         }
         static random() {
             return this.from(secureRandom(this.byteWidth));
+        }
+        constructor(value) {
+            const self = this.constructor;
+            if (self.isSigned === undefined || self.byteWidth === undefined) {
+                throw new Error("Cannot instantiate abstract class Int");
+            }
+            if (value.gt(self.max)) {
+                throw new Error(`Number ${value} overflows ${self.abiName}`);
+            }
+            if (value.lt(self.min)) {
+                throw new Error(`Number ${value} underflows ${self.abiName}`);
+            }
+            this.value = value;
         }
         cast(type, overflow = "truncate") {
             if (this.constructor === type) {
@@ -6766,7 +6766,7 @@
             } ]
         };
         try {
-            if (args.data) {
+            if (args.data || args.data === "") {
                 let decoder;
                 if (isInstanceOf(args.data, ABIDecoder)) {
                     decoder = args.data;
@@ -7367,12 +7367,6 @@
     }
     ABIEncoder.__className = "ABIEncoder";
     class Struct {
-        constructor(object) {
-            const self = this.constructor;
-            for (const field of self.structFields) {
-                this[field.name] = object[field.name];
-            }
-        }
         static from(value) {
             if (value[Resolved] === true) {
                 return new this(value);
@@ -7397,6 +7391,12 @@
             };
             walk(this);
             return rv;
+        }
+        constructor(object) {
+            const self = this.constructor;
+            for (const field of self.structFields) {
+                this[field.name] = object[field.name];
+            }
         }
         equals(other) {
             const self = this.constructor;
@@ -7428,8 +7428,7 @@
             };
         }
         Struct.type = type;
-        function field(type, options) {
-            if (!options) options = {};
+        function field(type, options = {}) {
             return (target, name) => {
                 const ctor = target.constructor;
                 if (!ctor.abiFields) {
@@ -7459,15 +7458,6 @@
         };
     }
     class Variant {
-        constructor(variant) {
-            const abiVariant = this.constructor.abiVariant;
-            this.value = variant[1];
-            const variantIdx = abiVariant.map(abiTypeString).findIndex((t => t === variant[0]));
-            if (0 > variantIdx || abiVariant.length <= variantIdx) {
-                throw new Error(`Unknown variant ${variant[0]}`);
-            }
-            this.variantIdx = variantIdx;
-        }
         static from(object) {
             if (object[Resolved]) {
                 return new this(object);
@@ -7479,6 +7469,15 @@
                 object: object,
                 type: this
             });
+        }
+        constructor(variant) {
+            const abiVariant = this.constructor.abiVariant;
+            this.value = variant[1];
+            const variantIdx = abiVariant.map(abiTypeString).findIndex((t => t === variant[0]));
+            if (0 > variantIdx || abiVariant.length <= variantIdx) {
+                throw new Error(`Unknown variant ${variant[0]}`);
+            }
+            this.variantIdx = variantIdx;
         }
         equals(other) {
             const self = this.constructor;
@@ -7513,12 +7512,6 @@
         Variant.type = type;
     })(Variant || (Variant = {}));
     class Float {
-        constructor(value) {
-            if (!Number.isFinite(value)) {
-                throw new Error("Invalid number");
-            }
-            this.value = value;
-        }
         static from(value) {
             if (isInstanceOf(value, this)) {
                 return value;
@@ -7540,6 +7533,12 @@
             const bytes = secureRandom(this.byteWidth);
             const decoder = new ABIDecoder(bytes);
             return this.fromABI(decoder);
+        }
+        constructor(value) {
+            if (!Number.isFinite(value)) {
+                throw new Error("Invalid number");
+            }
+            this.value = value;
         }
         equals(other) {
             const self = this.constructor;
@@ -7568,12 +7567,6 @@
     Float64.abiName = "float64";
     Float64.byteWidth = 8;
     class Float128 {
-        constructor(data) {
-            if (data.array.length !== 16) {
-                throw new Error("Invalid float128");
-            }
-            this.data = data;
-        }
         static from(value) {
             if (isInstanceOf(value, this)) {
                 return value;
@@ -7590,6 +7583,12 @@
             const bytes = secureRandom(16);
             const decoder = new ABIDecoder(bytes);
             return this.fromABI(decoder);
+        }
+        constructor(data) {
+            if (data.array.length !== 16) {
+                throw new Error("Invalid float128");
+            }
+            this.data = data;
         }
         equals(other) {
             const self = this.constructor;
@@ -7608,9 +7607,6 @@
     Float128.abiName = "float128";
     Float128.byteWidth = 16;
     class Name {
-        constructor(value) {
-            this.value = value;
-        }
         get rawValue() {
             return this.value;
         }
@@ -7630,6 +7626,9 @@
         }
         static abiDefault() {
             return new this(UInt64.from(0));
+        }
+        constructor(value) {
+            this.value = value;
         }
         equals(other) {
             return this.value.equals(Name.from(other).value);
@@ -7745,10 +7744,6 @@
     }
     TimePointBase.abiName = "__time_point_base";
     class TimePoint extends TimePointBase {
-        constructor(value) {
-            super();
-            this.value = value;
-        }
         static fromMilliseconds(ms) {
             return new this(Int64.from(Math.round(ms * 1e3)));
         }
@@ -7757,6 +7752,10 @@
         }
         static fromABI(decoder) {
             return new this(Int64.fromABI(decoder));
+        }
+        constructor(value) {
+            super();
+            this.value = value;
         }
         toString() {
             return this.toDate().toISOString().slice(0, -1);
@@ -7767,10 +7766,6 @@
     }
     TimePoint.abiName = "time_point";
     class TimePointSec extends TimePointBase {
-        constructor(value) {
-            super();
-            this.value = value;
-        }
         static fromMilliseconds(ms) {
             return new this(UInt32.from(Math.round(ms / 1e3)));
         }
@@ -7779,6 +7774,10 @@
         }
         static fromABI(decoder) {
             return new this(UInt32.fromABI(decoder));
+        }
+        constructor(value) {
+            super();
+            this.value = value;
         }
         toString() {
             return this.toDate().toISOString().slice(0, -5);
@@ -7789,10 +7788,6 @@
     }
     TimePointSec.abiName = "time_point_sec";
     class BlockTimestamp extends TimePointBase {
-        constructor(value) {
-            super();
-            this.value = value;
-        }
         static fromMilliseconds(ms) {
             return new this(UInt32.from(Math.round((ms - 9466848e5) / 500)));
         }
@@ -7801,6 +7796,10 @@
         }
         static fromABI(decoder) {
             return new this(UInt32.fromABI(decoder));
+        }
+        constructor(value) {
+            super();
+            this.value = value;
         }
         toString() {
             return this.toDate().toISOString().slice(0, -1);
@@ -8165,10 +8164,6 @@
         ABI.ResolvedType = ResolvedType;
     })(ABI || (ABI = {}));
     class Asset {
-        constructor(units, symbol) {
-            this.units = units;
-            this.symbol = symbol;
-        }
         static from(value, symbol) {
             if (isInstanceOf(value, Asset)) {
                 return value;
@@ -8212,6 +8207,10 @@
         static abiDefault() {
             return new this(Int64.from(0), Asset.Symbol.abiDefault());
         }
+        constructor(units, symbol) {
+            this.units = units;
+            this.symbol = symbol;
+        }
         equals(other) {
             const {symbol: symbol, units: units} = Asset.from(other);
             return this.symbol.value.equals(symbol.value) && this.units.equals(units);
@@ -8253,15 +8252,6 @@
     Asset.abiName = "asset";
     (function(Asset) {
         class Symbol {
-            constructor(value) {
-                if (toSymbolPrecision(value) > Symbol.maxPrecision) {
-                    throw new Error("Invalid asset symbol, precision too large");
-                }
-                if (!Symbol.symbolNamePattern.test(toSymbolName(value))) {
-                    throw new Error("Invalid asset symbol, name must be uppercase A-Z");
-                }
-                this.value = value;
-            }
             static from(value) {
                 if (isInstanceOf(value, Symbol)) {
                     return value;
@@ -8284,6 +8274,15 @@
             }
             static abiDefault() {
                 return this.from("4,SYS");
+            }
+            constructor(value) {
+                if (toSymbolPrecision(value) > Symbol.maxPrecision) {
+                    throw new Error("Invalid asset symbol, precision too large");
+                }
+                if (!Symbol.symbolNamePattern.test(toSymbolName(value))) {
+                    throw new Error("Invalid asset symbol, name must be uppercase A-Z");
+                }
+                this.value = value;
             }
             equals(other) {
                 return this.value.equals(Symbol.from(other).value);
@@ -8314,13 +8313,10 @@
             }
         }
         Symbol.abiName = "symbol";
-        Symbol.symbolNamePattern = /^[A-Z]{1,7}$/;
+        Symbol.symbolNamePattern = /^[A-Z]{0,7}$/;
         Symbol.maxPrecision = 18;
         Asset.Symbol = Symbol;
         class SymbolCode {
-            constructor(value) {
-                this.value = value;
-            }
             static from(value) {
                 if (isInstanceOf(value, SymbolCode)) {
                     return value;
@@ -8335,6 +8331,9 @@
             }
             static abiDefault() {
                 return this.from("SYS");
+            }
+            constructor(value) {
+                this.value = value;
             }
             equals(other) {
                 return this.value.equals(SymbolCode.from(other).value);
@@ -8353,10 +8352,6 @@
         Asset.SymbolCode = SymbolCode;
     })(Asset || (Asset = {}));
     class ExtendedAsset {
-        constructor(quantity, contract) {
-            this.quantity = quantity;
-            this.contract = contract;
-        }
         static from(value) {
             if (isInstanceOf(value, ExtendedAsset)) {
                 return value;
@@ -8365,6 +8360,10 @@
         }
         static fromABI(decoder) {
             return new ExtendedAsset(Asset.fromABI(decoder), Name.fromABI(decoder));
+        }
+        constructor(quantity, contract) {
+            this.quantity = quantity;
+            this.contract = contract;
         }
         equals(other) {
             return this.quantity.equals(other.quantity) && this.contract.equals(other.contract);
@@ -8564,10 +8563,6 @@
         }
     })(Base58 || (Base58 = {}));
     class PublicKey {
-        constructor(type, data) {
-            this.type = type;
-            this.data = data;
-        }
         static from(value) {
             if (isInstanceOf(value, PublicKey)) {
                 return value;
@@ -8607,6 +8602,10 @@
                 return new PublicKey(KeyType.WA, data);
             }
             return new PublicKey(type, new Bytes(decoder.readArray(33)));
+        }
+        constructor(type, data) {
+            this.type = type;
+            this.data = data;
         }
         equals(other) {
             const otherKey = PublicKey.from(other);
@@ -8665,10 +8664,6 @@
         }, pubkey);
     }
     class Signature {
-        constructor(type, data) {
-            this.type = type;
-            this.data = data;
-        }
         static from(value) {
             if (isInstanceOf(value, Signature)) {
                 return value;
@@ -8714,6 +8709,10 @@
                 return new Signature(KeyType.WA, data);
             }
             return new Signature(type, new Bytes(decoder.readArray(65)));
+        }
+        constructor(type, data) {
+            this.type = type;
+            this.data = data;
         }
         equals(other) {
             const otherSig = Signature.from(other);
@@ -8800,13 +8799,6 @@
         return privkey.toArrayLike(Uint8Array, "be", 32);
     }
     class PrivateKey {
-        constructor(type, data) {
-            if ((type === KeyType.K1 || type === KeyType.R1) && data.length !== 32) {
-                throw new Error("Invalid private key length");
-            }
-            this.type = type;
-            this.data = data;
-        }
         static from(value) {
             if (isInstanceOf(value, PrivateKey)) {
                 return value;
@@ -8834,6 +8826,13 @@
         }
         static generate(type) {
             return new PrivateKey(KeyType.from(type), new Bytes(generate(type)));
+        }
+        constructor(type, data) {
+            if ((type === KeyType.K1 || type === KeyType.R1) && data.length !== 32) {
+                throw new Error("Invalid private key length");
+            }
+            this.type = type;
+            this.data = data;
         }
         signDigest(digest) {
             digest = Checksum256.from(digest);
@@ -9381,29 +9380,25 @@
         optional: true
     }) ], AccountObject.prototype, "rex_info", void 0);
     AccountObject = __decorate([ Struct.type("account_object") ], AccountObject);
-    let NewProducersEntry = class NewProducersEntry extends Struct {};
-    __decorate([ Struct.field("name") ], NewProducersEntry.prototype, "producer_name", void 0);
-    __decorate([ Struct.field("public_key") ], NewProducersEntry.prototype, "block_signing_key", void 0);
-    NewProducersEntry = __decorate([ Struct.type("new_producers_entry") ], NewProducersEntry);
-    let NewProducers = class NewProducers extends Struct {};
-    __decorate([ Struct.field("uint32") ], NewProducers.prototype, "version", void 0);
-    __decorate([ Struct.field(NewProducersEntry, {
+    let NewProducersEntry$1 = class NewProducersEntry extends Struct {};
+    __decorate([ Struct.field("name") ], NewProducersEntry$1.prototype, "producer_name", void 0);
+    __decorate([ Struct.field("public_key") ], NewProducersEntry$1.prototype, "block_signing_key", void 0);
+    NewProducersEntry$1 = __decorate([ Struct.type("new_producers_entry") ], NewProducersEntry$1);
+    let NewProducers$1 = class NewProducers extends Struct {};
+    __decorate([ Struct.field("uint32") ], NewProducers$1.prototype, "version", void 0);
+    __decorate([ Struct.field(NewProducersEntry$1, {
         array: true
-    }) ], NewProducers.prototype, "producers", void 0);
-    NewProducers = __decorate([ Struct.type("new_producers") ], NewProducers);
-    let BlockExtension = class BlockExtension extends Struct {};
-    __decorate([ Struct.field("uint16") ], BlockExtension.prototype, "type", void 0);
-    __decorate([ Struct.field("bytes") ], BlockExtension.prototype, "data", void 0);
-    BlockExtension = __decorate([ Struct.type("block_extension") ], BlockExtension);
-    let HeaderExtension = class HeaderExtension extends Struct {};
-    __decorate([ Struct.field("uint16") ], HeaderExtension.prototype, "type", void 0);
-    __decorate([ Struct.field("bytes") ], HeaderExtension.prototype, "data", void 0);
-    HeaderExtension = __decorate([ Struct.type("header_extension") ], HeaderExtension);
-    class TrxVariant {
-        constructor(id, extra) {
-            this.id = id;
-            this.extra = extra;
-        }
+    }) ], NewProducers$1.prototype, "producers", void 0);
+    NewProducers$1 = __decorate([ Struct.type("new_producers") ], NewProducers$1);
+    let BlockExtension$1 = class BlockExtension extends Struct {};
+    __decorate([ Struct.field("uint16") ], BlockExtension$1.prototype, "type", void 0);
+    __decorate([ Struct.field("bytes") ], BlockExtension$1.prototype, "data", void 0);
+    BlockExtension$1 = __decorate([ Struct.type("block_extension") ], BlockExtension$1);
+    let HeaderExtension$1 = class HeaderExtension extends Struct {};
+    __decorate([ Struct.field("uint16") ], HeaderExtension$1.prototype, "type", void 0);
+    __decorate([ Struct.field("bytes") ], HeaderExtension$1.prototype, "data", void 0);
+    HeaderExtension$1 = __decorate([ Struct.type("header_extension") ], HeaderExtension$1);
+    let TrxVariant$1 = class TrxVariant {
         static from(data) {
             let id;
             let extra;
@@ -9415,6 +9410,10 @@
                 extra = data;
             }
             return new this(id, extra);
+        }
+        constructor(id, extra) {
+            this.id = id;
+            this.extra = extra;
         }
         get transaction() {
             if (this.extra.packed_trx) {
@@ -9435,14 +9434,14 @@
         toJSON() {
             return this.id;
         }
-    }
-    TrxVariant.abiName = "trx_variant";
+    };
+    TrxVariant$1.abiName = "trx_variant";
     let GetBlockResponseTransactionReceipt = class GetBlockResponseTransactionReceipt extends TransactionReceipt {
         get id() {
             return this.trx.id;
         }
     };
-    __decorate([ Struct.field(TrxVariant) ], GetBlockResponseTransactionReceipt.prototype, "trx", void 0);
+    __decorate([ Struct.field(TrxVariant$1) ], GetBlockResponseTransactionReceipt.prototype, "trx", void 0);
     GetBlockResponseTransactionReceipt = __decorate([ Struct.type("get_block_response_receipt") ], GetBlockResponseTransactionReceipt);
     let GetBlockResponse = class GetBlockResponse extends Struct {};
     __decorate([ Struct.field("time_point") ], GetBlockResponse.prototype, "timestamp", void 0);
@@ -9452,7 +9451,7 @@
     __decorate([ Struct.field("checksum256") ], GetBlockResponse.prototype, "transaction_mroot", void 0);
     __decorate([ Struct.field("checksum256") ], GetBlockResponse.prototype, "action_mroot", void 0);
     __decorate([ Struct.field("uint32") ], GetBlockResponse.prototype, "schedule_version", void 0);
-    __decorate([ Struct.field(NewProducers, {
+    __decorate([ Struct.field(NewProducers$1, {
         optional: true
     }) ], GetBlockResponse.prototype, "new_producers", void 0);
     __decorate([ Struct.field("header_extension", {
@@ -9494,7 +9493,7 @@
     __decorate([ Struct.field("checksum256") ], BlockStateHeader.prototype, "transaction_mroot", void 0);
     __decorate([ Struct.field("checksum256") ], BlockStateHeader.prototype, "action_mroot", void 0);
     __decorate([ Struct.field("uint32") ], BlockStateHeader.prototype, "schedule_version", void 0);
-    __decorate([ Struct.field(HeaderExtension, {
+    __decorate([ Struct.field(HeaderExtension$1, {
         array: true,
         optional: true
     }) ], BlockStateHeader.prototype, "header_extensions", void 0);
@@ -9924,17 +9923,6 @@
         }
     }
     class APIError extends Error {
-        constructor(path, response) {
-            let message;
-            if (response.json && response.json.error) {
-                message = `${APIError.formatError(response.json.error)} at ${path}`;
-            } else {
-                message = `HTTP ${response.status} at ${path}`;
-            }
-            super(message);
-            this.path = path;
-            this.response = response;
-        }
         static formatError(error) {
             if (error.what === "unspecified" && error.details[0].file && error.details[0].file === "http_plugin.cpp" && error.details[0].message.slice(0, 11) === "unknown key") {
                 return "Account not found";
@@ -9945,6 +9933,17 @@
             } else {
                 return "Unknown API error";
             }
+        }
+        constructor(path, response) {
+            let message;
+            if (response.json && response.json.error) {
+                message = `${APIError.formatError(response.json.error)} at ${path}`;
+            } else {
+                message = `HTTP ${response.status} at ${path}`;
+            }
+            super(message);
+            this.path = path;
+            this.response = response;
         }
         get error() {
             const {json: json} = this.response;
@@ -9994,6 +9993,134 @@
         }
     }
     APIClient.__className = "APIClient";
+    var BlockHeader_1;
+    let HandshakeMessage = class HandshakeMessage extends Struct {};
+    __decorate([ Struct.field("uint16") ], HandshakeMessage.prototype, "networkVersion", void 0);
+    __decorate([ Struct.field("checksum256") ], HandshakeMessage.prototype, "chainId", void 0);
+    __decorate([ Struct.field("checksum256") ], HandshakeMessage.prototype, "nodeId", void 0);
+    __decorate([ Struct.field("public_key") ], HandshakeMessage.prototype, "key", void 0);
+    __decorate([ Struct.field("int64") ], HandshakeMessage.prototype, "time", void 0);
+    __decorate([ Struct.field("checksum256") ], HandshakeMessage.prototype, "token", void 0);
+    __decorate([ Struct.field("signature") ], HandshakeMessage.prototype, "sig", void 0);
+    __decorate([ Struct.field("string") ], HandshakeMessage.prototype, "p2pAddress", void 0);
+    __decorate([ Struct.field("uint32") ], HandshakeMessage.prototype, "lastIrreversibleBlockNumber", void 0);
+    __decorate([ Struct.field("checksum256") ], HandshakeMessage.prototype, "lastIrreversibleBlockId", void 0);
+    __decorate([ Struct.field("uint32") ], HandshakeMessage.prototype, "headNum", void 0);
+    __decorate([ Struct.field("checksum256") ], HandshakeMessage.prototype, "headId", void 0);
+    __decorate([ Struct.field("string") ], HandshakeMessage.prototype, "os", void 0);
+    __decorate([ Struct.field("string") ], HandshakeMessage.prototype, "agent", void 0);
+    __decorate([ Struct.field("int16") ], HandshakeMessage.prototype, "generation", void 0);
+    HandshakeMessage = __decorate([ Struct.type("handshake_message") ], HandshakeMessage);
+    let ChainSizeMessage = class ChainSizeMessage extends Struct {};
+    __decorate([ Struct.field("uint32") ], ChainSizeMessage.prototype, "lastIrreversibleBlockNumber", void 0);
+    __decorate([ Struct.field("checksum256") ], ChainSizeMessage.prototype, "lastIrreversibleBlockId", void 0);
+    __decorate([ Struct.field("uint32") ], ChainSizeMessage.prototype, "headNum", void 0);
+    __decorate([ Struct.field("checksum256") ], ChainSizeMessage.prototype, "headId", void 0);
+    ChainSizeMessage = __decorate([ Struct.type("chain_size_message") ], ChainSizeMessage);
+    let GoAwayMessage = class GoAwayMessage extends Struct {};
+    __decorate([ Struct.field("uint8") ], GoAwayMessage.prototype, "reason", void 0);
+    __decorate([ Struct.field("checksum256") ], GoAwayMessage.prototype, "nodeId", void 0);
+    GoAwayMessage = __decorate([ Struct.type("go_away_message") ], GoAwayMessage);
+    let TimeMessage = class TimeMessage extends Struct {};
+    __decorate([ Struct.field("int64") ], TimeMessage.prototype, "org", void 0);
+    __decorate([ Struct.field("int64") ], TimeMessage.prototype, "rec", void 0);
+    __decorate([ Struct.field("int64") ], TimeMessage.prototype, "xmt", void 0);
+    __decorate([ Struct.field("int64") ], TimeMessage.prototype, "dst", void 0);
+    TimeMessage = __decorate([ Struct.type("time_message") ], TimeMessage);
+    let NoticeMessage = class NoticeMessage extends Struct {};
+    __decorate([ Struct.field("checksum256", {
+        array: true
+    }) ], NoticeMessage.prototype, "knownTrx", void 0);
+    __decorate([ Struct.field("checksum256", {
+        array: true
+    }) ], NoticeMessage.prototype, "knownBlocks", void 0);
+    NoticeMessage = __decorate([ Struct.type("notice_message") ], NoticeMessage);
+    let RequestMessage = class RequestMessage extends Struct {};
+    __decorate([ Struct.field("checksum256", {
+        array: true
+    }) ], RequestMessage.prototype, "reqTrx", void 0);
+    __decorate([ Struct.field("checksum256", {
+        array: true
+    }) ], RequestMessage.prototype, "reqBlocks", void 0);
+    RequestMessage = __decorate([ Struct.type("request_message") ], RequestMessage);
+    let SyncRequestMessage = class SyncRequestMessage extends Struct {};
+    __decorate([ Struct.field("uint32") ], SyncRequestMessage.prototype, "startBlock", void 0);
+    __decorate([ Struct.field("uint32") ], SyncRequestMessage.prototype, "endBlock", void 0);
+    SyncRequestMessage = __decorate([ Struct.type("sync_request_message") ], SyncRequestMessage);
+    let NewProducersEntry = class NewProducersEntry extends Struct {};
+    __decorate([ Struct.field("name") ], NewProducersEntry.prototype, "producer_name", void 0);
+    __decorate([ Struct.field("public_key") ], NewProducersEntry.prototype, "block_signing_key", void 0);
+    NewProducersEntry = __decorate([ Struct.type("new_producers_entry") ], NewProducersEntry);
+    let NewProducers = class NewProducers extends Struct {};
+    __decorate([ Struct.field("uint32") ], NewProducers.prototype, "version", void 0);
+    __decorate([ Struct.field(NewProducersEntry, {
+        array: true
+    }) ], NewProducers.prototype, "producers", void 0);
+    NewProducers = __decorate([ Struct.type("new_producers") ], NewProducers);
+    let BlockExtension = class BlockExtension extends Struct {};
+    __decorate([ Struct.field("uint16") ], BlockExtension.prototype, "type", void 0);
+    __decorate([ Struct.field("bytes") ], BlockExtension.prototype, "data", void 0);
+    BlockExtension = __decorate([ Struct.type("block_extension") ], BlockExtension);
+    let HeaderExtension = class HeaderExtension extends Struct {};
+    __decorate([ Struct.field("uint16") ], HeaderExtension.prototype, "type", void 0);
+    __decorate([ Struct.field("bytes") ], HeaderExtension.prototype, "data", void 0);
+    HeaderExtension = __decorate([ Struct.type("header_extension") ], HeaderExtension);
+    let TrxVariant = class TrxVariant extends Variant {};
+    TrxVariant = __decorate([ Variant.type("trx_variant", [ Checksum256, PackedTransaction ]) ], TrxVariant);
+    let FullTransactionReceipt = class FullTransactionReceipt extends Struct {};
+    __decorate([ Struct.field(UInt8) ], FullTransactionReceipt.prototype, "status", void 0);
+    __decorate([ Struct.field(UInt32) ], FullTransactionReceipt.prototype, "cpu_usage_us", void 0);
+    __decorate([ Struct.field(VarUInt) ], FullTransactionReceipt.prototype, "net_usage_words", void 0);
+    __decorate([ Struct.field(TrxVariant) ], FullTransactionReceipt.prototype, "trx", void 0);
+    FullTransactionReceipt = __decorate([ Struct.type("full_transaction_receipt") ], FullTransactionReceipt);
+    let BlockHeader = BlockHeader_1 = class BlockHeader extends Struct {
+        get blockNum() {
+            const bytes = this.previous.array.slice(0, 4);
+            let num = 0;
+            for (let i = 0; i < 4; i++) {
+                num = (num << 8) + bytes[i];
+            }
+            return num + 1;
+        }
+        get id() {
+            const id = Checksum256.hash(Serializer.encode({
+                object: this,
+                type: BlockHeader_1
+            }));
+            const numBuffer = new Uint8Array(4);
+            numBuffer[0] = this.blockNum >> 24 & 255;
+            numBuffer[1] = this.blockNum >> 16 & 255;
+            numBuffer[2] = this.blockNum >> 8 & 255;
+            numBuffer[3] = this.blockNum & 255;
+            id.array.set(numBuffer, 0);
+            return id;
+        }
+    };
+    __decorate([ Struct.field("uint32") ], BlockHeader.prototype, "timeSlot", void 0);
+    __decorate([ Struct.field("name") ], BlockHeader.prototype, "producer", void 0);
+    __decorate([ Struct.field("uint16") ], BlockHeader.prototype, "confirmed", void 0);
+    __decorate([ Struct.field("checksum256") ], BlockHeader.prototype, "previous", void 0);
+    __decorate([ Struct.field("checksum256") ], BlockHeader.prototype, "transaction_mroot", void 0);
+    __decorate([ Struct.field("checksum256") ], BlockHeader.prototype, "action_mroot", void 0);
+    __decorate([ Struct.field("uint32") ], BlockHeader.prototype, "schedule_version", void 0);
+    __decorate([ Struct.field(NewProducers, {
+        optional: true
+    }) ], BlockHeader.prototype, "new_producers", void 0);
+    __decorate([ Struct.field(HeaderExtension, {
+        array: true
+    }) ], BlockHeader.prototype, "header_extensions", void 0);
+    BlockHeader = BlockHeader_1 = __decorate([ Struct.type("block_header") ], BlockHeader);
+    let SignedBlock = class SignedBlock extends BlockHeader {};
+    __decorate([ Struct.field("signature") ], SignedBlock.prototype, "producer_signature", void 0);
+    __decorate([ Struct.field(FullTransactionReceipt, {
+        array: true
+    }) ], SignedBlock.prototype, "transactions", void 0);
+    __decorate([ Struct.field(BlockExtension, {
+        array: true
+    }) ], SignedBlock.prototype, "block_extensions", void 0);
+    SignedBlock = __decorate([ Struct.type("signed_block") ], SignedBlock);
+    let NetMessage = class NetMessage extends Variant {};
+    NetMessage = __decorate([ Variant.type("net_message", [ HandshakeMessage, ChainSizeMessage, GoAwayMessage, TimeMessage, NoticeMessage, RequestMessage, SyncRequestMessage, SignedBlock, PackedTransaction ]) ], NetMessage);
     var pako = {};
     var deflate$4 = {};
     var deflate$3 = {};
@@ -14917,41 +15044,7 @@
         const exp = UInt32.from(expireSeconds);
         return TimePointSec.fromInteger(ts.value.adding(exp));
     }
-    /**
-     * @wharfkit/session v0.2.0
-     * https://github.com/wharfkit/session
-     *
-     * @license
-     * Copyright (c) 2021 FFF00 Agents AB & Greymass Inc. All Rights Reserved.
-     * 
-     * Redistribution and use in source and binary forms, with or without modification,
-     * are permitted provided that the following conditions are met:
-     * 
-     *  1. Redistribution of source code must retain the above copyright notice, this
-     *     list of conditions and the following disclaimer.
-     * 
-     *  2. Redistribution in binary form must reproduce the above copyright notice,
-     *     this list of conditions and the following disclaimer in the documentation
-     *     and/or other materials provided with the distribution.
-     * 
-     *  3. Neither the name of the copyright holder nor the names of its contributors
-     *     may be used to endorse or promote products derived from this software without
-     *     specific prior written permission.
-     * 
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-     * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-     * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-     * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-     * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-     * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-     * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-     * OF THE POSSIBILITY OF SUCH DAMAGE.
-     * 
-     * YOU ACKNOWLEDGE THAT THIS SOFTWARE IS NOT DESIGNED, LICENSED OR INTENDED FOR USE
-     * IN THE DESIGN, CONSTRUCTION, OPERATION OR MAINTENANCE OF ANY MILITARY FACILITY.
-     */    class ABICache {
+    class ABICache {
         constructor(client) {
             this.client = client;
             this.cache = new Map;
@@ -14978,12 +15071,66 @@
             return record;
         }
     }
-    var TransactHookTypes;
+    var LoginHookTypes$1;
+    (function(LoginHookTypes) {
+        LoginHookTypes["beforeLogin"] = "beforeLogin";
+        LoginHookTypes["afterLogin"] = "afterLogin";
+    })(LoginHookTypes$1 || (LoginHookTypes$1 = {}));
+    class LoginContext {
+        constructor(options) {
+            this.chains = [];
+            this.hooks = {
+                afterLogin: [],
+                beforeLogin: []
+            };
+            this.uiRequirements = {
+                requiresChainSelect: true,
+                requiresPermissionSelect: true,
+                requiresPermissionEntry: false,
+                requiresWalletSelect: true
+            };
+            this.walletPlugins = [];
+            this.appName = options.appName;
+            if (options.chains) {
+                this.chains = options.chains;
+            }
+            if (options.chain) {
+                this.chain = options.chain;
+            }
+            this.fetch = options.fetch;
+            this.permissionLevel = options.permissionLevel;
+            this.walletPlugins = options.walletPlugins || [];
+            this.ui = options.ui;
+            options.loginPlugins?.forEach((plugin => {
+                plugin.register(this);
+            }));
+        }
+        addHook(t, hook) {
+            this.hooks[t].push(hook);
+        }
+        getClient(chain) {
+            return new APIClient({
+                provider: new FetchProvider(chain.url, {
+                    fetch: this.fetch
+                })
+            });
+        }
+        get esrOptions() {
+            return {
+                zlib: pako
+            };
+        }
+    }
+    class AbstractLoginPlugin {}
+    class BaseLoginPlugin extends AbstractLoginPlugin {
+        register() {}
+    }
+    var TransactHookTypes$1;
     (function(TransactHookTypes) {
         TransactHookTypes["beforeSign"] = "beforeSign";
         TransactHookTypes["afterSign"] = "afterSign";
         TransactHookTypes["afterBroadcast"] = "afterBroadcast";
-    })(TransactHookTypes || (TransactHookTypes = {}));
+    })(TransactHookTypes$1 || (TransactHookTypes$1 = {}));
     class TransactContext {
         constructor(options) {
             this.hooks = {
@@ -14991,15 +15138,18 @@
                 afterSign: [],
                 beforeSign: []
             };
-            if (options.abiCache) {
-                this.abiCache = options.abiCache;
-            } else {
-                this.abiCache = new ABICache(options.client);
-            }
+            this.abiProvider = options.abiProvider;
+            this.appName = options.appName;
+            this.chain = options.chain;
             this.client = options.client;
+            this.createRequest = options.createRequest;
             this.fetch = options.fetch;
             this.permissionLevel = options.permissionLevel;
+            if (options.storage) {
+                this.storage = options.storage;
+            }
             this.transactPluginsOptions = options.transactPluginsOptions || {};
+            this.ui = options.ui;
             options.transactPlugins?.forEach((plugin => {
                 plugin.register(this);
             }));
@@ -15012,7 +15162,7 @@
         }
         get esrOptions() {
             return {
-                abiProvider: new ABICache(this.client),
+                abiProvider: this.abiProvider,
                 zlib: pako
             };
         }
@@ -15022,8 +15172,11 @@
         async resolve(request, expireSeconds = 120) {
             const info = await this.client.v1.chain.get_info();
             const header = info.getTransactionHeader(expireSeconds);
-            const abis = await request.fetchAbis(this.abiCache);
-            return request.resolve(abis, this.permissionLevel, header);
+            const abis = await request.fetchAbis(this.abiProvider);
+            return request.resolve(abis, this.permissionLevel, {
+                ...header,
+                chainId: this.chain.id
+            });
         }
     }
     class TransactRevisions {
@@ -15053,12 +15206,60 @@
     }
     class AbstractTransactPlugin {}
     class BaseTransactPlugin extends AbstractTransactPlugin {
+        get id() {
+            return "base-transact-plugin";
+        }
         register() {}
     }
-    let ChainDefinition = class ChainDefinition extends Struct {};
-    __decorate([ Struct.field("checksum256") ], ChainDefinition.prototype, "id", void 0);
-    __decorate([ Struct.field("string") ], ChainDefinition.prototype, "url", void 0);
-    ChainDefinition = __decorate([ Struct.type("chain_definition") ], ChainDefinition);
+    const chainNames$1 = new Map([ [ "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906", "EOS" ], [ "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c", "FIO" ], [ "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e", "FIO (Testnet)" ], [ "2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840", "Jungle 3 (Testnet)" ], [ "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d", "Jungle 4 (Testnet)" ], [ "5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191", "Kylin (Testnet)" ], [ "38b1d7815474d0c60683ecbea321d723e83f5da6ae5f1c1f9fecc69d9ba96465", "Libre" ], [ "b64646740308df2ee06c6b72f34c0f7fa066d940e831f752db2006fcc2b78dee", "Libre (Testnet)" ], [ "384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0", "Proton" ], [ "71ee83bcf52142d61019d95f9cc5427ba6a0d7ff8accd9e2088ae2abeaf3d3dd", "Proton (Testnet)" ], [ "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11", "Telos" ], [ "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", "Telos (Testnet)" ], [ "8fc6dce7942189f842170de953932b1f66693ad3788f766e777b6f9d22335c02", "UX" ], [ "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", "WAX" ], [ "f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12", "WAX (Testnet)" ] ]);
+    let ExplorerDefinition$1 = class ExplorerDefinition extends Struct {
+        url(id) {
+            return `${this.prefix}${id}${this.suffix}`;
+        }
+    };
+    __decorate([ Struct.field("string") ], ExplorerDefinition$1.prototype, "prefix", void 0);
+    __decorate([ Struct.field("string") ], ExplorerDefinition$1.prototype, "suffix", void 0);
+    ExplorerDefinition$1 = __decorate([ Struct.type("explorer_definition") ], ExplorerDefinition$1);
+    let ChainDefinition$1 = class ChainDefinition extends Struct {
+        get name() {
+            const id = String(this.id);
+            return chainNames$1.has(id) ? chainNames$1.get(id) : "Unknown blockchain";
+        }
+    };
+    __decorate([ Struct.field("checksum256") ], ChainDefinition$1.prototype, "id", void 0);
+    __decorate([ Struct.field("string") ], ChainDefinition$1.prototype, "url", void 0);
+    __decorate([ Struct.field(ExplorerDefinition$1, {
+        optional: true
+    }) ], ChainDefinition$1.prototype, "explorer", void 0);
+    ChainDefinition$1 = __decorate([ Struct.type("chain_definition") ], ChainDefinition$1);
+    class Canceled extends Error {
+        constructor(reason, silent = false) {
+            super(reason);
+            this.silent = false;
+            this.silent = silent;
+            Object.setPrototypeOf(this, Canceled.prototype);
+        }
+    }
+    function cancelable(promise, onCancel) {
+        let cancel = null;
+        const cancelable = new Promise(((resolve, reject) => {
+            cancel = (reason = "", silent = false) => {
+                try {
+                    if (onCancel) {
+                        onCancel(new Canceled(reason, silent));
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+                return cancelable;
+            };
+            promise.then(resolve, reject);
+        }));
+        if (cancel) {
+            cancelable.cancel = cancel;
+        }
+        return cancelable;
+    }
     function getFetch(options) {
         if (options && options.fetch) {
             return options.fetch;
@@ -15072,13 +15273,29 @@
         throw new Error("Missing fetch");
     }
     class Session {
-        constructor(options) {
-            this.abiCache = ABICache;
+        constructor(args, options = {}) {
             this.allowModify = true;
             this.broadcast = true;
             this.expireSeconds = 120;
             this.transactPluginsOptions = {};
-            this.chain = ChainDefinition.from(options.chain);
+            this.serialize = () => Serializer.objectify({
+                chain: this.chain.id,
+                actor: this.permissionLevel.actor,
+                permission: this.permissionLevel.permission,
+                walletPlugin: this.walletPlugin.serialize()
+            });
+            this.chain = ChainDefinition$1.from(args.chain);
+            if (args.permissionLevel) {
+                this.permissionLevel = PermissionLevel$1.from(args.permissionLevel);
+            } else if (args.actor && args.permission) {
+                this.permissionLevel = PermissionLevel$1.from(`${args.actor}@${args.permission}`);
+            } else {
+                throw new Error("Either a permissionLevel or actor/permission must be provided when creating a new Session.");
+            }
+            this.walletPlugin = args.walletPlugin;
+            if (options.appName) {
+                this.appName = Name.from(options.appName);
+            }
             if (options.allowModify !== undefined) {
                 this.allowModify = options.allowModify;
             }
@@ -15093,6 +15310,9 @@
             } else {
                 this.fetch = getFetch(options);
             }
+            if (options.storage) {
+                this.storage = options.storage;
+            }
             if (options.transactPlugins) {
                 this.transactPlugins = options.transactPlugins;
             } else {
@@ -15101,14 +15321,14 @@
             if (options.transactPluginsOptions) {
                 this.transactPluginsOptions = options.transactPluginsOptions;
             }
-            if (options.permissionLevel) {
-                this.permissionLevel = PermissionLevel$1.from(options.permissionLevel);
-            } else if (options.actor && options.permission) {
-                this.permissionLevel = PermissionLevel$1.from(`${options.actor}@${options.permission}`);
+            if (options.abiProvider) {
+                this.abiProvider = options.abiProvider;
             } else {
-                throw new Error("Either a permissionLevel or actor/permission must be provided when creating a new Session.");
+                this.abiProvider = new ABICache(this.client);
             }
-            this.wallet = options.walletPlugin;
+            if (options.ui) {
+                this.ui = options.ui;
+            }
         }
         get actor() {
             return this.permissionLevel.actor;
@@ -15169,6 +15389,7 @@
                     chainId: this.chain.id
                 }, options);
             }
+            request.setBroadcast(false);
             return request;
         }
         async updateRequest(previous, modified, abiProvider) {
@@ -15183,80 +15404,176 @@
             return updatedRequest;
         }
         async transact(args, options) {
-            const abiCache = new ABICache(this.client);
-            const context = new TransactContext({
-                abiCache: abiCache,
-                client: this.client,
-                fetch: this.fetch,
-                permissionLevel: this.permissionLevel,
-                transactPlugins: options?.transactPlugins || this.transactPlugins,
-                transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions
-            });
-            let request = await this.createRequest(args, abiCache);
-            const result = {
-                chain: this.chain,
-                request: request,
-                resolved: undefined,
-                revisions: new TransactRevisions(request),
-                signatures: [],
-                signer: this.permissionLevel,
-                transaction: undefined
-            };
-            const allowModify = options && typeof options.allowModify !== "undefined" ? options.allowModify : this.allowModify;
-            const expireSeconds = options && options.expireSeconds ? options.expireSeconds : this.expireSeconds;
-            const willBroadcast = options && typeof options.broadcast !== "undefined" ? options.broadcast : this.broadcast;
-            for (const hook of context.hooks.beforeSign) {
-                const response = await hook(request.clone(), context);
-                result.revisions.addRevision(response, String(hook), allowModify);
-                if (allowModify) {
-                    request = await this.updateRequest(request, response.request, abiCache);
-                }
-                if (response.signatures) {
-                    result.signatures = [ ...result.signatures, ...response.signatures ];
-                }
-            }
-            result.request = request;
-            result.resolved = await context.resolve(request, expireSeconds);
-            result.transaction = result.resolved.resolvedTransaction;
-            const signature = await this.wallet.sign(this.chain, result.resolved);
-            result.signatures.push(signature);
-            for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context);
-            if (willBroadcast) {
-                const signed = SignedTransaction.from({
-                    ...result.resolved.transaction,
-                    signatures: result.signatures
+            try {
+                const expireSeconds = options && options.expireSeconds ? options.expireSeconds : this.expireSeconds;
+                const willBroadcast = options && typeof options.broadcast !== "undefined" ? options.broadcast : this.broadcast;
+                const abiProvider = options?.abiProvider || this.abiProvider;
+                const transactPlugins = options?.transactPlugins || this.transactPlugins;
+                const transactPluginsOptions = options?.transactPluginsOptions || this.transactPluginsOptions;
+                let allowModify = options && typeof options.allowModify !== "undefined" ? options.allowModify : this.allowModify;
+                const context = new TransactContext({
+                    abiProvider: abiProvider,
+                    appName: this.appName,
+                    chain: this.chain,
+                    client: this.client,
+                    createRequest: args => this.createRequest(args, abiProvider),
+                    fetch: this.fetch,
+                    permissionLevel: this.permissionLevel,
+                    storage: this.storage,
+                    transactPlugins: transactPlugins,
+                    transactPluginsOptions: transactPluginsOptions,
+                    ui: this.ui
                 });
-                result.response = await context.client.v1.chain.send_transaction(signed);
-                for (const hook of context.hooks.afterBroadcast) await hook(result.request.clone(), context);
+                if (context.ui) {
+                    await context.ui.onTransact();
+                    for (const translation of transactPlugins.map((transactPlugin => this.getPluginTranslations(transactPlugin)))) {
+                        context.ui.addTranslations(translation);
+                    }
+                }
+                let request = await this.createRequest(args, abiProvider);
+                const result = {
+                    chain: this.chain,
+                    request: request,
+                    resolved: undefined,
+                    revisions: new TransactRevisions(request),
+                    signatures: [],
+                    signer: this.permissionLevel,
+                    transaction: undefined
+                };
+                for (const hook of context.hooks.beforeSign) {
+                    const response = await hook(request.clone(), context);
+                    if (response) {
+                        result.revisions.addRevision(response, String(hook), allowModify);
+                        if (allowModify) {
+                            request = await this.updateRequest(request, response.request, abiProvider);
+                        }
+                        if (response.signatures) {
+                            result.signatures = [ ...result.signatures, ...response.signatures ];
+                            allowModify = false;
+                        }
+                    }
+                }
+                result.request = request;
+                result.resolved = await context.resolve(request, expireSeconds);
+                result.transaction = result.resolved.resolvedTransaction;
+                if (context.ui) {
+                    await context.ui.onSign();
+                    context.ui.addTranslations(this.getPluginTranslations(this.walletPlugin));
+                }
+                const walletResponse = await this.walletPlugin.sign(result.resolved, context);
+                if (context.ui) {
+                    await context.ui.onSignComplete();
+                }
+                result.signatures.push(...walletResponse.signatures);
+                if (walletResponse.request) {
+                    const requestWasModified = !request.getRawTransaction().equals(walletResponse.request.getRawTransaction());
+                    if (requestWasModified) {
+                        if (allowModify) {
+                            result.request = walletResponse.request;
+                            result.resolved = await context.resolve(walletResponse.request, expireSeconds);
+                            result.transaction = result.resolved.resolvedTransaction;
+                        } else {
+                            throw new Error(`The ${this.walletPlugin.metadata.name} plugin modified the transaction when it was not allowed to.`);
+                        }
+                    }
+                }
+                for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context);
+                if (willBroadcast) {
+                    if (context.ui) {
+                        await context.ui.onBroadcast();
+                    }
+                    const signed = SignedTransaction.from({
+                        ...result.resolved.transaction,
+                        signatures: result.signatures
+                    });
+                    result.response = await context.client.v1.chain.send_transaction(signed);
+                    for (const hook of context.hooks.afterBroadcast) await hook(result.request.clone(), context, result);
+                    if (context.ui) {
+                        await context.ui.onBroadcastComplete();
+                    }
+                }
+                if (context.ui) {
+                    await context.ui.onTransactComplete();
+                }
+                return result;
+            } catch (error) {
+                if (error.response && error.response.json) {
+                    const {json: json} = error.response;
+                    if (json.error && json.error.details) {
+                        const e = new Error(json.error.details[0].message);
+                        if (this.ui) {
+                            await this.ui.onError(e);
+                        }
+                        throw e;
+                    }
+                } else {
+                    if (this.ui) {
+                        await this.ui.onError(error);
+                    }
+                }
+                throw new Error(error);
             }
-            return result;
+        }
+        getPluginTranslations(transactPlugin) {
+            if (!transactPlugin.translations) {
+                return {};
+            }
+            const prefixed = {};
+            const languages = Object.keys(transactPlugin.translations);
+            languages.forEach((lang => {
+                if (transactPlugin.translations) {
+                    prefixed[lang] = {
+                        [transactPlugin.id]: transactPlugin.translations[lang]
+                    };
+                }
+            }));
+            return prefixed;
         }
     }
-    var LoginHookTypes;
-    (function(LoginHookTypes) {
-        LoginHookTypes["beforeLogin"] = "beforeLogin";
-        LoginHookTypes["afterLogin"] = "afterLogin";
-    })(LoginHookTypes || (LoginHookTypes = {}));
-    class AbstractLoginPlugin {}
-    class BaseLoginPlugin extends AbstractLoginPlugin {
-        register() {}
+    class BrowserLocalStorage {
+        constructor(keyPrefix) {
+            this.keyPrefix = keyPrefix;
+        }
+        async write(key, data) {
+            localStorage.setItem(this.storageKey(key), data);
+        }
+        async read(key) {
+            return localStorage.getItem(this.storageKey(key));
+        }
+        async remove(key) {
+            localStorage.removeItem(this.storageKey(key));
+        }
+        storageKey(key) {
+            return `wharf-${this.keyPrefix}-${key}`;
+        }
     }
     class SessionKit {
         constructor(options) {
+            this.allowModify = true;
             this.expireSeconds = 120;
             this.transactPluginsOptions = {};
+            if (typeof options.allowModify !== "undefined") {
+                this.allowModify = options.allowModify;
+            }
             this.appName = Name.from(options.appName);
-            this.chains = options.chains.map((chain => ChainDefinition.from(chain)));
+            this.chains = options.chains.map((chain => ChainDefinition$1.from(chain)));
             if (options.expireSeconds) {
                 this.expireSeconds = options.expireSeconds;
             }
             if (options.fetch) {
                 this.fetch = options.fetch;
+            } else {
+                this.fetch = getFetch(options);
             }
             if (options.loginPlugins) {
                 this.loginPlugins = options.loginPlugins;
             } else {
                 this.loginPlugins = [ new BaseLoginPlugin ];
+            }
+            if (options.storage) {
+                this.storage = options.storage;
+            } else {
+                this.storage = new BrowserLocalStorage(this.appName.toString());
             }
             if (options.transactPlugins) {
                 this.transactPlugins = options.transactPlugins;
@@ -15266,72 +15583,245 @@
             if (options.transactPluginsOptions) {
                 this.transactPluginsOptions = options.transactPluginsOptions;
             }
+            if (options.ui) {
+                this.ui = options.ui;
+            }
             this.walletPlugins = options.walletPlugins;
         }
-        getChain(id) {
+        getChainDefinition(id, override) {
+            const chains = override ? override : this.chains;
             const chainId = Checksum256.from(id);
-            const chain = this.chains.find((c => c.id.equals(chainId)));
+            const chain = chains.find((c => c.id.equals(chainId)));
             if (!chain) {
-                throw new Error(`No ChainDefinition found for ${chainId}`);
+                throw new Error(`No chain defined with the ID of: ${chainId}`);
             }
             return chain;
         }
         async login(options) {
-            const chain = this.chains[0];
-            const context = {
-                chain: chain,
-                expireSeconds: this.expireSeconds,
-                fetch: this.fetch,
-                permissionLevel: "eosio@active",
-                transactPlugins: options?.transactPlugins || this.transactPlugins,
-                transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
-                walletPlugin: this.walletPlugins[0]
-            };
-            const walletContext = {
-                chain: chain,
-                permissionLevel: PermissionLevel$1.from("eosio@active")
-            };
-            const walletOptions = {
-                appName: this.appName,
-                chains: this.chains,
-                context: walletContext
-            };
-            if (options?.walletPlugin) {
-                context.walletPlugin = options.walletPlugin;
+            if (!this.ui) {
+                throw new Error("An instance of a UserInterface must be provided to utilize the login method.");
             }
-            if (options?.chain) {
-                context.chain = this.getChain(options.chain);
+            const context = new LoginContext({
+                appName: this.appName,
+                chain: undefined,
+                chains: options && options?.chains ? options.chains.map((c => this.getChainDefinition(c))) : this.chains,
+                fetch: this.fetch,
+                ui: this.ui,
+                walletPlugins: this.walletPlugins.map((plugin => ({
+                    config: plugin.config,
+                    metadata: plugin.metadata
+                })))
+            });
+            await context.ui.onLogin();
+            if (options && options.chain) {
+                context.chain = this.getChainDefinition(options.chain, context.chains);
+                context.uiRequirements.requiresChainSelect = false;
+            } else if (context.chains.length === 1) {
+                context.chain = context.chains[0];
+                context.uiRequirements.requiresChainSelect = false;
             }
             if (options?.permissionLevel) {
                 context.permissionLevel = PermissionLevel$1.from(options.permissionLevel);
+                context.uiRequirements.requiresPermissionSelect = false;
             }
-            const response = await context.walletPlugin.login(walletOptions);
-            context.chain = response.chain;
-            context.permissionLevel = response.permissionLevel;
-            return new Session(context);
-        }
-    }
-    class WalletPluginPrivateKey {
-        constructor(options) {
-            this.privateKey = PrivateKey.from(options.privateKey);
-        }
-        login(options) {
+            let walletPlugin = undefined;
+            if (this.walletPlugins.length === 1) {
+                walletPlugin = this.walletPlugins[0];
+                context.uiRequirements.requiresWalletSelect = false;
+            } else if (options?.walletPlugin) {
+                walletPlugin = this.walletPlugins.find((p => p.id === options.walletPlugin));
+                if (walletPlugin) {
+                    context.uiRequirements.requiresWalletSelect = false;
+                }
+            }
+            if (context.uiRequirements.requiresChainSelect || context.uiRequirements.requiresPermissionSelect || context.uiRequirements.requiresPermissionEntry || context.uiRequirements.requiresWalletSelect) {
+                const uiLoginResponse = await context.ui.login(context);
+                if (uiLoginResponse.walletPluginIndex !== undefined) {
+                    walletPlugin = this.walletPlugins[uiLoginResponse.walletPluginIndex];
+                }
+                if (!walletPlugin) {
+                    throw new Error("UserInterface did not return a valid WalletPlugin index.");
+                }
+                if (uiLoginResponse.chainId) {
+                    if (!context.chains.some((c => c.id.equals(uiLoginResponse.chainId)))) {
+                        throw new Error("UserInterface did not return a chain ID matching the subset of chains.");
+                    }
+                    context.chain = this.getChainDefinition(uiLoginResponse.chainId, context.chains);
+                }
+                if (uiLoginResponse.permissionLevel) {
+                    context.permissionLevel = PermissionLevel$1.from(uiLoginResponse.permissionLevel);
+                }
+            }
+            if (!walletPlugin) {
+                throw new Error("No WalletPlugin available to perform the login.");
+            }
+            const {supportedChains: supportedChains} = walletPlugin.config;
+            if (context.chain && supportedChains && supportedChains.length && !supportedChains.includes(String(context.chain.id))) {
+                throw new Error(`The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${context.chain.id}'`);
+            }
+            const response = await walletPlugin.login(context);
+            const session = new Session({
+                chain: this.getChainDefinition(response.chain),
+                permissionLevel: response.permissionLevel,
+                walletPlugin: walletPlugin
+            }, this.getSessionOptions(options));
+            await context.ui.onLoginComplete();
+            this.persistSession(session);
             return {
-                chain: ChainDefinition.from({
-                    id: Checksum256.from(options.context.chain.id),
-                    url: options.context.chain.url
-                }),
-                permissionLevel: PermissionLevel$1.from(options.context.permissionLevel)
+                context: context,
+                response: response,
+                session: session
             };
         }
-        sign(chain, resolved) {
-            const transaction = Transaction.from(resolved.transaction);
-            const digest = transaction.signingDigest(Checksum256.from(chain.id));
-            return this.privateKey.signDigest(digest);
+        async logout(session) {
+            if (!this.storage) {
+                throw new Error("An instance of Storage must be provided to utilize the logout method.");
+            }
+            await this.storage.remove("session");
+            if (session) {
+                const sessions = await this.getSessions();
+                if (sessions) {
+                    const serialized = session.serialize();
+                    const other = sessions.filter((s => !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) || !Name.from(s.actor).equals(Name.from(serialized.actor)) || !Name.from(s.permission).equals(Name.from(serialized.permission))));
+                    await this.storage.write("sessions", JSON.stringify(other));
+                }
+            } else {
+                await this.storage.remove("sessions");
+            }
+        }
+        async restore(args, options) {
+            if (!args && this.storage) {
+                const data = await this.storage.read("session");
+                if (data) {
+                    args = JSON.parse(data);
+                }
+            }
+            if (!args) {
+                throw new Error("Either a RestoreArgs object or a Storage instance must be provided.");
+            }
+            const walletPlugin = this.walletPlugins.find((p => {
+                if (!args) {
+                    return false;
+                }
+                return p.id === args.walletPlugin.id;
+            }));
+            if (!walletPlugin) {
+                throw new Error(`No WalletPlugin found with the ID of: '${args.walletPlugin.id}'`);
+            }
+            if (args.walletPlugin.data) {
+                walletPlugin.data = args.walletPlugin.data;
+            }
+            const session = new Session({
+                chain: this.getChainDefinition(args.chain),
+                permissionLevel: PermissionLevel$1.from({
+                    actor: args.actor,
+                    permission: args.permission
+                }),
+                walletPlugin: walletPlugin
+            }, this.getSessionOptions(options));
+            this.persistSession(session);
+            return session;
+        }
+        async persistSession(session) {
+            if (!this.storage) {
+                return;
+            }
+            const serialized = session.serialize();
+            this.storage.write("session", JSON.stringify(serialized));
+            const existing = await this.storage.read("sessions");
+            if (existing) {
+                const sessions = JSON.parse(existing);
+                const other = sessions.filter((s => !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) || !Name.from(s.actor).equals(Name.from(serialized.actor)) || !Name.from(s.permission).equals(Name.from(serialized.permission))));
+                const orderedSessions = [ ...other, serialized ];
+                this.storage.write("sessions", JSON.stringify(orderedSessions));
+            } else {
+                this.storage.write("sessions", JSON.stringify([ serialized ]));
+            }
+        }
+        async getSessions() {
+            if (!this.storage) {
+                throw new Error("No storage instance is available to retrieve sessions from.");
+            }
+            const data = await this.storage.read("sessions");
+            if (!data) return [];
+            try {
+                const parsed = JSON.parse(data);
+                const filtered = parsed.filter((s => this.walletPlugins.some((p => p.id === s.walletPlugin.id))));
+                return filtered;
+            } catch (e) {
+                throw new Error(`Failed to parse sessions from storage (${e})`);
+            }
+        }
+        getSessionOptions(options) {
+            return {
+                allowModify: this.allowModify,
+                appName: this.appName,
+                expireSeconds: this.expireSeconds,
+                fetch: this.fetch,
+                storage: this.storage,
+                transactPlugins: options?.transactPlugins || this.transactPlugins,
+                transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+                ui: this.ui
+            };
         }
     }
-    const mockUrl = "https://jungle4.greymass.com";
+    class AbstractUserInterface {
+        translate(key, options, namespace) {
+            throw new Error("The `translate` method must be implemented in this UserInterface. Called with: " + JSON.stringify({
+                key: key,
+                options: options,
+                namespace: namespace
+            }));
+        }
+        getTranslate(namespace) {
+            return (key, options) => this.translate(key, options, namespace);
+        }
+        addTranslations(translations) {
+            throw new Error("The `addTranslations` method must be implemented in this UserInterface. Called with: " + JSON.stringify(translations));
+        }
+    }
+    class AbstractWalletPlugin$1 {
+        constructor() {
+            this._data = {};
+            this.config = {
+                requiresChainSelect: true,
+                requiresPermissionSelect: false,
+                requiresPermissionEntry: false
+            };
+            this.metadata = {};
+        }
+        get data() {
+            return this._data;
+        }
+        set data(data) {
+            this._data = data;
+        }
+        serialize() {
+            return {
+                id: this.id,
+                data: this.data
+            };
+        }
+    }
     const mockChainId = "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d";
+    const mockUrl = "https://jungle4.greymass.com";
+    const mockChainDefinition = {
+        id: mockChainId,
+        url: mockUrl
+    };
+    const mockChainDefinitions = [ mockChainDefinition, {
+        id: "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
+        url: "https://eos.greymass.com"
+    }, {
+        id: "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
+        url: "https://telos.greymass.com"
+    }, {
+        id: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
+        url: "https://wax.greymass.com"
+    }, {
+        id: "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590",
+        url: "https://mockuserinterface.greymass.com"
+    } ];
     const mockPrivateKey = "5Jtoxgny5tT7NiNFp1MLogviuPJ9NniWjnU4wKzaX4t7pL4kJ8s";
     const mockAccountName = "wharfkit1111";
     const mockPermissionName = "test";
@@ -15372,6 +15862,258 @@
         return transaction;
     }
     const data = {
+        "750338c6437c6e0f3e0a67c8362a6c9839e5f6ea.json": {
+            request: {
+                path: "https://jungle4.greymass.com/v1/resource_provider/request_transaction",
+                params: {
+                    method: "POST",
+                    body: '{"ref":"unittest","request":"esr://gmMsfmIRpc7x7DpLh8nvg-zz9VdvrLYRihbJ-mIxXW5CYY4vA8OyJhPmVwahDAwM4bo2Z88yCrhx3DxY6vuYAQQmbDxlARMAssE0IwMEsLj6B4No8fKMxKK07MwShcxihZKMVIWk1OISBRtjoBQA","signer":{"actor":"wharfkit1131","permission":"test"}}'
+                }
+            },
+            headers: {
+                "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
+                "access-control-allow-methods": "OPTIONS, GET, POST, GET, POST, OPTIONS",
+                "access-control-allow-origin": "*",
+                "access-control-request-method": "*",
+                connection: "close",
+                "content-length": "740",
+                date: "Tue, 21 Feb 2023 21:19:43 GMT",
+                host: "jungle4.greymass.com",
+                server: "nginx/1.18.0 (Ubuntu)"
+            },
+            status: 200,
+            json: {
+                code: 200,
+                data: {
+                    request: [ "transaction", {
+                        expiration: "2023-02-21T21:24:44",
+                        ref_block_num: 37131,
+                        ref_block_prefix: 1359383036,
+                        max_net_usage_words: 0,
+                        max_cpu_usage_ms: 5,
+                        delay_sec: 0,
+                        context_free_actions: [],
+                        actions: [ {
+                            account: "greymassnoop",
+                            name: "noop",
+                            authorization: [ {
+                                actor: "greymassfuel",
+                                permission: "cosign"
+                            } ],
+                            data: ""
+                        }, {
+                            account: "eosio.token",
+                            name: "transfer",
+                            authorization: [ {
+                                actor: "wharfkit1131",
+                                permission: "test"
+                            } ],
+                            data: "104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
+                        } ],
+                        transaction_extensions: []
+                    } ],
+                    signatures: [ "SIG_K1_KA8Pk3FprCgnRJiwuagttm6Bg6zZWc6uuNMcy3dgMKPUeRHxFRPq7ePuRriU4uVq5FgHxF9yWBJKm1kVRE4VwYFxoZ2e7s" ],
+                    version: null
+                }
+            },
+            text: '{"code":200,"data":{"request":["transaction",{"expiration":"2023-02-21T21:24:44","ref_block_num":37131,"ref_block_prefix":1359383036,"max_net_usage_words":0,"max_cpu_usage_ms":5,"delay_sec":0,"context_free_actions":[],"actions":[{"account":"greymassnoop","name":"noop","authorization":[{"actor":"greymassfuel","permission":"cosign"}],"data":""},{"account":"eosio.token","name":"transfer","authorization":[{"actor":"wharfkit1131","permission":"test"}],"data":"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"}],"transaction_extensions":[]}],"signatures":["SIG_K1_KA8Pk3FprCgnRJiwuagttm6Bg6zZWc6uuNMcy3dgMKPUeRHxFRPq7ePuRriU4uVq5FgHxF9yWBJKm1kVRE4VwYFxoZ2e7s"],"version":null}}'
+        },
+        "84b9bfb7f869655fbba05cf577c8db9e7ea15b74.json": {
+            request: {
+                path: "https://jungle4.greymass.com/v1/chain/send_transaction",
+                params: {
+                    method: "POST",
+                    body: '{"signatures":["SIG_K1_KA8Pk3FprCgnRJiwuagttm6Bg6zZWc6uuNMcy3dgMKPUeRHxFRPq7ePuRriU4uVq5FgHxF9yWBJKm1kVRE4VwYFxoZ2e7s","SIG_K1_KbgCQP6NzhojH4oV2D5rxhHDFhcesdbmUKQWn12sFbdR2BaB2BW3FtwaMMG2mLqsQSCWJshiG1p6uM6jpZbueuGvXxj1xZ"],"compression":0,"packed_context_free_data":"00","packed_trx":"9c36f5630b91fc890651000500000250299d181be9d565000000000050299d0110955e181be9d565000000004ce630450000a6823403ea3055000000572d3ccdcd01104608d9c1754de3000000000090b1ca38104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c3300"}'
+                }
+            },
+            headers: {
+                "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
+                "access-control-allow-methods": "GET, POST, OPTIONS",
+                "access-control-allow-origin": "*",
+                connection: "close",
+                "content-length": "4212",
+                "content-type": "application/json",
+                date: "Tue, 21 Feb 2023 21:19:44 GMT",
+                server: "nginx/1.18.0 (Ubuntu)"
+            },
+            status: 202,
+            json: {
+                transaction_id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                processed: {
+                    id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                    block_num: 62558804,
+                    block_time: "2023-02-21T21:19:44.500",
+                    producer_block_id: null,
+                    receipt: {
+                        status: "executed",
+                        cpu_usage_us: 301,
+                        net_usage_words: 25
+                    },
+                    elapsed: 301,
+                    net_usage: 200,
+                    scheduled: false,
+                    action_traces: [ {
+                        action_ordinal: 1,
+                        creator_action_ordinal: 0,
+                        closest_unnotified_ancestor_action_ordinal: 0,
+                        receipt: {
+                            receiver: "greymassnoop",
+                            act_digest: "7e44678e9aa77c87176ebec3185e93569fd2768bc7d0d5a4e6506a955add5863",
+                            global_sequence: 67311004,
+                            recv_sequence: 65,
+                            auth_sequence: [ [ "greymassfuel", 66 ] ],
+                            code_sequence: 0,
+                            abi_sequence: 1
+                        },
+                        receiver: "greymassnoop",
+                        act: {
+                            account: "greymassnoop",
+                            name: "noop",
+                            authorization: [ {
+                                actor: "greymassfuel",
+                                permission: "cosign"
+                            } ],
+                            data: ""
+                        },
+                        context_free: false,
+                        elapsed: 22,
+                        console: "",
+                        trx_id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                        block_num: 62558804,
+                        block_time: "2023-02-21T21:19:44.500",
+                        producer_block_id: null,
+                        account_ram_deltas: [],
+                        except: null,
+                        error_code: null,
+                        return_value_hex_data: ""
+                    }, {
+                        action_ordinal: 2,
+                        creator_action_ordinal: 0,
+                        closest_unnotified_ancestor_action_ordinal: 0,
+                        receipt: {
+                            receiver: "eosio.token",
+                            act_digest: "1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c",
+                            global_sequence: 67311005,
+                            recv_sequence: 228060,
+                            auth_sequence: [ [ "wharfkit1131", 30 ] ],
+                            code_sequence: 2,
+                            abi_sequence: 2
+                        },
+                        receiver: "eosio.token",
+                        act: {
+                            account: "eosio.token",
+                            name: "transfer",
+                            authorization: [ {
+                                actor: "wharfkit1131",
+                                permission: "test"
+                            } ],
+                            data: {
+                                from: "wharfkit1131",
+                                to: "wharfkittest",
+                                quantity: "0.0001 EOS",
+                                memo: "wharfkit is the best <3"
+                            },
+                            hex_data: "104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
+                        },
+                        context_free: false,
+                        elapsed: 46,
+                        console: "",
+                        trx_id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                        block_num: 62558804,
+                        block_time: "2023-02-21T21:19:44.500",
+                        producer_block_id: null,
+                        account_ram_deltas: [],
+                        except: null,
+                        error_code: null,
+                        return_value_hex_data: ""
+                    }, {
+                        action_ordinal: 3,
+                        creator_action_ordinal: 2,
+                        closest_unnotified_ancestor_action_ordinal: 2,
+                        receipt: {
+                            receiver: "wharfkit1131",
+                            act_digest: "1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c",
+                            global_sequence: 67311006,
+                            recv_sequence: 11,
+                            auth_sequence: [ [ "wharfkit1131", 31 ] ],
+                            code_sequence: 2,
+                            abi_sequence: 2
+                        },
+                        receiver: "wharfkit1131",
+                        act: {
+                            account: "eosio.token",
+                            name: "transfer",
+                            authorization: [ {
+                                actor: "wharfkit1131",
+                                permission: "test"
+                            } ],
+                            data: {
+                                from: "wharfkit1131",
+                                to: "wharfkittest",
+                                quantity: "0.0001 EOS",
+                                memo: "wharfkit is the best <3"
+                            },
+                            hex_data: "104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
+                        },
+                        context_free: false,
+                        elapsed: 11,
+                        console: "",
+                        trx_id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                        block_num: 62558804,
+                        block_time: "2023-02-21T21:19:44.500",
+                        producer_block_id: null,
+                        account_ram_deltas: [],
+                        except: null,
+                        error_code: null,
+                        return_value_hex_data: ""
+                    }, {
+                        action_ordinal: 4,
+                        creator_action_ordinal: 2,
+                        closest_unnotified_ancestor_action_ordinal: 2,
+                        receipt: {
+                            receiver: "wharfkittest",
+                            act_digest: "1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c",
+                            global_sequence: 67311007,
+                            recv_sequence: 230,
+                            auth_sequence: [ [ "wharfkit1131", 32 ] ],
+                            code_sequence: 2,
+                            abi_sequence: 2
+                        },
+                        receiver: "wharfkittest",
+                        act: {
+                            account: "eosio.token",
+                            name: "transfer",
+                            authorization: [ {
+                                actor: "wharfkit1131",
+                                permission: "test"
+                            } ],
+                            data: {
+                                from: "wharfkit1131",
+                                to: "wharfkittest",
+                                quantity: "0.0001 EOS",
+                                memo: "wharfkit is the best <3"
+                            },
+                            hex_data: "104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
+                        },
+                        context_free: false,
+                        elapsed: 5,
+                        console: "",
+                        trx_id: "d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f",
+                        block_num: 62558804,
+                        block_time: "2023-02-21T21:19:44.500",
+                        producer_block_id: null,
+                        account_ram_deltas: [],
+                        except: null,
+                        error_code: null,
+                        return_value_hex_data: ""
+                    } ],
+                    account_ram_delta: null,
+                    except: null,
+                    error_code: null
+                }
+            },
+            text: '{"transaction_id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","processed":{"id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","block_num":62558804,"block_time":"2023-02-21T21:19:44.500","producer_block_id":null,"receipt":{"status":"executed","cpu_usage_us":301,"net_usage_words":25},"elapsed":301,"net_usage":200,"scheduled":false,"action_traces":[{"action_ordinal":1,"creator_action_ordinal":0,"closest_unnotified_ancestor_action_ordinal":0,"receipt":{"receiver":"greymassnoop","act_digest":"7e44678e9aa77c87176ebec3185e93569fd2768bc7d0d5a4e6506a955add5863","global_sequence":67311004,"recv_sequence":65,"auth_sequence":[["greymassfuel",66]],"code_sequence":0,"abi_sequence":1},"receiver":"greymassnoop","act":{"account":"greymassnoop","name":"noop","authorization":[{"actor":"greymassfuel","permission":"cosign"}],"data":""},"context_free":false,"elapsed":22,"console":"","trx_id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","block_num":62558804,"block_time":"2023-02-21T21:19:44.500","producer_block_id":null,"account_ram_deltas":[],"except":null,"error_code":null,"return_value_hex_data":""},{"action_ordinal":2,"creator_action_ordinal":0,"closest_unnotified_ancestor_action_ordinal":0,"receipt":{"receiver":"eosio.token","act_digest":"1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c","global_sequence":67311005,"recv_sequence":228060,"auth_sequence":[["wharfkit1131",30]],"code_sequence":2,"abi_sequence":2},"receiver":"eosio.token","act":{"account":"eosio.token","name":"transfer","authorization":[{"actor":"wharfkit1131","permission":"test"}],"data":{"from":"wharfkit1131","to":"wharfkittest","quantity":"0.0001 EOS","memo":"wharfkit is the best <3"},"hex_data":"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"},"context_free":false,"elapsed":46,"console":"","trx_id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","block_num":62558804,"block_time":"2023-02-21T21:19:44.500","producer_block_id":null,"account_ram_deltas":[],"except":null,"error_code":null,"return_value_hex_data":""},{"action_ordinal":3,"creator_action_ordinal":2,"closest_unnotified_ancestor_action_ordinal":2,"receipt":{"receiver":"wharfkit1131","act_digest":"1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c","global_sequence":67311006,"recv_sequence":11,"auth_sequence":[["wharfkit1131",31]],"code_sequence":2,"abi_sequence":2},"receiver":"wharfkit1131","act":{"account":"eosio.token","name":"transfer","authorization":[{"actor":"wharfkit1131","permission":"test"}],"data":{"from":"wharfkit1131","to":"wharfkittest","quantity":"0.0001 EOS","memo":"wharfkit is the best <3"},"hex_data":"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"},"context_free":false,"elapsed":11,"console":"","trx_id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","block_num":62558804,"block_time":"2023-02-21T21:19:44.500","producer_block_id":null,"account_ram_deltas":[],"except":null,"error_code":null,"return_value_hex_data":""},{"action_ordinal":4,"creator_action_ordinal":2,"closest_unnotified_ancestor_action_ordinal":2,"receipt":{"receiver":"wharfkittest","act_digest":"1857230261daaec7550bdf7b841708fd94a3c2027fa67c47033d582da956ea7c","global_sequence":67311007,"recv_sequence":230,"auth_sequence":[["wharfkit1131",32]],"code_sequence":2,"abi_sequence":2},"receiver":"wharfkittest","act":{"account":"eosio.token","name":"transfer","authorization":[{"actor":"wharfkit1131","permission":"test"}],"data":{"from":"wharfkit1131","to":"wharfkittest","quantity":"0.0001 EOS","memo":"wharfkit is the best <3"},"hex_data":"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"},"context_free":false,"elapsed":5,"console":"","trx_id":"d3b4cd18587d6a1756aef7e5b387c1e85f5cc48a43b81ca124a6ea554efa3b0f","block_num":62558804,"block_time":"2023-02-21T21:19:44.500","producer_block_id":null,"account_ram_deltas":[],"except":null,"error_code":null,"return_value_hex_data":""}],"account_ram_delta":null,"except":null,"error_code":null}}'
+        },
         "84c6c998b3d0aef535d5e951490b3464991017f5.json": {
             request: {
                 path: "https://jungle4.greymass.com/v1/chain/get_abi",
@@ -16096,26 +16838,393 @@
         }
         throw new Error(`No data for ${path}`);
     }
+    var LoginHookTypes;
+    (function(LoginHookTypes) {
+        LoginHookTypes["beforeLogin"] = "beforeLogin";
+        LoginHookTypes["afterLogin"] = "afterLogin";
+    })(LoginHookTypes || (LoginHookTypes = {}));
+    var TransactHookTypes;
+    (function(TransactHookTypes) {
+        TransactHookTypes["beforeSign"] = "beforeSign";
+        TransactHookTypes["afterSign"] = "afterSign";
+        TransactHookTypes["afterBroadcast"] = "afterBroadcast";
+    })(TransactHookTypes || (TransactHookTypes = {}));
+    const chainNames = new Map([ [ "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906", "EOS" ], [ "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c", "FIO" ], [ "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e", "FIO (Testnet)" ], [ "2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840", "Jungle 3 (Testnet)" ], [ "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d", "Jungle 4 (Testnet)" ], [ "5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191", "Kylin (Testnet)" ], [ "38b1d7815474d0c60683ecbea321d723e83f5da6ae5f1c1f9fecc69d9ba96465", "Libre" ], [ "b64646740308df2ee06c6b72f34c0f7fa066d940e831f752db2006fcc2b78dee", "Libre (Testnet)" ], [ "384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0", "Proton" ], [ "71ee83bcf52142d61019d95f9cc5427ba6a0d7ff8accd9e2088ae2abeaf3d3dd", "Proton (Testnet)" ], [ "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11", "Telos" ], [ "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", "Telos (Testnet)" ], [ "8fc6dce7942189f842170de953932b1f66693ad3788f766e777b6f9d22335c02", "UX" ], [ "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", "WAX" ], [ "f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12", "WAX (Testnet)" ] ]);
+    let ExplorerDefinition = class ExplorerDefinition extends Struct {
+        url(id) {
+            return `${this.prefix}${id}${this.suffix}`;
+        }
+    };
+    __decorate([ Struct.field("string") ], ExplorerDefinition.prototype, "prefix", void 0);
+    __decorate([ Struct.field("string") ], ExplorerDefinition.prototype, "suffix", void 0);
+    ExplorerDefinition = __decorate([ Struct.type("explorer_definition") ], ExplorerDefinition);
+    let ChainDefinition = class ChainDefinition extends Struct {
+        get name() {
+            const id = String(this.id);
+            return chainNames.has(id) ? chainNames.get(id) : "Unknown blockchain";
+        }
+    };
+    __decorate([ Struct.field("checksum256") ], ChainDefinition.prototype, "id", void 0);
+    __decorate([ Struct.field("string") ], ChainDefinition.prototype, "url", void 0);
+    __decorate([ Struct.field(ExplorerDefinition, {
+        optional: true
+    }) ], ChainDefinition.prototype, "explorer", void 0);
+    ChainDefinition = __decorate([ Struct.type("chain_definition") ], ChainDefinition);
+    function appendAction(request, action) {
+        const newAction = Action.from(action);
+        const cloned = request.clone();
+        if (cloned.data.req.value instanceof Action) {
+            cloned.data.req.value = [ cloned.data.req.value, newAction ];
+            cloned.data.req.variantIdx = 1;
+        } else if (cloned.data.req.value instanceof Array) {
+            cloned.data.req.value.push(newAction);
+        } else if (cloned.data.req.value instanceof Transaction) {
+            cloned.data.req.value.actions.push(newAction);
+        } else {
+            console.log("data", cloned.data.req.value);
+            throw new Error("Unknown request data type");
+        }
+        return cloned;
+    }
+    function prependAction(request, action) {
+        const newAction = Action.from(action);
+        const cloned = request.clone();
+        if (cloned.data.req.value instanceof Action) {
+            console.log("1");
+            cloned.data.req.value = [ newAction, cloned.data.req.value ];
+            cloned.data.req.variantIdx = 1;
+        } else if (cloned.data.req.value instanceof Array) {
+            console.log("2");
+            cloned.data.req.value.unshift(newAction);
+        } else if (cloned.data.req.value instanceof Transaction) {
+            console.log("3");
+            cloned.data.req.value.actions.unshift(newAction);
+        } else {
+            console.log("data", cloned.data.req.value);
+            throw new Error("Unknown request data type");
+        }
+        return cloned;
+    }
+    class AbstractWalletPlugin {
+        constructor() {
+            this._data = {};
+            this.config = {
+                requiresChainSelect: true,
+                requiresPermissionSelect: false,
+                requiresPermissionEntry: false
+            };
+            this.metadata = {};
+        }
+        get data() {
+            return this._data;
+        }
+        set data(data) {
+            this._data = data;
+        }
+        serialize() {
+            return {
+                id: this.id,
+                data: this.data
+            };
+        }
+    }
+    /**
+     * @wharfkit/wallet-plugin-privatekey v0.3.0-ui-13
+     * https://github.com/wharfkit/wallet-plugin-privatekey
+     *
+     * @license
+     * Copyright (c) 2023 Greymass Inc. All Rights Reserved.
+     * 
+     * Redistribution and use in source and binary forms, with or without modification,
+     * are permitted provided that the following conditions are met:
+     * 
+     * 1.  Redistribution of source code must retain the above copyright notice, this
+     *     list of conditions and the following disclaimer.
+     * 
+     * 2.  Redistribution in binary form must reproduce the above copyright notice,
+     *     this list of conditions and the following disclaimer in the documentation
+     *     and/or other materials provided with the distribution.
+     * 
+     * 3.  Neither the name of the copyright holder nor the names of its contributors
+     *     may be used to endorse or promote products derived from this software without
+     *     specific prior written permission.
+     * 
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+     * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+     * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+     * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+     * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+     * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+     * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+     * OF THE POSSIBILITY OF SUCH DAMAGE.
+     * 
+     * YOU ACKNOWLEDGE THAT THIS SOFTWARE IS NOT DESIGNED, LICENSED OR INTENDED FOR USE
+     * IN THE DESIGN, CONSTRUCTION, OPERATION OR MAINTENANCE OF ANY MILITARY FACILITY.
+     */    class WalletPluginPrivateKey extends AbstractWalletPlugin {
+        constructor(privateKey) {
+            super();
+            this.config = {
+                requiresChainSelect: true,
+                requiresPermissionSelect: true
+            };
+            this.metadata = {
+                name: "Private Key Signer",
+                description: ""
+            };
+            this.data.privateKey = PrivateKey.from(privateKey);
+            this.metadata.description = `An unsecured wallet that can sign for authorities using the ${String(this.metadata.publicKey).substring(0, 11) + "..." + String(this.metadata.publicKey).substring(String(this.metadata.publicKey).length - 4, String(this.metadata.publicKey).length)} public key.`;
+        }
+        get id() {
+            return "keysigner";
+        }
+        async login(context) {
+            let chain;
+            if (context.chain) {
+                chain = context.chain.id;
+            } else {
+                chain = context.chains[0].id;
+            }
+            if (!context.permissionLevel) {
+                throw new Error("Calling login() without a permissionLevel is not supported by the WalletPluginPrivateKey plugin.");
+            }
+            return {
+                chain: chain,
+                permissionLevel: context.permissionLevel
+            };
+        }
+        async sign(resolved, context) {
+            const transaction = Transaction.from(resolved.transaction);
+            const digest = transaction.signingDigest(Checksum256.from(context.chain.id));
+            const privateKey = PrivateKey.from(this.data.privateKey);
+            const signature = privateKey.signDigest(digest);
+            return {
+                signatures: [ signature ]
+            };
+        }
+    }
+    function makeWallet() {
+        return new WalletPluginPrivateKey(PrivateKey.from(mockPrivateKey));
+    }
+    class MockWalletPluginConfigs extends AbstractWalletPlugin$1 {
+        constructor(config, initialData = {}) {
+            super();
+            this.metadata = {
+                name: "Mock Wallet Plugin",
+                description: "A mock wallet plugin for testing chain selection"
+            };
+            this.testModify = false;
+            if (config) {
+                this.config = config;
+            } else {
+                this.config = {
+                    requiresChainSelect: true,
+                    requiresPermissionSelect: false
+                };
+            }
+            this.data = initialData;
+        }
+        get id() {
+            return "MockWalletPluginConfigs";
+        }
+        login(context) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                return {
+                    chain: context.chain ? context.chain.id : ChainDefinition$1.from(mockChainDefinition).id,
+                    permissionLevel: context.permissionLevel || PermissionLevel$1.from(mockPermissionLevel)
+                };
+            }));
+        }
+        sign(resolved, context) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                if (context.storage) {
+                    context.storage.write("testModify", this.data.testModify);
+                }
+                if (this.data.testModify) {
+                    const request = yield SigningRequest.create({
+                        action: makeMockAction("modified transaction")
+                    }, context.esrOptions);
+                    const modifiedResolved = yield context.resolve(request);
+                    const transaction = Transaction.from(modifiedResolved.transaction);
+                    const digest = transaction.signingDigest(Checksum256.from(context.chain.id));
+                    const privateKey = PrivateKey.from(this.data.privateKey);
+                    const signature = privateKey.signDigest(digest);
+                    return {
+                        request: request,
+                        signatures: [ signature ]
+                    };
+                }
+                const transaction = Transaction.from(resolved.transaction);
+                const digest = transaction.signingDigest(Checksum256.from(context.chain.id));
+                const privateKey = PrivateKey.from(this.data.privateKey);
+                const signature = privateKey.signDigest(digest);
+                return {
+                    signatures: [ signature ]
+                };
+            }));
+        }
+    }
+    class MockStorage {
+        constructor() {
+            this.data = {};
+        }
+        write(key, data) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.data[key] = data;
+            }));
+        }
+        read(key) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                return this.data[key];
+            }));
+        }
+        remove(key) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                delete this.data[key];
+            }));
+        }
+        storageKey(key) {
+            return `mock-${key}`;
+        }
+    }
+    class MockUserInterface extends AbstractUserInterface {
+        constructor() {
+            super(...arguments);
+            this.logging = false;
+            this.messages = [];
+        }
+        log(message) {
+            this.messages.push(message);
+            if (this.logging) {
+                console.info("MockUserInterface", message);
+            }
+        }
+        login(context) {
+            var _a;
+            return __awaiter(this, void 0, void 0, (function*() {
+                let chainId = (_a = context.chain) === null || _a === void 0 ? void 0 : _a.id;
+                if (!chainId) {
+                    chainId = Checksum256.from(context.chains[0].id);
+                }
+                let permissionLevel = context.permissionLevel;
+                if (!permissionLevel) {
+                    permissionLevel = PermissionLevel$1.from("mock@interface");
+                }
+                return {
+                    chainId: chainId,
+                    permissionLevel: permissionLevel,
+                    walletPluginIndex: 0
+                };
+            }));
+        }
+        onError(error) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onError: " + JSON.stringify(error));
+            }));
+        }
+        onLogin(options) {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onLogin: " + JSON.stringify(options));
+            }));
+        }
+        onLoginComplete() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onLoginComplete");
+            }));
+        }
+        onTransact() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onTransact");
+            }));
+        }
+        onTransactComplete() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onTransactComplete");
+            }));
+        }
+        onSign() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onSign");
+            }));
+        }
+        onSignComplete() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onSignComplete");
+            }));
+        }
+        onBroadcast() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onBroadcast");
+            }));
+        }
+        onBroadcastComplete() {
+            return __awaiter(this, void 0, void 0, (function*() {
+                this.log("onBroadcastComplete");
+            }));
+        }
+        prompt(args) {
+            this.log("prompt" + JSON.stringify(args));
+            return cancelable(new Promise((() => {})), (canceled => {
+                throw canceled;
+            }));
+        }
+        status(message) {
+            this.log(`status:('${message}')`);
+        }
+        addTranslations() {
+            this.log("addTranslations");
+        }
+    }
+    const wallet$3 = makeWallet();
+    const mockSessionKitOptions = {
+        appName: "unittest",
+        chains: mockChainDefinitions,
+        fetch: mockFetch,
+        storage: new MockStorage,
+        ui: new MockUserInterface,
+        walletPlugins: [ wallet$3 ]
+    };
+    const mockSessionKit = new SessionKit(mockSessionKitOptions);
+    const mockSessionArgs$1 = {
+        chain: mockChainDefinition,
+        permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
+        walletPlugin: wallet$3
+    };
+    const mockSessionOptions$2 = {
+        broadcast: false,
+        fetch: mockFetch
+    };
+    new Session(mockSessionArgs$1, mockSessionOptions$2);
+    const client$3 = new APIClient({
+        provider: new FetchProvider(mockUrl, {
+            fetch: mockFetch
+        })
+    });
+    const session = new Session(mockSessionArgs$1, mockSessionOptions$2);
+    const abiProvider = new ABICache(client$3);
+    const mockTransactContextOptions = {
+        abiProvider: abiProvider,
+        chain: ChainDefinition$1.from(mockChainDefinition),
+        client: client$3,
+        createRequest: args => __awaiter(void 0, void 0, void 0, (function*() {
+            return session.createRequest(args, abiProvider);
+        })),
+        fetch: mockFetch,
+        permissionLevel: PermissionLevel$1.from("wharfkit1125@test")
+    };
     function makeContext() {
-        return new TransactContext({
-            client: new APIClient({
-                provider: new FetchProvider(mockUrl, {
-                    fetch: mockFetch
-                })
-            }),
-            fetch: mockFetch,
-            permissionLevel: PermissionLevel$1.from("wharfkit1125@test")
-        });
+        return new TransactContext(mockTransactContextOptions);
     }
     const context$1 = makeContext();
     suite("context", (function() {
         suite("abiProvider", (function() {
             test("has default", (function() {
-                chai.assert.isDefined(context$1.abiCache);
+                chai.assert.isDefined(context$1.abiProvider);
             }));
             test("fetches ABIs", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const result = yield context$1.abiCache.getAbi(Name.from("eosio.token"));
+                    const result = yield context$1.abiProvider.getAbi(Name.from("eosio.token"));
                     const abi = ABI.from(result);
                     chai.assert.instanceOf(result, ABI);
                     chai.assert.equal(abi.version, "eosio::abi/1.2");
@@ -16123,22 +17232,30 @@
             }));
             test("caches ABIs", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const result = yield context$1.abiCache.getAbi(Name.from("eosio.token"));
+                    const result = yield context$1.abiProvider.getAbi(Name.from("eosio.token"));
                     const abi = ABI.from(result);
                     chai.assert.instanceOf(result, ABI);
                     chai.assert.equal(abi.version, "eosio::abi/1.2");
                 }));
             }));
         }));
-        suite("esrOptions", (function() {
-            test("has abiProvider", (function() {
-                var _a;
-                chai.assert.isDefined(context$1.esrOptions.abiProvider);
-                chai.assert.isFunction((_a = context$1.esrOptions.abiProvider) === null || _a === void 0 ? void 0 : _a.getAbi);
+        suite("getters", (function() {
+            test("accountName", (function() {
+                chai.assert.isTrue(context$1.accountName.equals("wharfkit1125"), `Expected 'wharfkit1125', got '${context$1.accountName}'`);
             }));
-            test("has zlib", (function() {
-                chai.assert.isDefined(context$1.esrOptions.zlib);
-                chai.assert.instanceOf(context$1.esrOptions.zlib, Object);
+            test("permissionName", (function() {
+                chai.assert.isTrue(context$1.permissionName.equals("test"), `Expected 'test', got '${context$1.permissionName}'`);
+            }));
+            suite("esrOptions", (function() {
+                test("has abiProvider", (function() {
+                    var _a;
+                    chai.assert.isDefined(context$1.esrOptions.abiProvider);
+                    chai.assert.isFunction((_a = context$1.esrOptions.abiProvider) === null || _a === void 0 ? void 0 : _a.getAbi);
+                }));
+                test("has zlib", (function() {
+                    chai.assert.isDefined(context$1.esrOptions.zlib);
+                    chai.assert.instanceOf(context$1.esrOptions.zlib, Object);
+                }));
             }));
         }));
         suite("resolve", (function() {
@@ -16166,32 +17283,6 @@
             })
         });
     }
-    function appendAction(request, action) {
-        const newAction = Action.from(action);
-        const cloned = request.clone();
-        if (cloned.data.req.value instanceof Action) {
-            cloned.data.req.value = [ cloned.data.req.value, newAction ];
-            cloned.data.req.variantIdx = 1;
-        } else if (cloned.data.req.value instanceof Array) {
-            cloned.data.req.value.push(newAction);
-        } else if (cloned.data.req.value instanceof Transaction) {
-            cloned.data.req.value.actions.push(newAction);
-        }
-        return cloned;
-    }
-    function prependAction(request, action) {
-        const newAction = Action.from(action);
-        const cloned = request.clone();
-        if (cloned.data.req.value instanceof Action) {
-            cloned.data.req.value = [ newAction, cloned.data.req.value ];
-            cloned.data.req.variantIdx = 1;
-        } else if (cloned.data.req.value instanceof Array) {
-            cloned.data.req.value.unshift(newAction);
-        } else if (cloned.data.req.value instanceof Transaction) {
-            cloned.data.req.value.actions.unshift(newAction);
-        }
-        return cloned;
-    }
     function mockTransactHook(request) {
         return __awaiter(this, void 0, void 0, (function*() {
             return {
@@ -16201,10 +17292,14 @@
         }));
     }
     class MockTransactPlugin extends AbstractTransactPlugin {
+        constructor() {
+            super(...arguments);
+            this.id = "mock-transact-plugin";
+        }
         register(context) {
-            context.addHook(TransactHookTypes.beforeSign, mockTransactHook);
-            context.addHook(TransactHookTypes.afterSign, mockTransactHook);
-            context.addHook(TransactHookTypes.afterBroadcast, mockTransactHook);
+            context.addHook(TransactHookTypes$1.beforeSign, mockTransactHook);
+            context.addHook(TransactHookTypes$1.afterSign, mockTransactHook);
+            context.addHook(TransactHookTypes$1.afterBroadcast, mockTransactHook);
         }
     }
     class noop extends Struct {}
@@ -16236,12 +17331,17 @@
         }));
     }
     class MockTransactResourceProviderPlugin$1 extends AbstractTransactPlugin {
+        constructor() {
+            super(...arguments);
+            this.id = "mock-transact-resource-provider-plugin";
+        }
         register(context) {
-            context.addHook(TransactHookTypes.beforeSign, mockTransactResourceProviderPresignHook);
+            context.addHook(TransactHookTypes$1.beforeSign, mockTransactResourceProviderPresignHook);
         }
     }
     const mockTransactActionPrependerPlugin = {
-        register: context => context.addHook(TransactHookTypes.beforeSign, ((request, context) => __awaiter(void 0, void 0, void 0, (function*() {
+        id: "mock-transact-action-prepender-plugin",
+        register: context => context.addHook(TransactHookTypes$1.beforeSign, ((request, context) => __awaiter(void 0, void 0, void 0, (function*() {
             return {
                 request: yield SigningRequest.create({
                     actions: [ {
@@ -16258,7 +17358,8 @@
         }))))
     };
     const mockMetadataFooWriterPlugin = {
-        register: context => context.addHook(TransactHookTypes.beforeSign, (request => __awaiter(void 0, void 0, void 0, (function*() {
+        id: "mock-metadata-foo-writer-plugin",
+        register: context => context.addHook(TransactHookTypes$1.beforeSign, (request => __awaiter(void 0, void 0, void 0, (function*() {
             request.setInfoKey("foo", "baz");
             return {
                 request: request
@@ -16378,26 +17479,25 @@
             afterLoginHooks();
         }));
     }));
-    const privateKey = PrivateKey.from(mockPrivateKey);
-    function makeWallet() {
-        return new WalletPluginPrivateKey({
-            privateKey: privateKey
-        });
-    }
     const action$1 = makeMockAction();
-    const defaultSessionKitOptions = {
-        appName: "demo.app",
-        chains: [ {
-            id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-            url: "https://jungle4.greymass.com"
-        } ],
-        fetch: mockFetch,
-        walletPlugins: [ makeWallet() ]
+    const defaultLoginOptions = {
+        chain: mockChainId,
+        permissionLevel: mockPermissionLevel
     };
+    function assertSessionMatchesMockSession(session) {
+        var _a;
+        chai.assert.instanceOf(session, Session);
+        chai.assert.isTrue((_a = session.appName) === null || _a === void 0 ? void 0 : _a.equals(mockSessionKitOptions.appName));
+        chai.assert.equal(session.allowModify, true);
+        chai.assert.equal(session.broadcast, true);
+        chai.assert.equal(session.expireSeconds, 120);
+        chai.assert.isTrue(session.chain.equals(mockChainDefinitions[0]));
+        chai.assert.instanceOf(session.walletPlugin, WalletPluginPrivateKey);
+    }
     suite("kit", (function() {
         suite("construct", (function() {
             test("instance", (function() {
-                const sessionKit = new SessionKit(defaultSessionKitOptions);
+                const sessionKit = new SessionKit(mockSessionKitOptions);
                 chai.assert.instanceOf(sessionKit, SessionKit);
             }));
             suite("options", (function() {
@@ -16405,8 +17505,8 @@
                     test("default: 120", (function() {
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const sessionKit = new SessionKit(defaultSessionKitOptions);
-                            const session = yield sessionKit.login();
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const {session: session} = yield sessionKit.login(defaultLoginOptions);
                             const result = yield session.transact({
                                 action: action$1
                             }, {
@@ -16420,10 +17520,10 @@
                     test("override: 60", (function() {
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const sessionKit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                            const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
                                 expireSeconds: 60
                             }));
-                            const session = yield sessionKit.login();
+                            const {session: session} = yield sessionKit.login(defaultLoginOptions);
                             const expireSeconds = 60;
                             const result = yield session.transact({
                                 action: action$1
@@ -16439,14 +17539,14 @@
                 suite("transactPlugins", (function() {
                     test("default", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const sessionKit = new SessionKit(defaultSessionKitOptions);
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
                             chai.assert.lengthOf(sessionKit.transactPlugins, 1);
                             chai.assert.instanceOf(sessionKit.transactPlugins[0], BaseTransactPlugin);
                         }));
                     }));
                     test("override", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const sessionKit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                            const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
                                 transactPlugins: [ new MockTransactPlugin ]
                             }));
                             chai.assert.lengthOf(sessionKit.transactPlugins, 1);
@@ -16459,54 +17559,195 @@
         suite("login", (function() {
             test("default", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions);
-                    const session = yield sessionKit.login();
-                    chai.assert.instanceOf(session, Session);
+                    const sessionKit = new SessionKit(Object.assign({}, mockSessionKitOptions));
+                    const {session: session} = yield sessionKit.login();
+                    assertSessionMatchesMockSession(session);
                 }));
             }));
-            test("specify chain id", (function() {
-                return __awaiter(this, void 0, void 0, (function*() {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions);
-                    const session = yield sessionKit.login({
-                        chain: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d"
-                    });
-                    chai.assert.instanceOf(session, Session);
+            suite("options", (function() {
+                suite("chain", (function() {
+                    test("override", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const chain = "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906";
+                            const {session: session} = yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                chain: chain
+                            }));
+                            chai.assert.isTrue(session.chain.id.equals(chain));
+                        }));
+                    }));
+                    test("throws on unknown", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            chai.assert.throws((() => sessionKit.getChainDefinition("c054efbc59625be7ce0d69ef26124fd349420b98fef2ed23fead4c558b9826b1")));
+                        }));
+                    }));
+                }));
+                suite("chains", (function() {
+                    test("specify subset", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const {session: session} = yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                chain: undefined,
+                                chains: [ "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11", "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590" ]
+                            }));
+                            chai.assert.isTrue(session.chain.id.equals("1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4"));
+                        }));
+                    }));
+                    test("specify subset, wallet returns invalid ID choice", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            let error;
+                            try {
+                                yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                    chain: "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590",
+                                    chains: [ "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" ]
+                                }));
+                            } catch (err) {
+                                error = err;
+                            }
+                            chai.assert.instanceOf(error, Error, "Login should throw with an unknown chain ID returned");
+                        }));
+                    }));
+                    test("specify subset, specify selection", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const {session: session} = yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                chain: "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
+                                chains: [ "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" ]
+                            }));
+                            chai.assert.isTrue(session.chain.id.equals("4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11"));
+                        }));
+                    }));
+                }));
+                suite("permissionLevel", (function() {
+                    test("typed", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const {session: session} = yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                permissionLevel: PermissionLevel$1.from("mock@interface")
+                            }));
+                            chai.assert.instanceOf(session, Session);
+                            chai.assert.isTrue(PermissionLevel$1.from("mock@interface").equals(session.permissionLevel));
+                        }));
+                    }));
+                    test("untyped", (function() {
+                        return __awaiter(this, void 0, void 0, (function*() {
+                            const sessionKit = new SessionKit(mockSessionKitOptions);
+                            const result = yield sessionKit.login(Object.assign(Object.assign({}, defaultLoginOptions), {
+                                permissionLevel: "mock@interface"
+                            }));
+                            chai.assert.instanceOf(result.session, Session);
+                            chai.assert.isTrue(PermissionLevel$1.from("mock@interface").equals(result.response.permissionLevel));
+                        }));
+                    }));
                 }));
             }));
-            test("specify permission (typed)", (function() {
+        }));
+        suite("restore", (function() {
+            test("session", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions);
-                    const session = yield sessionKit.login({
-                        permissionLevel: PermissionLevel$1.from(mockPermissionLevel)
-                    });
-                    chai.assert.instanceOf(session, Session);
+                    const sessionKit = new SessionKit(Object.assign({}, mockSessionKitOptions));
+                    const {session: session} = yield sessionKit.login();
+                    const mockSerializedSession = session.serialize();
+                    const restored = yield mockSessionKit.restore(mockSerializedSession);
+                    assertSessionMatchesMockSession(restored);
                 }));
             }));
-            test("specify permission (untyped)", (function() {
+            test("throws if wallet not found", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions);
-                    const session = yield sessionKit.login({
-                        permissionLevel: mockPermissionLevel
-                    });
-                    chai.assert.instanceOf(session, Session);
+                    const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
+                        walletPlugins: [ new MockWalletPluginConfigs ]
+                    }));
+                    const {session: session} = yield sessionKit.login();
+                    const mockSerializedSession = session.serialize();
+                    let error;
+                    try {
+                        yield mockSessionKit.restore(mockSerializedSession);
+                    } catch (err) {
+                        error = err;
+                    }
+                    chai.assert.instanceOf(error, Error);
                 }));
             }));
-            test("specify wallet plugin", (function() {
+        }));
+        suite("ui", (function() {
+            test("default", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
-                    const sessionKit = new SessionKit(defaultSessionKitOptions);
-                    const session = yield sessionKit.login({
-                        walletPlugin: makeWallet()
-                    });
-                    chai.assert.instanceOf(session, Session);
+                    const sessionKit = new SessionKit(mockSessionKitOptions);
+                    chai.assert.instanceOf(sessionKit.ui, MockUserInterface);
+                    const {session: session} = yield sessionKit.login(defaultLoginOptions);
+                    chai.assert.instanceOf(session.ui, MockUserInterface);
+                }));
+            }));
+            test("override", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
+                        ui: new MockUserInterface
+                    }));
+                    chai.assert.instanceOf(sessionKit.ui, MockUserInterface);
+                    const {session: session} = yield sessionKit.login(defaultLoginOptions);
+                    chai.assert.instanceOf(session.ui, MockUserInterface);
+                }));
+            }));
+            suite("onSelectWallet", (function() {
+                test("if 1 walletPlugin, use it without UI selection", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
+                            walletPlugins: [ makeWallet() ]
+                        }));
+                        const {session: session} = yield sessionKit.login({
+                            permissionLevel: mockPermissionLevel
+                        });
+                        assertSessionMatchesMockSession(session);
+                    }));
+                }));
+                test("if >1 walletPlugin, force selection", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
+                            walletPlugins: [ makeWallet(), makeWallet() ]
+                        }));
+                        const {session: session} = yield sessionKit.login({
+                            permissionLevel: mockPermissionLevel
+                        });
+                        assertSessionMatchesMockSession(session);
+                    }));
+                }));
+                test("walletPlugin returning invalid index throws", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        class FailingUI extends MockUserInterface {
+                            login(context) {
+                                return __awaiter(this, void 0, void 0, (function*() {
+                                    return {
+                                        chainId: mockChainId,
+                                        permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
+                                        walletPluginIndex: 999999
+                                    };
+                                }));
+                            }
+                        }
+                        const sessionKit = new SessionKit(Object.assign(Object.assign({}, mockSessionKitOptions), {
+                            ui: new FailingUI,
+                            walletPlugins: [ makeWallet(), makeWallet() ]
+                        }));
+                        let error;
+                        try {
+                            yield sessionKit.login();
+                        } catch (err) {
+                            error = err;
+                        }
+                        chai.assert.instanceOf(error, Error);
+                    }));
                 }));
             }));
         }));
     }));
-    const wallet$3 = makeWallet();
+    const wallet$2 = makeWallet();
     class MockTransactResourceProviderPlugin extends AbstractTransactPlugin {
         constructor(options) {
             super();
             this.allowFees = false;
+            this.id = "mock-transact-resource-provider-plugin";
             if (typeof options.allowFees !== "undefined") {
                 this.allowFees = options.allowFees;
             }
@@ -16515,10 +17756,13 @@
             }
         }
         register(context) {
-            context.addHook(TransactHookTypes.beforeSign, ((request, context) => this.request(request, context)));
+            context.addHook(TransactHookTypes$1.beforeSign, ((request, context) => this.request(request, context)));
         }
         request(request, context) {
             return __awaiter(this, void 0, void 0, (function*() {
+                if (context.ui) {
+                    context.ui.status("Requesting resources from resource provider...");
+                }
                 this.validateRequest(request, context);
                 const response = yield context.fetch(this.url, {
                     method: "POST",
@@ -16530,6 +17774,9 @@
                 });
                 const json = yield response.json();
                 if (response.status === 400) {
+                    if (context.ui) {
+                        context.ui.status("Resource provider refused to sign this request.");
+                    }
                     return {
                         request: request
                     };
@@ -16582,15 +17829,17 @@
     const mockResourceProviderPlugin = new MockTransactResourceProviderPlugin({
         url: "https://jungle4.greymass.com/v1/resource_provider/request_transaction"
     });
-    const mockSessionOptions$3 = {
+    const mockSessionArgs = {
         chain: {
             id: mockChainId,
             url: mockUrl
         },
-        fetch: mockFetch,
         permissionLevel: "wharfkit1131@test",
-        transactPlugins: [ mockResourceProviderPlugin ],
-        walletPlugin: wallet$3
+        walletPlugin: wallet$2
+    };
+    const mockSessionOptions$1 = {
+        fetch: mockFetch,
+        transactPlugins: [ mockResourceProviderPlugin ]
     };
     let Transfer$1 = class Transfer extends Struct {};
     __decorate([ Struct.field(Name) ], Transfer$1.prototype, "from", void 0);
@@ -16604,7 +17853,7 @@
                 var _a, _b, _c, _d, _e;
                 return __awaiter(this, void 0, void 0, (function*() {
                     this.slow(1e4);
-                    const session = new Session(mockSessionOptions$3);
+                    const session = new Session(mockSessionArgs, mockSessionOptions$1);
                     const action = {
                         authorization: [ {
                             actor: "wharfkit1131",
@@ -16637,41 +17886,20 @@
             }));
         }));
     };
-    const defaultWalletOptions = {
-        privateKey: privateKey
-    };
-    const privateKeyWallet = () => {
-        suite("privatekey", (function() {
-            test("construct", (function() {
-                const wallet = new WalletPluginPrivateKey(defaultWalletOptions);
-                chai.assert.instanceOf(wallet, WalletPluginPrivateKey);
-            }));
-            test("throws error with invalid privatekey", (function() {
-                chai.assert.throws((() => {
-                    new WalletPluginPrivateKey({
-                        privateKey: "foo"
-                    });
-                }), Error);
-            }));
-        }));
-    };
     suite("plugins", (function() {
         suite("transact", (function() {
             resourceProviderPlugin();
         }));
-        suite("wallet", (function() {
-            privateKeyWallet();
-        }));
     }));
-    const sessionOptions = {
+    const sessionArgs = {
         chain: {
             id: mockChainId,
             url: mockUrl
         },
         permissionLevel: mockPermissionLevel,
-        walletPlugin: new WalletPluginPrivateKey({
-            privateKey: mockPrivateKey
-        }),
+        walletPlugin: new WalletPluginPrivateKey(mockPrivateKey)
+    };
+    const sessionOptions = {
         fetch: mockFetch
     };
     const nodejsUsage = () => {
@@ -16679,7 +17907,7 @@
             test("session", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
                     this.slow(1e4);
-                    const session = new Session(sessionOptions);
+                    const session = new Session(sessionArgs, sessionOptions);
                     const response = yield session.transact({
                         action: {
                             authorization: [ {
@@ -16701,17 +17929,11 @@
             }));
         }));
     };
-    const wallet$2 = makeWallet();
+    const wallet$1 = makeWallet();
     const action = makeMockAction();
-    const mockSessionOptions$2 = {
+    const mockSessionOptions = {
         broadcast: false,
-        chain: ChainDefinition.from({
-            id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-            url: "https://jungle4.greymass.com"
-        }),
-        fetch: mockFetch,
-        permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-        walletPlugin: wallet$2
+        fetch: mockFetch
     };
     const mockTransactOptions = {
         transactPlugins: [ new MockTransactResourceProviderPlugin$1 ]
@@ -16719,7 +17941,7 @@
     suite("session", (function() {
         let session;
         setup((function() {
-            session = new Session(mockSessionOptions$2);
+            session = new Session(mockSessionArgs$1, mockSessionOptions);
         }));
         nodejsUsage();
         suite("construct", (function() {
@@ -16727,6 +17949,21 @@
                 chai.assert.instanceOf(session, Session);
             }));
             suite("options", (function() {
+                suite("abiProvider", (function() {
+                    test("specify provider", (function() {
+                        const client = makeClient();
+                        const abiProvider = {
+                            foo: "bar",
+                            getAbi: account => __awaiter(this, void 0, void 0, (function*() {
+                                return (yield client.v1.chain.get_abi(account)).abi;
+                            }))
+                        };
+                        const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
+                            abiProvider: abiProvider
+                        }));
+                        chai.assert.equal(testSession.abiProvider["foo"], "bar");
+                    }));
+                }));
                 suite("allowModify", (function() {
                     test("default: true", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
@@ -16742,7 +17979,7 @@
                     }));
                     test("true", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const testSession = new Session(Object.assign(Object.assign({}, mockSessionOptions$2), {
+                            const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
                                 allowModify: true
                             }));
                             const result = yield testSession.transact({
@@ -16757,7 +17994,7 @@
                     }));
                     test("false", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const testSession = new Session(Object.assign(Object.assign({}, mockSessionOptions$2), {
+                            const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
                                 allowModify: false
                             }));
                             const result = yield testSession.transact({
@@ -16774,14 +18011,8 @@
                 suite("broadcast", (function() {
                     test("default: true", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const testSession = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$2
+                            const testSession = new Session(mockSessionArgs$1, {
+                                fetch: mockSessionOptions.fetch
                             });
                             const result = yield testSession.transact({
                                 action: action
@@ -16791,7 +18022,7 @@
                     }));
                     test("true", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const testSession = new Session(Object.assign(Object.assign({}, mockSessionOptions$2), {
+                            const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
                                 broadcast: true
                             }));
                             const result = yield testSession.transact({
@@ -16804,7 +18035,7 @@
                     }));
                     test("false", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const testSession = new Session(Object.assign(Object.assign({}, mockSessionOptions$2), {
+                            const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
                                 broadcast: false
                             }));
                             const result = yield testSession.transact({
@@ -16820,15 +18051,7 @@
                     test("default: 120", (function() {
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const session = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$2
-                            });
+                            const session = new Session(mockSessionArgs$1, mockSessionOptions);
                             const result = yield session.transact({
                                 action: action
                             }, {
@@ -16842,16 +18065,9 @@
                     test("override: 60", (function() {
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
-                            const session = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                expireSeconds: 60,
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$2
-                            });
+                            const session = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
+                                expireSeconds: 60
+                            }));
                             const expireSeconds = 60;
                             const result = yield session.transact({
                                 action: action
@@ -16868,31 +18084,21 @@
                     suite("actor + permission", (function() {
                         test("typed values", (function() {
                             return __awaiter(this, void 0, void 0, (function*() {
-                                const testSession = new Session({
+                                const testSession = new Session(Object.assign(Object.assign({}, mockSessionArgs$1), {
                                     actor: Name.from("account"),
-                                    chain: ChainDefinition.from({
-                                        id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                        url: "https://jungle4.greymass.com"
-                                    }),
-                                    fetch: mockFetch,
-                                    permission: Name.from("permission"),
-                                    walletPlugin: wallet$2
-                                });
+                                    permissionLevel: undefined,
+                                    permission: Name.from("permission")
+                                }), mockSessionOptions);
                                 chai.assert.instanceOf(testSession, Session);
                             }));
                         }));
                         test("untyped values", (function() {
                             return __awaiter(this, void 0, void 0, (function*() {
-                                const testSession = new Session({
+                                const testSession = new Session(Object.assign(Object.assign({}, mockSessionArgs$1), {
                                     actor: "account",
-                                    chain: ChainDefinition.from({
-                                        id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                        url: "https://jungle4.greymass.com"
-                                    }),
-                                    fetch: mockFetch,
-                                    permission: "permission",
-                                    walletPlugin: wallet$2
-                                });
+                                    permissionLevel: undefined,
+                                    permission: "permission"
+                                }), mockSessionOptions);
                                 chai.assert.instanceOf(testSession, Session);
                             }));
                         }));
@@ -16900,45 +18106,28 @@
                     suite("permissionLevel", (function() {
                         test("typed values", (function() {
                             return __awaiter(this, void 0, void 0, (function*() {
-                                const testSession = new Session({
-                                    chain: ChainDefinition.from({
-                                        id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                        url: "https://jungle4.greymass.com"
-                                    }),
-                                    fetch: mockFetch,
-                                    permissionLevel: PermissionLevel$1.from("account@permission"),
-                                    walletPlugin: wallet$2
-                                });
+                                const testSession = new Session(Object.assign(Object.assign({}, mockSessionArgs$1), {
+                                    permissionLevel: PermissionLevel$1.from("account@permission")
+                                }), mockSessionOptions);
                                 chai.assert.instanceOf(testSession, Session);
                             }));
                         }));
                         test("untyped values", (function() {
                             return __awaiter(this, void 0, void 0, (function*() {
-                                const testSession = new Session({
-                                    actor: "account",
-                                    chain: ChainDefinition.from({
-                                        id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                        url: "https://jungle4.greymass.com"
-                                    }),
-                                    fetch: mockFetch,
-                                    permissionLevel: "account@permission",
-                                    walletPlugin: wallet$2
-                                });
+                                const testSession = new Session(Object.assign(Object.assign({}, mockSessionArgs$1), {
+                                    permissionLevel: "account@permission"
+                                }), mockSessionOptions);
                                 chai.assert.instanceOf(testSession, Session);
                             }));
                         }));
                     }));
                     test("undefined", (function() {
                         chai.assert.throws((() => {
-                            new Session({
-                                actor: "account",
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                walletPlugin: wallet$2
-                            });
+                            new Session(Object.assign(Object.assign({}, mockSessionArgs$1), {
+                                actor: undefined,
+                                permissionLevel: undefined,
+                                permission: undefined
+                            }), mockSessionOptions);
                         }));
                     }));
                 }));
@@ -16946,14 +18135,13 @@
                     test("typed values", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const testSession = new Session({
-                                chain: ChainDefinition.from({
+                                chain: ChainDefinition$1.from({
                                     id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
                                     url: "https://jungle4.greymass.com"
                                 }),
-                                fetch: mockFetch,
                                 permissionLevel: PermissionLevel$1.from("account@permission"),
-                                walletPlugin: wallet$2
-                            });
+                                walletPlugin: wallet$1
+                            }, mockSessionOptions);
                             chai.assert.instanceOf(testSession, Session);
                         }));
                     }));
@@ -16964,10 +18152,9 @@
                                     id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
                                     url: "https://jungle4.greymass.com"
                                 },
-                                fetch: mockFetch,
                                 permissionLevel: "account@permission",
-                                walletPlugin: wallet$2
-                            });
+                                walletPlugin: wallet$1
+                            }, mockSessionOptions);
                             chai.assert.instanceOf(testSession, Session);
                         }));
                     }));
@@ -16982,9 +18169,13 @@
                                     url: "https://jungle4.greymass.com"
                                 } ],
                                 fetch: mockFetch,
+                                storage: new MockStorage,
+                                ui: new MockUserInterface,
                                 walletPlugins: [ makeWallet() ]
                             });
-                            const session = yield sessionKit.login();
+                            const {session: session} = yield sessionKit.login({
+                                permissionLevel: mockPermissionLevel
+                            });
                             chai.assert.instanceOf(session, Session);
                             chai.assert.lengthOf(session.transactPlugins, 1);
                             chai.assert.instanceOf(session.transactPlugins[0], BaseTransactPlugin);
@@ -16999,10 +18190,14 @@
                                     url: "https://jungle4.greymass.com"
                                 } ],
                                 fetch: mockFetch,
+                                storage: new MockStorage,
                                 transactPlugins: [ new MockTransactPlugin ],
+                                ui: new MockUserInterface,
                                 walletPlugins: [ makeWallet() ]
                             });
-                            const session = yield sessionKit.login();
+                            const {session: session} = yield sessionKit.login({
+                                permissionLevel: mockPermissionLevel
+                            });
                             chai.assert.instanceOf(session, Session);
                             chai.assert.lengthOf(session.transactPlugins, 1);
                             chai.assert.instanceOf(session.transactPlugins[0], MockTransactPlugin);
@@ -17017,9 +18212,12 @@
                                     url: "https://jungle4.greymass.com"
                                 } ],
                                 fetch: mockFetch,
+                                storage: new MockStorage,
+                                ui: new MockUserInterface,
                                 walletPlugins: [ makeWallet() ]
                             });
-                            const session = yield sessionKit.login({
+                            const {session: session} = yield sessionKit.login({
+                                permissionLevel: mockPermissionLevel,
                                 transactPlugins: [ new MockTransactPlugin ]
                             });
                             chai.assert.instanceOf(session, Session);
@@ -17034,6 +18232,36 @@
             const expectedPermission = PermissionLevel$1.from(mockPermissionLevel);
             chai.assert.isTrue(session.actor.equals(expectedPermission.actor));
             chai.assert.isTrue(session.permission.equals(expectedPermission.permission));
+        }));
+        suite("ui", (function() {
+            test("override", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const testSession = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions), {
+                        ui: new MockUserInterface
+                    }));
+                    chai.assert.instanceOf(testSession.ui, MockUserInterface);
+                }));
+            }));
+        }));
+        suite("serialize", (function() {
+            test("returns valid json string", (function() {
+                const original = new Session(mockSessionArgs$1, mockSessionOptions);
+                const serialized = original.serialize();
+                chai.assert.equal(JSON.stringify(serialized), JSON.stringify({
+                    chain: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+                    actor: "wharfkit1111",
+                    permission: "test",
+                    walletPlugin: {
+                        id: "keysigner",
+                        data: {
+                            privateKey: "PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH"
+                        }
+                    }
+                }));
+                chai.assert.doesNotThrow((() => {
+                    JSON.stringify(serialized);
+                }));
+            }));
         }));
     }));
     let KeyWeight = class KeyWeight extends Struct {};
@@ -17107,24 +18335,14 @@
     }) ], Linkauth.prototype, "authorized_by", void 0);
     Linkauth = __decorate([ Struct.type("linkauth") ], Linkauth);
     const client$1 = makeClient();
-    const wallet$1 = makeWallet();
-    const mockSessionOptions$1 = {
-        broadcast: false,
-        chain: ChainDefinition.from({
-            id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-            url: "https://jungle4.greymass.com"
-        }),
-        fetch: mockFetch,
-        permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-        walletPlugin: wallet$1
-    };
+    const wallet = makeWallet();
     function mockData$1() {
         return __awaiter(this, void 0, void 0, (function*() {
             const info = yield client$1.v1.chain.get_info();
             const action = yield makeMockAction();
             const actions = yield makeMockActions();
             const transaction = yield makeMockTransaction(info);
-            const session = new Session(mockSessionOptions$1);
+            const session = new Session(mockSessionArgs$1, mockSessionOptions$2);
             return {
                 action: action,
                 actions: actions,
@@ -17135,7 +18353,7 @@
         }));
     }
     function assetValidTransactResponse(result) {
-        chai.assert.instanceOf(result.chain, ChainDefinition);
+        chai.assert.instanceOf(result.chain, ChainDefinition$1);
         chai.assert.instanceOf(result.request, SigningRequest);
         chai.assert.instanceOf(result.resolved, ResolvedSigningRequest);
         chai.assert.instanceOf(result.signatures, Array);
@@ -17272,11 +18490,11 @@
                     test("object maintains payload metadata", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action, session: session} = yield mockData$1();
-                            const abiCache = new ABICache(this.client);
+                            const abiProvider = new ABICache(this.client);
                             const request = yield SigningRequest.create({
                                 action: action
                             }, {
-                                abiProvider: abiCache,
+                                abiProvider: abiProvider,
                                 zlib: pako
                             });
                             request.setInfoKey("foo", "bar");
@@ -17366,14 +18584,8 @@
                     test("default: true", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$1
+                            const session = new Session(mockSessionArgs$1, {
+                                fetch: mockSessionOptions$2.fetch
                             });
                             const result = yield session.transact({
                                 action: action
@@ -17412,15 +18624,7 @@
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$1
-                            });
+                            const session = new Session(mockSessionArgs$1, mockSessionOptions$2);
                             const result = yield session.transact({
                                 action: action
                             }, {
@@ -17435,15 +18639,7 @@
                         var _a;
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session({
-                                chain: ChainDefinition.from({
-                                    id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-                                    url: "https://jungle4.greymass.com"
-                                }),
-                                fetch: mockFetch,
-                                permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-                                walletPlugin: wallet$1
-                            });
+                            const session = new Session(mockSessionArgs$1, mockSessionOptions$2);
                             const expireSeconds = 60;
                             const result = yield session.transact({
                                 action: action
@@ -17461,7 +18657,7 @@
                     test("inherit", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session(Object.assign(Object.assign({}, mockSessionOptions$1), {
+                            const session = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions$2), {
                                 transactPlugins: [ new MockTransactResourceProviderPlugin$1 ]
                             }));
                             const result = yield session.transact({
@@ -17504,10 +18700,11 @@
                                 };
                             }));
                             const debugPlugin = {
+                                id: "debug-plugin",
                                 register(context) {
-                                    context.addHook(TransactHookTypes.beforeSign, debugHook);
-                                    context.addHook(TransactHookTypes.afterSign, debugHook);
-                                    context.addHook(TransactHookTypes.afterBroadcast, debugHook);
+                                    context.addHook(TransactHookTypes$1.beforeSign, debugHook);
+                                    context.addHook(TransactHookTypes$1.afterSign, debugHook);
+                                    context.addHook(TransactHookTypes$1.afterBroadcast, debugHook);
                                 }
                             };
                             const result = yield session.transact({
@@ -17531,7 +18728,7 @@
                     test("transact", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session(Object.assign(Object.assign({}, mockSessionOptions$1), {
+                            const session = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions$2), {
                                 transactPlugins: [ new MockTransactResourceProviderPlugin$1 ]
                             }));
                             const result = yield session.transact({
@@ -17552,7 +18749,7 @@
                     test("session constructor", (function() {
                         return __awaiter(this, void 0, void 0, (function*() {
                             const {action: action} = yield mockData$1();
-                            const session = new Session(Object.assign(Object.assign({}, mockSessionOptions$1), {
+                            const session = new Session(mockSessionArgs$1, Object.assign(Object.assign({}, mockSessionOptions$2), {
                                 transactPluginsOptions: {
                                     disableExamplePlugin: true
                                 },
@@ -17579,13 +18776,17 @@
                                     url: "https://jungle4.greymass.com"
                                 } ],
                                 fetch: mockFetch,
+                                storage: new MockStorage,
                                 transactPlugins: [ new MockTransactResourceProviderPlugin$1 ],
                                 transactPluginsOptions: {
                                     disableExamplePlugin: true
                                 },
+                                ui: new MockUserInterface,
                                 walletPlugins: [ makeWallet() ]
                             });
-                            const session = yield sessionKit.login();
+                            const {session: session} = yield sessionKit.login({
+                                permissionLevel: mockPermissionLevel
+                            });
                             const result = yield session.transact({
                                 action: action
                             });
@@ -17607,10 +18808,13 @@
                                     url: "https://jungle4.greymass.com"
                                 } ],
                                 fetch: mockFetch,
+                                storage: new MockStorage,
                                 transactPlugins: [ new MockTransactResourceProviderPlugin$1 ],
+                                ui: new MockUserInterface,
                                 walletPlugins: [ makeWallet() ]
                             });
-                            const session = yield sessionKit.login({
+                            const {session: session} = yield sessionKit.login({
+                                permissionLevel: mockPermissionLevel,
                                 transactPluginsOptions: {
                                     disableExamplePlugin: true
                                 }
@@ -17744,10 +18948,10 @@
                     });
                     const transaction = (_a = result.resolved) === null || _a === void 0 ? void 0 : _a.transaction;
                     if (transaction) {
-                        const digest = transaction.signingDigest(mockSessionOptions$1.chain.id);
+                        const digest = transaction.signingDigest(mockSessionArgs$1.chain.id);
                         const [signature] = result.signatures;
                         const publicKey = signature.recoverDigest(digest);
-                        chai.assert.isTrue(publicKey.equals(wallet$1.privateKey.toPublic()));
+                        chai.assert.isTrue(publicKey.equals(wallet.data.privateKey.toPublic()));
                     } else {
                         chai.assert.fail("Transaction was not resolved from request.");
                     }
@@ -17755,17 +18959,6 @@
             }));
         }));
     }));
-    const wallet = makeWallet();
-    const mockSessionOptions = {
-        broadcast: false,
-        chain: ChainDefinition.from({
-            id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-            url: "https://jungle4.greymass.com"
-        }),
-        fetch: mockFetch,
-        permissionLevel: PermissionLevel$1.from(mockPermissionLevel),
-        walletPlugin: wallet
-    };
     const client = makeClient();
     function mockData(memo) {
         return __awaiter(this, void 0, void 0, (function*() {
@@ -17773,7 +18966,7 @@
             const action = yield makeMockAction(memo);
             const actions = yield makeMockActions(memo);
             const transaction = yield makeMockTransaction(info, memo);
-            const session = new Session(mockSessionOptions);
+            const session = new Session(mockSessionArgs$1, mockSessionOptions$2);
             return {
                 action: action,
                 actions: actions,
@@ -17808,6 +19001,22 @@
         chai.assert.equal(modified.actions.length, newActions);
     }
     suite("utils", (function() {
+        suite("chainDefinition", (function() {
+            test("returns name", (function() {
+                const definition = new ChainDefinition$1({
+                    id: mockChainId,
+                    url: "https://jungle4.greymass.com"
+                });
+                chai.assert.equal(definition.name, "Jungle 4 (Testnet)");
+            }));
+            test("returns unknown", (function() {
+                const definition = new ChainDefinition$1({
+                    id: "3d2e128872f1e1f7dacbb3b624d21fe5875193619376c2e5e4843bbdd5deeae3",
+                    url: "https://randochain.greymass.com"
+                });
+                chai.assert.equal(definition.name, "Unknown blockchain");
+            }));
+        }));
         suite("appendAction", (function() {
             test("payload w/ action", (function() {
                 return __awaiter(this, void 0, void 0, (function*() {
@@ -17913,6 +19122,341 @@
                     commonAsserts(originalTransaction, modifiedTransaction);
                     chai.assert.isTrue(newAction.equals(modifiedTransaction.actions[0]));
                     chai.assert.isTrue(originalTransaction.actions[0].equals(modifiedTransaction.actions[1]));
+                }));
+            }));
+        }));
+    }));
+    const chains = [ ChainDefinition$1.from({
+        id: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+        url: "https://jungle4.greymass.com"
+    }), ChainDefinition$1.from({
+        id: "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
+        url: "https://eos.greymass.com"
+    }), ChainDefinition$1.from({
+        id: "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
+        url: "https://telos.greymass.com"
+    }), ChainDefinition$1.from({
+        id: "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590",
+        url: "https://mockuserinterface.greymass.com"
+    }) ];
+    const defaultSessionKitOptions = {
+        appName: "demo.app",
+        chains: chains,
+        fetch: mockFetch,
+        storage: new MockStorage,
+        ui: new MockUserInterface,
+        walletPlugins: [ makeWallet() ]
+    };
+    suite("walletPlugin", (function() {
+        suite("config", (function() {
+            test("defaults", (function() {
+                const walletPlugin = new MockWalletPluginConfigs;
+                chai.assert.equal(walletPlugin.config.requiresChainSelect, true);
+                chai.assert.equal(walletPlugin.config.requiresPermissionSelect, false);
+                chai.assert.equal(walletPlugin.config.supportedChains, undefined);
+            }));
+            test("mock wallet override", (function() {
+                const walletPlugin = new MockWalletPluginConfigs({
+                    requiresChainSelect: false,
+                    requiresPermissionSelect: true,
+                    supportedChains: [ chains[0].id ]
+                });
+                chai.assert.equal(walletPlugin.config.requiresChainSelect, false);
+                chai.assert.equal(walletPlugin.config.requiresPermissionSelect, true);
+                if (walletPlugin.config.supportedChains) {
+                    chai.assert.lengthOf(walletPlugin.config.supportedChains, 1);
+                    chai.assert.equal(walletPlugin.config.supportedChains[0], String(chains[0].id));
+                } else {
+                    chai.assert.fail("supportedChains should be defined here");
+                }
+            }));
+        }));
+        suite("requiresChainSelect", (function() {
+            test("true, triggers ui for user selection", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: true,
+                        requiresPermissionSelect: false
+                    });
+                    chai.assert.isTrue(walletPlugin.config.requiresChainSelect);
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const result = yield kit.login({
+                        permissionLevel: "mock@interface"
+                    });
+                    chai.assert.isTrue(result.response.chain.equals(mockChainDefinitions[0].id));
+                    chai.assert.isTrue(result.response.permissionLevel.actor.equals("mock"));
+                    chai.assert.isTrue(result.response.permissionLevel.permission.equals("interface"));
+                }));
+            }));
+            test("false, wallet returns chain", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: false,
+                        requiresPermissionSelect: false
+                    });
+                    chai.assert.isFalse(walletPlugin.config.requiresChainSelect);
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const result = yield kit.login({
+                        permissionLevel: "mock@interface"
+                    });
+                    chai.assert.isTrue(result.response.chain.equals(mockChainDefinitions[0].id));
+                    chai.assert.isTrue(result.response.permissionLevel.actor.equals("mock"));
+                    chai.assert.isTrue(result.response.permissionLevel.permission.equals("interface"));
+                }));
+            }));
+        }));
+        suite("requiresPermissionSelect", (function() {
+            test("true, triggers ui for user selection", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: false,
+                        requiresPermissionSelect: true
+                    });
+                    chai.assert.isTrue(walletPlugin.config.requiresPermissionSelect);
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const result = yield kit.login({
+                        chain: chains[0].id
+                    });
+                    chai.assert.isTrue(result.response.chain.equals(chains[0].id));
+                    chai.assert.isTrue(result.response.permissionLevel.actor.equals("mock"));
+                    chai.assert.isTrue(result.response.permissionLevel.permission.equals("interface"));
+                }));
+            }));
+            test("false, walletPlugin returns it", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: false,
+                        requiresPermissionSelect: false
+                    });
+                    chai.assert.isFalse(walletPlugin.config.requiresPermissionSelect);
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const result = yield kit.login({
+                        chain: chains[0].id
+                    });
+                    chai.assert.isTrue(result.response.chain.equals(chains[0].id));
+                    chai.assert.isTrue(result.response.permissionLevel.actor.equals("mock"));
+                    chai.assert.isTrue(result.response.permissionLevel.permission.equals("interface"));
+                }));
+            }));
+        }));
+        suite("supportedChains", (function() {
+            test("works on supported chain", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: true,
+                        requiresPermissionSelect: false,
+                        supportedChains: [ "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d" ]
+                    });
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    yield kit.login({
+                        permissionLevel: "mock@interface"
+                    });
+                }));
+            }));
+            test("throws on unsupported chain", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: true,
+                        requiresPermissionSelect: false,
+                        supportedChains: [ "f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12" ]
+                    });
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    let error;
+                    try {
+                        yield kit.login({
+                            chain: "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590",
+                            permissionLevel: "mock@interface"
+                        });
+                    } catch (err) {
+                        error = err;
+                    }
+                    chai.assert.instanceOf(error, Error);
+                }));
+            }));
+            test("works if requiresChainSelect is false and chain is specified", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: false,
+                        requiresPermissionSelect: false,
+                        supportedChains: [ "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590" ]
+                    });
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    yield kit.login({
+                        chain: "34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590",
+                        permissionLevel: "mock@interface"
+                    });
+                }));
+            }));
+            test("throws if requiresChainSelect is false and no chain is specified", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: false,
+                        requiresPermissionSelect: false,
+                        supportedChains: [ "f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12" ]
+                    });
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    let error;
+                    try {
+                        yield kit.login({
+                            permissionLevel: "mock@interface"
+                        });
+                    } catch (err) {
+                        error = err;
+                    }
+                    chai.assert.instanceOf(error, Error);
+                }));
+            }));
+        }));
+        suite("response", (function() {
+            suite("request", (function() {
+                test("allowModify: default (true)", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                            testModify: true,
+                            privateKey: mockPrivateKey
+                        });
+                        const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                            walletPlugins: [ walletPlugin ]
+                        }));
+                        const loginResult = yield kit.login({
+                            chain: chains[0].id,
+                            permissionLevel: "mock@interface"
+                        });
+                        yield loginResult.session.transact({
+                            action: makeMockAction()
+                        }, {
+                            broadcast: false
+                        });
+                    }));
+                }));
+                test("allowModify: false", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                            testModify: true
+                        });
+                        const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                            allowModify: false,
+                            walletPlugins: [ walletPlugin ]
+                        }));
+                        const loginResult = yield kit.login({
+                            chain: chains[0].id,
+                            permissionLevel: "mock@interface"
+                        });
+                        let error;
+                        try {
+                            yield loginResult.session.transact({
+                                action: makeMockAction()
+                            }, {
+                                broadcast: false
+                            });
+                        } catch (err) {
+                            error = err;
+                        }
+                        chai.assert.instanceOf(error, Error);
+                    }));
+                }));
+                test("allowModify: true", (function() {
+                    return __awaiter(this, void 0, void 0, (function*() {
+                        const walletPlugin = new MockWalletPluginConfigs(undefined, {
+                            testModify: true,
+                            privateKey: mockPrivateKey
+                        });
+                        const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                            allowModify: true,
+                            walletPlugins: [ walletPlugin ]
+                        }));
+                        const loginResult = yield kit.login({
+                            chain: chains[0].id,
+                            permissionLevel: "mock@interface"
+                        });
+                        yield loginResult.session.transact({
+                            action: makeMockAction()
+                        }, {
+                            broadcast: false
+                        });
+                    }));
+                }));
+            }));
+        }));
+        suite("storage", (function() {
+            test("empty data", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs;
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const response = yield kit.login();
+                    chai.assert.deepEqual(response.session.serialize(), {
+                        chain: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+                        actor: "mock",
+                        permission: "interface",
+                        walletPlugin: {
+                            id: "MockWalletPluginConfigs",
+                            data: {}
+                        }
+                    });
+                }));
+            }));
+            test("persists data", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const walletPlugin = new MockWalletPluginConfigs({
+                        requiresChainSelect: true,
+                        requiresPermissionSelect: false
+                    }, {
+                        foo: "baz"
+                    });
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const response = yield kit.login();
+                    chai.assert.deepEqual(response.session.serialize(), {
+                        chain: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+                        actor: "mock",
+                        permission: "interface",
+                        walletPlugin: {
+                            id: "MockWalletPluginConfigs",
+                            data: {
+                                foo: "baz"
+                            }
+                        }
+                    });
+                }));
+            }));
+            test("restores data alongside session", (function() {
+                return __awaiter(this, void 0, void 0, (function*() {
+                    const serializedSession = {
+                        chain: "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
+                        actor: "mock",
+                        permission: "interface",
+                        walletPlugin: {
+                            id: "MockWalletPluginConfigs",
+                            data: {
+                                foo: "bar"
+                            }
+                        }
+                    };
+                    const walletPlugin = new MockWalletPluginConfigs;
+                    const kit = new SessionKit(Object.assign(Object.assign({}, defaultSessionKitOptions), {
+                        walletPlugins: [ walletPlugin ]
+                    }));
+                    const session = yield kit.restore(serializedSession);
+                    chai.assert.equal(session.walletPlugin.data.foo, "bar");
                 }));
             }));
         }));

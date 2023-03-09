@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Session | @wharfkit/session - v0.2.0</title><meta name="description" content="Documentation for @wharfkit/session - v0.2.0"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script>
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Session | @wharfkit/session - v0.3.2</title><meta name="description" content="Documentation for @wharfkit/session - v0.3.2"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script>
 <style>
 :root.mermaid-enabled .mermaid-block > pre {
   display: none;
@@ -47,21 +47,24 @@ body.dark, :root[data-theme="dark"] {
 <div id="tsd-toolbar-links"></div></div>
 <ul class="results">
 <li class="state loading">Preparing search index...</li>
-<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">@wharfkit/session - v0.2.0</a></div>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">@wharfkit/session - v0.3.2</a></div>
 <div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
 <div class="container container-main">
 <div class="col-8 col-content">
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
-<li><a href="../index.html">@wharfkit/session - v0.2.0</a></li>
+<li><a href="../index.html">@wharfkit/session - v0.3.2</a></li>
 <li><a href="Session.html">Session</a></li></ul>
 <h1>Class Session</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>A representation of a session to interact with a specific blockchain account.</p>
+</div></section>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
 <li><span class="target">Session</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L83">src/session.ts:83</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L75">src/session.ts:75</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -73,16 +76,19 @@ body.dark, :root[data-theme="dark"] {
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="Session.html#abiCache" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>abi<wbr/>Cache</span></a>
+<div class="tsd-index-list"><a href="Session.html#abiProvider" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>abi<wbr/>Provider</span></a>
 <a href="Session.html#allowModify" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>allow<wbr/>Modify</span></a>
+<a href="Session.html#appName" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>app<wbr/>Name</span></a>
 <a href="Session.html#broadcast" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>broadcast</span></a>
 <a href="Session.html#chain" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>chain</span></a>
 <a href="Session.html#expireSeconds" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>expire<wbr/>Seconds</span></a>
 <a href="Session.html#fetch" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>fetch</span></a>
 <a href="Session.html#permissionLevel" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>permission<wbr/>Level</span></a>
+<a href="Session.html#storage" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>storage?</span></a>
 <a href="Session.html#transactPlugins" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>transact<wbr/>Plugins</span></a>
 <a href="Session.html#transactPluginsOptions" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>transact<wbr/>Plugins<wbr/>Options</span></a>
-<a href="Session.html#wallet" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>wallet</span></a>
+<a href="Session.html#ui" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>ui?</span></a>
+<a href="Session.html#walletPlugin" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>wallet<wbr/>Plugin</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Accessors</h3>
@@ -94,6 +100,8 @@ body.dark, :root[data-theme="dark"] {
 <h3 class="tsd-index-heading">Methods</h3>
 <div class="tsd-index-list"><a href="Session.html#cloneRequest" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-2048-path"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)" id="icon-2048-text"></path></svg><span>clone<wbr/>Request</span></a>
 <a href="Session.html#createRequest" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>create<wbr/>Request</span></a>
+<a href="Session.html#getPluginTranslations" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Plugin<wbr/>Translations</span></a>
+<a href="Session.html#serialize" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>serialize</span></a>
 <a href="Session.html#transact" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>transact</span></a>
 <a href="Session.html#updateRequest" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>update<wbr/>Request</span></a>
 <a href="Session.html#upgradeTransaction" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>upgrade<wbr/>Transaction</span></a>
@@ -103,68 +111,89 @@ body.dark, :root[data-theme="dark"] {
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_Session">new <wbr/>Session<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/SessionOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Session.html" class="tsd-signature-type" data-tsd-kind="Class">Session</a><a href="#constructor.new_Session" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_Session">new <wbr/>Session<span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><a href="../interfaces/SessionArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionArgs</a>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/SessionOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Session.html" class="tsd-signature-type" data-tsd-kind="Class">Session</a><a href="#constructor.new_Session" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>The constructor of the <code>Session</code> class.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>options: <a href="../interfaces/SessionOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionOptions</a></h5></li></ul></div>
+<h5>args: <a href="../interfaces/SessionArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionArgs</a></h5></li>
+<li>
+<h5>options: <a href="../interfaces/SessionOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
+<div class="tsd-comment tsd-typography"><p>SessionOptions</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Session.html" class="tsd-signature-type" data-tsd-kind="Class">Session</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L95">src/session.ts:95</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L95">src/session.ts:95</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="abiCache" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>abi<wbr/>Cache</span><a href="#abiCache" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">abi<wbr/>Cache<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">typeof </span><a href="ABICache.html" class="tsd-signature-type" data-tsd-kind="Class">ABICache</a><span class="tsd-signature-symbol"> = ABICache</span></div><aside class="tsd-sources">
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="abiProvider" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>abi<wbr/>Provider</span><a href="#abiProvider" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">abi<wbr/>Provider<span class="tsd-signature-symbol">:</span> <a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L84">src/session.ts:84</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L77">src/session.ts:77</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="allowModify" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>allow<wbr/>Modify</span><a href="#allowModify" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">allow<wbr/>Modify<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L85">src/session.ts:85</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L78">src/session.ts:78</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="appName" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>app<wbr/>Name</span><a href="#appName" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">app<wbr/>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="Name.html" class="tsd-signature-type" data-tsd-kind="Class">Name</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L76">src/session.ts:76</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="broadcast" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>broadcast</span><a href="#broadcast" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">broadcast<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L86">src/session.ts:86</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L79">src/session.ts:79</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="chain" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>chain</span><a href="#chain" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">chain<span class="tsd-signature-symbol">:</span> <a href="ChainDefinition.html" class="tsd-signature-type" data-tsd-kind="Class">ChainDefinition</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L87">src/session.ts:87</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L80">src/session.ts:80</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="expireSeconds" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>expire<wbr/>Seconds</span><a href="#expireSeconds" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">expire<wbr/>Seconds<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 120</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L88">src/session.ts:88</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L81">src/session.ts:81</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="fetch" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>fetch</span><a href="#fetch" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">fetch<span class="tsd-signature-symbol">:</span> <a href="../types/Fetch.html" class="tsd-signature-type" data-tsd-kind="Type alias">Fetch</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L89">src/session.ts:89</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L82">src/session.ts:82</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="permissionLevel" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>permission<wbr/>Level</span><a href="#permissionLevel" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">permission<wbr/>Level<span class="tsd-signature-symbol">:</span> <a href="PermissionLevel.html" class="tsd-signature-type" data-tsd-kind="Class">PermissionLevel</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L90">src/session.ts:90</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L83">src/session.ts:83</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="storage" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>storage</span><a href="#storage" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">storage<span class="tsd-signature-symbol">?:</span> <a href="../interfaces/SessionStorage.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionStorage</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L84">src/session.ts:84</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="transactPlugins" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>transact<wbr/>Plugins</span><a href="#transactPlugins" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">transact<wbr/>Plugins<span class="tsd-signature-symbol">:</span> <a href="../interfaces/TransactPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactPlugin</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L91">src/session.ts:91</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L85">src/session.ts:85</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="transactPluginsOptions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>transact<wbr/>Plugins<wbr/>Options</span><a href="#transactPluginsOptions" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">transact<wbr/>Plugins<wbr/>Options<span class="tsd-signature-symbol">:</span> <a href="../types/TransactPluginsOptions.html" class="tsd-signature-type" data-tsd-kind="Type alias">TransactPluginsOptions</a><span class="tsd-signature-symbol"> = {}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L92">src/session.ts:92</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="wallet" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>wallet</span><a href="#wallet" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">wallet<span class="tsd-signature-symbol">:</span> <a href="../interfaces/WalletPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">WalletPlugin</a></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L86">src/session.ts:86</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="ui" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>ui</span><a href="#ui" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">ui<span class="tsd-signature-symbol">?:</span> <a href="../interfaces/UserInterface.html" class="tsd-signature-type" data-tsd-kind="Interface">UserInterface</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L93">src/session.ts:93</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L87">src/session.ts:87</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="walletPlugin" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>wallet<wbr/>Plugin</span><a href="#walletPlugin" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">wallet<wbr/>Plugin<span class="tsd-signature-symbol">:</span> <a href="../interfaces/WalletPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">WalletPlugin</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L88">src/session.ts:88</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="actor" class="tsd-anchor"></a>
@@ -172,25 +201,31 @@ body.dark, :root[data-theme="dark"] {
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="actor.actor-1"><span class="tsd-signature-symbol">get</span> actor<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Name.html" class="tsd-signature-type" data-tsd-kind="Class">Name</a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the name of the actor that is being used for this session.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="Name.html" class="tsd-signature-type" data-tsd-kind="Class">Name</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L131">src/session.ts:131</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L155">src/session.ts:155</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="client" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>client</span><a href="#client" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="client.client-1"><span class="tsd-signature-symbol">get</span> client<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="APIClient.html" class="tsd-signature-type" data-tsd-kind="Class">APIClient</a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns an APIClient configured for this session.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="APIClient.html" class="tsd-signature-type" data-tsd-kind="Class">APIClient</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L139">src/session.ts:139</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L169">src/session.ts:169</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="permission" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>permission</span><a href="#permission" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="permission.permission-1"><span class="tsd-signature-symbol">get</span> permission<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Name.html" class="tsd-signature-type" data-tsd-kind="Class">Name</a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the name of the permission that is being used for this session.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="Name.html" class="tsd-signature-type" data-tsd-kind="Class">Name</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L135">src/session.ts:135</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L162">src/session.ts:162</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="cloneRequest" class="tsd-anchor"></a>
@@ -199,6 +234,7 @@ body.dark, :root[data-theme="dark"] {
 <li class="tsd-signature tsd-anchor-link" id="cloneRequest.cloneRequest-1">clone<wbr/>Request<span class="tsd-signature-symbol">(</span>request<span class="tsd-signature-symbol">: </span><a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a>, abiProvider<span class="tsd-signature-symbol">: </span><a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a><a href="#cloneRequest.cloneRequest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Create a clone of the given SigningRequest</p>
+<p>Overrides: <a href="https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112">https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112</a></p>
 
 <h3>Returns</h3><p>Returns a cloned SigningRequest with updated abiProvider and zlib</p>
 </div>
@@ -206,12 +242,16 @@ body.dark, :root[data-theme="dark"] {
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>request: <a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a></h5></li>
+<h5>request: <a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a></h5>
+<div class="tsd-comment tsd-typography"><p>The SigningRequest to clone</p>
+</div></li>
 <li>
-<h5>abiProvider: <a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a></h5></li></ul></div>
+<h5>abiProvider: <a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a></h5>
+<div class="tsd-comment tsd-typography"><p>The AbiProvider to use for the clone</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L186">src/session.ts:186</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L228">src/session.ts:228</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createRequest" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Request</span><a href="#createRequest" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -230,7 +270,28 @@ body.dark, :root[data-theme="dark"] {
 <h5>abiProvider: <a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L208">src/session.ts:208</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L250">src/session.ts:250</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getPluginTranslations" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Plugin<wbr/>Translations</span><a href="#getPluginTranslations" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getPluginTranslations.getPluginTranslations-1">get<wbr/>Plugin<wbr/>Translations<span class="tsd-signature-symbol">(</span>transactPlugin<span class="tsd-signature-symbol">: </span><a href="../interfaces/TransactPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactPlugin</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WalletPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">WalletPlugin</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/LocaleDefinitions.html" class="tsd-signature-type" data-tsd-kind="Type alias">LocaleDefinitions</a><a href="#getPluginTranslations.getPluginTranslations-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>transactPlugin: <a href="../interfaces/TransactPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactPlugin</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WalletPlugin.html" class="tsd-signature-type" data-tsd-kind="Interface">WalletPlugin</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/LocaleDefinitions.html" class="tsd-signature-type" data-tsd-kind="Type alias">LocaleDefinitions</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L518">src/session.ts:518</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="serialize" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>serialize</span><a href="#serialize" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="serialize.serialize-1">serialize<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/SerializedSession.html" class="tsd-signature-type" data-tsd-kind="Interface">SerializedSession</a><a href="#serialize.serialize-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/SerializedSession.html" class="tsd-signature-type" data-tsd-kind="Interface">SerializedSession</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L510">src/session.ts:510</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="transact" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>transact</span><a href="#transact" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -274,7 +335,7 @@ flowchart LR
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> options: <a href="../interfaces/TransactOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactOptions</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/TransactResult.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactResult</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L276">src/session.ts:276</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L320">src/session.ts:320</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="updateRequest" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>update<wbr/>Request</span><a href="#updateRequest" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -294,20 +355,26 @@ flowchart LR
 <h5>abiProvider: <a href="../interfaces/AbiProvider.html" class="tsd-signature-type" data-tsd-kind="Interface">AbiProvider</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="SigningRequest.html" class="tsd-signature-type" data-tsd-kind="Class">SigningRequest</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L239">src/session.ts:239</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L283">src/session.ts:283</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="upgradeTransaction" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>upgrade<wbr/>Transaction</span><a href="#upgradeTransaction" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="upgradeTransaction.upgradeTransaction-1">upgrade<wbr/>Transaction<span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><a href="#upgradeTransaction.upgradeTransaction-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="upgradeTransaction.upgradeTransaction-1">upgrade<wbr/>Transaction<span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><a href="../interfaces/TransactArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactArgs</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/TransactArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactArgs</a><a href="#upgradeTransaction.upgradeTransaction-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Templates in any missing fields from partial transactions.</p>
+
+<h3>Returns</h3><p>TransactArgs</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>args: <span class="tsd-signature-type">any</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4><aside class="tsd-sources">
+<h5>args: <a href="../interfaces/TransactArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactArgs</a></h5>
+<div class="tsd-comment tsd-typography"><p>TransactArgs</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/TransactArgs.html" class="tsd-signature-type" data-tsd-kind="Interface">TransactArgs</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/wharfkit/session/blob/237b4a1/src/session.ts#L143">src/session.ts:143</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/wharfkit/session/blob/4cabb97/src/session.ts#L179">src/session.ts:179</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -325,7 +392,7 @@ flowchart LR
 <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
 <div class="tsd-accordion-details">
 <ul>
-<li><a href="../index.html">@wharfkit/session -<wbr/> v0.2.0</a>
+<li><a href="../index.html">@wharfkit/session -<wbr/> v0.3.2</a>
 <ul></ul></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/ABI.html">ABI</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/API.html">API</a>
@@ -335,6 +402,7 @@ flowchart LR
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/Base58.html">Base58</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/Base64u.html">Base64u</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/KeyType.html">Key<wbr/>Type</a></li>
+<li class="tsd-kind-namespace tsd-is-external"><a href="../modules/P2P.html">P2P</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/Serializer.html">Serializer</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/Struct.html">Struct</a></li>
 <li class="tsd-kind-namespace tsd-is-external"><a href="../modules/Variant.html">Variant</a></li></ul></div></details></nav>
@@ -343,21 +411,26 @@ flowchart LR
 <li class="current tsd-kind-class"><a href="Session.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg><span>Session</span></a>
 <ul>
 <li class="tsd-kind-constructor tsd-parent-kind-class"><a href="Session.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-512-path"></use><use href="#icon-512-text"></use></svg>constructor</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#abiCache" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>abi<wbr/>Cache</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#abiProvider" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>abi<wbr/>Provider</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#allowModify" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>allow<wbr/>Modify</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#appName" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>app<wbr/>Name</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#broadcast" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>broadcast</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#chain" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>chain</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#expireSeconds" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>expire<wbr/>Seconds</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#fetch" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>fetch</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#permissionLevel" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>permission<wbr/>Level</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#storage" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>storage?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#transactPlugins" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>transact<wbr/>Plugins</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#transactPluginsOptions" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>transact<wbr/>Plugins<wbr/>Options</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#wallet" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>wallet</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#ui" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>ui?</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="Session.html#walletPlugin" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>wallet<wbr/>Plugin</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Session.html#actor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>actor</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Session.html#client" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>client</a></li>
 <li class="tsd-kind-accessor tsd-parent-kind-class"><a href="Session.html#permission" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>permission</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#cloneRequest" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>clone<wbr/>Request</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#createRequest" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>create<wbr/>Request</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#getPluginTranslations" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Plugin<wbr/>Translations</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#serialize" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>serialize</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#transact" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>transact</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#updateRequest" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>update<wbr/>Request</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Session.html#upgradeTransaction" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>upgrade<wbr/>Transaction</a></li></ul></li></ul></nav></div></div>
