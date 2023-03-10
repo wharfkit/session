@@ -33,17 +33,27 @@ export function getFetch(options?: FetchProviderOptions): Fetch {
 export function appendAction(request: SigningRequest, action: AnyAction): SigningRequest {
     const newAction = Action.from(action)
     const cloned = request.clone()
-    if (cloned.data.req.value instanceof Action) {
-        // Overwrite the data
-        cloned.data.req.value = [cloned.data.req.value, newAction]
-        // This needs to be done to indicate it's an `Action[]`
-        cloned.data.req.variantIdx = 1
-    } else if (cloned.data.req.value instanceof Array) {
-        // Prepend the action to the existing array
-        cloned.data.req.value.push(newAction)
-    } else if (cloned.data.req.value instanceof Transaction) {
-        // Prepend the action to the existing array of the transaction
-        cloned.data.req.value.actions.push(newAction)
+    switch (cloned.data.req.variantName) {
+        case 'action': {
+            cloned.data.req.value = [cloned.data.req.value as Action, newAction]
+            cloned.data.req.variantIdx = 1
+            break
+        }
+        case 'action[]': {
+            const array = cloned.data.req.value as Action[]
+            array.push(newAction)
+            cloned.data.req.value = array
+            break
+        }
+        case 'transaction': {
+            const tx = cloned.data.req.value as Transaction
+            tx.actions.push(newAction)
+            cloned.data.req.value = tx
+            break
+        }
+        default: {
+            throw new Error('unknown data req type')
+        }
     }
     return cloned
 }
@@ -58,17 +68,27 @@ export function appendAction(request: SigningRequest, action: AnyAction): Signin
 export function prependAction(request: SigningRequest, action: AnyAction): SigningRequest {
     const newAction = Action.from(action)
     const cloned = request.clone()
-    if (cloned.data.req.value instanceof Action) {
-        // Overwrite the data
-        cloned.data.req.value = [newAction, cloned.data.req.value]
-        // This needs to be done to indicate it's an `Action[]`
-        cloned.data.req.variantIdx = 1
-    } else if (cloned.data.req.value instanceof Array) {
-        // Prepend the action to the existing array
-        cloned.data.req.value.unshift(newAction)
-    } else if (cloned.data.req.value instanceof Transaction) {
-        // Prepend the action to the existing array of the transaction
-        cloned.data.req.value.actions.unshift(newAction)
+    switch (cloned.data.req.variantName) {
+        case 'action': {
+            cloned.data.req.value = [newAction, cloned.data.req.value as Action]
+            cloned.data.req.variantIdx = 1
+            break
+        }
+        case 'action[]': {
+            const array = cloned.data.req.value as Action[]
+            array.unshift(newAction)
+            cloned.data.req.value = array
+            break
+        }
+        case 'transaction': {
+            const tx = cloned.data.req.value as Transaction
+            tx.actions.unshift(newAction)
+            cloned.data.req.value = tx
+            break
+        }
+        default: {
+            throw new Error('unknown data req type')
+        }
     }
     return cloned
 }
