@@ -15169,8 +15169,17 @@
         addHook(t, hook) {
             this.hooks[t].push(hook);
         }
+        async getInfo() {
+            let info = this.info;
+            if (this.info) {
+                info = this.info;
+            } else {
+                this.info = info = await this.client.v1.chain.get_info();
+            }
+            return info;
+        }
         async resolve(request, expireSeconds = 120) {
-            const info = await this.client.v1.chain.get_info();
+            const info = await this.getInfo();
             const header = info.getTransactionHeader(expireSeconds);
             const abis = await request.fetchAbis(this.abiProvider);
             return request.resolve(abis, this.permissionLevel, {
@@ -16873,35 +16882,68 @@
     function appendAction(request, action) {
         const newAction = Action.from(action);
         const cloned = request.clone();
-        if (cloned.data.req.value instanceof Action) {
-            cloned.data.req.value = [ cloned.data.req.value, newAction ];
-            cloned.data.req.variantIdx = 1;
-        } else if (cloned.data.req.value instanceof Array) {
-            cloned.data.req.value.push(newAction);
-        } else if (cloned.data.req.value instanceof Transaction) {
-            cloned.data.req.value.actions.push(newAction);
-        } else {
-            console.log("data", cloned.data.req.value);
-            throw new Error("Unknown request data type");
+        switch (cloned.data.req.variantName) {
+          case "action":
+            {
+                cloned.data.req.value = [ cloned.data.req.value, newAction ];
+                cloned.data.req.variantIdx = 1;
+                break;
+            }
+
+          case "action[]":
+            {
+                const array = cloned.data.req.value;
+                array.push(newAction);
+                cloned.data.req.value = array;
+                break;
+            }
+
+          case "transaction":
+            {
+                const tx = cloned.data.req.value;
+                tx.actions.push(newAction);
+                cloned.data.req.value = tx;
+                break;
+            }
+
+          default:
+            {
+                throw new Error("unknown data req type");
+            }
         }
         return cloned;
     }
     function prependAction(request, action) {
         const newAction = Action.from(action);
         const cloned = request.clone();
-        if (cloned.data.req.value instanceof Action) {
-            console.log("1");
-            cloned.data.req.value = [ newAction, cloned.data.req.value ];
-            cloned.data.req.variantIdx = 1;
-        } else if (cloned.data.req.value instanceof Array) {
-            console.log("2");
-            cloned.data.req.value.unshift(newAction);
-        } else if (cloned.data.req.value instanceof Transaction) {
-            console.log("3");
-            cloned.data.req.value.actions.unshift(newAction);
-        } else {
-            console.log("data", cloned.data.req.value);
-            throw new Error("Unknown request data type");
+        switch (cloned.data.req.variantName) {
+          case "action":
+            {
+                cloned.data.req.value = [ newAction, cloned.data.req.value ];
+                cloned.data.req.variantIdx = 1;
+                break;
+            }
+
+          case "action[]":
+            {
+                const array = cloned.data.req.value;
+                array.unshift(newAction);
+                cloned.data.req.value = array;
+                break;
+            }
+
+          case "transaction":
+            {
+                const tx = cloned.data.req.value;
+                tx.actions.unshift(newAction);
+                cloned.data.req.value = tx;
+                break;
+            }
+
+          default:
+            {
+                throw new Error("unknown data req type");
+            }
         }
         return cloned;
     }
