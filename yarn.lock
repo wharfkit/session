@@ -3430,10 +3430,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc-plugin-mermaid@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-mermaid/-/typedoc-plugin-mermaid-1.9.0.tgz#0d0c9848da0a3565f90db9ba81b031353dde9ccd"
-  integrity sha512-nZUTrgqx7tTwWcdekayFXA6qHbTUFdBYVp4uhHVgQM65+i+DVHsMGn/AjJLCMY0bEdtc9HWS2BuaKkBq1PKNlg==
+typedoc-plugin-mermaid@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-mermaid/-/typedoc-plugin-mermaid-1.10.0.tgz#ef3d62b74a36ead6679f59f0b1315156b334a38e"
+  integrity sha512-NMo+m5FY5SuNR2dgDYwLO/Bu8O1927xPm1B5S5QcqBD9JiNaWP6jbyuPUltJtq9KEZOme3QwLVe1ZPSDr3tsmw==
   dependencies:
     html-escaper "^3.0.0"
 
