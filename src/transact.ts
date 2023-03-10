@@ -2,6 +2,7 @@ import zlib from 'pako'
 import {
     AnyAction,
     AnyTransaction,
+    API,
     APIClient,
     Checksum256Type,
     Name,
@@ -83,6 +84,7 @@ export class TransactContext {
         afterSign: [],
         beforeSign: [],
     }
+    public info: API.v1.GetInfoResponse | undefined
     readonly permissionLevel: PermissionLevel
     readonly storage?: SessionStorage
     readonly transactPluginsOptions: TransactPluginsOptions
@@ -125,10 +127,19 @@ export class TransactContext {
         this.hooks[t].push(hook)
     }
 
+    async getInfo(): Promise<API.v1.GetInfoResponse> {
+        let info: API.v1.GetInfoResponse | undefined = this.info
+        if (this.info) {
+            info = this.info
+        } else {
+            this.info = info = await this.client.v1.chain.get_info()
+        }
+        return info
+    }
+
     async resolve(request: SigningRequest, expireSeconds = 120): Promise<ResolvedSigningRequest> {
-        // TODO: Cache the info/header first time the context resolves?
-        // If multiple plugins resolve the same request and call get_info, tapos might change
-        const info = await this.client.v1.chain.get_info()
+        // Build the transaction header
+        const info = await this.getInfo()
         const header = info.getTransactionHeader(expireSeconds)
 
         // Load ABIs required to resolve this request
