@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@greymass/eosio": "^0.6.9",
-        "eosio-signing-request": "^2.5.2",
+        "eosio-signing-request": "^2.5.3",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
     },
