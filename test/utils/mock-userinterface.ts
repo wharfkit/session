@@ -3,6 +3,7 @@ import {
     cancelable,
     Cancelable,
     Checksum256,
+    LocaleDefinitions,
     LoginContext,
     LoginOptions,
     PermissionLevel,
@@ -15,6 +16,7 @@ import {
 export class MockUserInterface extends AbstractUserInterface implements UserInterface {
     readonly logging = false
     public messages: string[] = []
+    public localeDefinitions: LocaleDefinitions = {}
 
     log(message: string) {
         this.messages.push(message)
@@ -88,7 +90,7 @@ export class MockUserInterface extends AbstractUserInterface implements UserInte
         this.log(`status:('${message}')`)
     }
 
-    addTranslations(): void {
-        this.log('addTranslations')
+    addTranslations(definitions: LocaleDefinitions): void {
+        this.log('addTranslations: ' + JSON.stringify(definitions))
     }
 }
