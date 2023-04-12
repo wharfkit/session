@@ -361,6 +361,20 @@ export class SessionKit {
         return session
     }
 
+    async restoreAll(): Promise<Session[]> {
+        const sessions: Session[] = []
+        const serializedSessions = await this.getSessions()
+        if (serializedSessions) {
+            for (const s of serializedSessions) {
+                const session = await this.restore(s)
+                if (session) {
+                    sessions.push(session)
+                }
+            }
+        }
+        return sessions
+    }
+
     async persistSession(session: Session) {
         // TODO: Allow disabling of session persistence via kit options
         // If no storage exists, do nothing.

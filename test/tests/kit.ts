@@ -1,5 +1,5 @@
 import {assert} from 'chai'
-import {PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 import {
@@ -13,7 +13,12 @@ import {
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {MockTransactPlugin} from '$test/utils/mock-hook'
 import {makeMockAction} from '$test/utils/mock-transfer'
-import {mockChainDefinitions, mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
+import {
+    mockChainDefinition,
+    mockChainDefinitions,
+    mockChainId,
+    mockPermissionLevel,
+} from '$test/utils/mock-config'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
@@ -233,6 +238,48 @@ suite('kit', function () {
                 error = err
             }
             assert.instanceOf(error, Error)
+        })
+    })
+    suite('restoreAll', function () {
+        test('restores no sessions', async function () {
+            const sessionKit = new SessionKit({
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const restored = await sessionKit.restore()
+            assert.isUndefined(restored)
+            const sessions = await sessionKit.getSessions()
+            assert.isEmpty(sessions)
+        })
+        test('restores all sessions', async function () {
+            // New kit w/ empty storage
+            const sessionKit = new SessionKit({
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            // Login 3 times
+            await sessionKit.login({
+                chain: mockChainDefinition.id,
+                permissionLevel: PermissionLevel.from('mock1@interface'),
+            })
+            await sessionKit.login({
+                chain: mockChainDefinition.id,
+                permissionLevel: PermissionLevel.from('mock2@interface'),
+            })
+            await sessionKit.login({
+                chain: mockChainDefinition.id,
+                permissionLevel: PermissionLevel.from('mock3@interface'),
+            })
+            // Restore all sessions
+            const sessions = await sessionKit.restoreAll()
+            // Assert 3 sessions restored
+            assert.lengthOf(sessions, 3)
+            assert.instanceOf(sessions[0], Session)
+            assert.isTrue(sessions[0].actor.equals('mock1'))
+            assert.instanceOf(sessions[1], Session)
+            assert.isTrue(sessions[1].actor.equals('mock2'))
+            assert.instanceOf(sessions[2], Session)
+            assert.isTrue(sessions[2].actor.equals('mock3'))
         })
     })
     suite('ui', function () {
