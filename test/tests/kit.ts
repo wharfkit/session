@@ -16,6 +16,7 @@ import {makeMockAction} from '$test/utils/mock-transfer'
 import {mockChainDefinitions, mockChainId, mockPermissionLevel} from '$test/utils/mock-config'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
+import {MockStorage} from '$test/utils/mock-storage'
 
 const action = makeMockAction()
 
@@ -205,7 +206,18 @@ suite('kit', function () {
             const {session} = await sessionKit.login()
             const mockSerializedSession = session.serialize()
             const restored = await mockSessionKit.restore(mockSerializedSession)
+            if (!restored) {
+                throw new Error('Failed to restore session')
+            }
             assertSessionMatchesMockSession(restored)
+        })
+        test('no session returns undefined', async function () {
+            const sessionKit = new SessionKit({
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const restored = await sessionKit.restore()
+            assert.isUndefined(restored)
         })
         test('throws if wallet not found', async function () {
             const sessionKit = new SessionKit({

@@ -334,6 +334,9 @@ suite('walletPlugin', function () {
                 walletPlugins: [walletPlugin],
             })
             const session = await kit.restore(serializedSession)
+            if (!session) {
+                throw new Error('Failed to restore session')
+            }
             assert.equal(session.walletPlugin.data.foo, 'bar')
         })
     })

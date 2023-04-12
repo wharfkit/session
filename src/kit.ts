@@ -309,12 +309,14 @@ export class SessionKit {
         }
     }
 
-    async restore(args?: RestoreArgs, options?: LoginOptions): Promise<Session> {
+    async restore(args?: RestoreArgs, options?: LoginOptions): Promise<Session | undefined> {
         // If no args were provided, attempt to default restore the session from storage.
         if (!args && this.storage) {
             const data = await this.storage.read('session')
             if (data) {
                 args = JSON.parse(data)
+            } else {
+                return
             }
         }
 
