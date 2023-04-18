@@ -23,7 +23,7 @@ import {
     TransactPluginsOptions,
 } from './transact'
 import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
-import {WalletPlugin, WalletPluginLoginResponse} from './wallet'
+import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
 import {getFetch} from './utils'
 
@@ -165,7 +165,7 @@ export class SessionKit {
             walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
                 return {
                     config: plugin.config,
-                    metadata: plugin.metadata,
+                    metadata: WalletPluginMetadata.from(plugin.metadata),
                 }
             }),
         })

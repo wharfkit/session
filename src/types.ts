@@ -23,25 +23,33 @@ export const chainNames: Map<Checksum256Type, string> = new Map([
     ['f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12', 'WAX (Testnet)'],
 ])
 
-export type ChainLogoType = ChainLogo | {dark: string; light: string} | string
+export type LogoType = Logo | {dark: string; light: string} | string
 
-@Struct.type('chain_logo')
-export class ChainLogo extends Struct {
+@Struct.type('logo')
+export class Logo extends Struct {
     @Struct.field('string') declare dark: string
     @Struct.field('string') declare light: string
 
-    static from(value: ChainLogoType): ChainLogo {
+    static from(value: LogoType): Logo {
         if (typeof value === 'string') {
-            return new ChainLogo({light: value, dark: value})
+            return new Logo({light: value, dark: value})
         }
-        return new ChainLogo(value)
+        return new Logo(value)
+    }
+
+    getVariant(variant: 'dark' | 'light'): string | undefined {
+        return this[variant]
+    }
+
+    toString() {
+        return this.light
     }
 }
 
 /**
  * A list of known chain IDs and their logos.
  */
-export const chainLogos: Map<Checksum256Type, ChainLogoType> = new Map([
+export const chainLogos: Map<Checksum256Type, LogoType> = new Map([
     [
         'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
         'https://assets.wharfkit.com/chain/eos.png',
@@ -124,9 +132,9 @@ export class ChainDefinition extends Struct {
      */
     @Struct.field('string') declare url: string
     /**
-     * The absolute URL to the chain's logo.
+     * The absolute URL(s) to the chain's logo.
      */
-    @Struct.field(ChainLogo, {optional: true}) declare logo?: ChainLogoType
+    @Struct.field(Logo, {optional: true}) declare logo?: LogoType
     /**
      * The explorer definition for the chain.
      */
@@ -137,12 +145,18 @@ export class ChainDefinition extends Struct {
         return chainNames.has(id) ? chainNames.get(id) : 'Unknown blockchain'
     }
 
-    public getLogo() {
+    public getLogo(): Logo | undefined {
         const id = String(this.id)
         if (this.logo) {
-            return this.logo
+            return Logo.from(this.logo)
         }
-        return chainLogos.has(id) ? chainLogos.get(id) : undefined
+        if (chainLogos.has(id)) {
+            const logo = chainLogos.get(id)
+            if (logo) {
+                return Logo.from(logo)
+            }
+        }
+        return undefined
     }
 }
 

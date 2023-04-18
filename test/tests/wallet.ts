@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import SessionKit, {ChainDefinition, SessionKitOptions} from '$lib'
+import SessionKit, {ChainDefinition, Logo, SessionKitOptions, WalletPluginMetadata} from '$lib'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
 import {mockFetch} from '$test/utils/mock-fetch'
@@ -338,6 +338,59 @@ suite('walletPlugin', function () {
                 throw new Error('Failed to restore session')
             }
             assert.equal(session.walletPlugin.data.foo, 'bar')
+        })
+    })
+    suite('metadata', function () {
+        suite('logo', function () {
+            test('from plugin', async function () {
+                const walletPlugin = new MockWalletPluginConfigs()
+                assert.instanceOf(walletPlugin.metadata, WalletPluginMetadata)
+                assert.instanceOf(walletPlugin.metadata.logo, Logo)
+                assert.equal(
+                    String(walletPlugin.metadata.logo),
+                    'https://assets.wharfkit.com/chain/jungle.png'
+                )
+            })
+            test('empty', async function () {
+                const metadata = WalletPluginMetadata.from({})
+                assert.equal(metadata.logo, undefined)
+            })
+            test('string', async function () {
+                const metadata = WalletPluginMetadata.from({
+                    logo: 'foo',
+                })
+                assert.equal(String(metadata.logo), 'foo')
+                assert.equal(metadata.logo?.getVariant('light'), 'foo')
+                assert.equal(metadata.logo?.light, 'foo')
+                assert.equal(metadata.logo?.getVariant('dark'), 'foo')
+                assert.equal(metadata.logo?.dark, 'foo')
+            })
+            test('object', async function () {
+                const metadata = WalletPluginMetadata.from({
+                    logo: {
+                        light: 'foo',
+                        dark: 'bar',
+                    },
+                })
+                assert.equal(String(metadata.logo), 'foo')
+                assert.equal(metadata.logo?.getVariant('light'), 'foo')
+                assert.equal(metadata.logo?.light, 'foo')
+                assert.equal(metadata.logo?.getVariant('dark'), 'bar')
+                assert.equal(metadata.logo?.dark, 'bar')
+            })
+            test('struct', async function () {
+                const metadata = WalletPluginMetadata.from({
+                    logo: Logo.from({
+                        light: 'foo',
+                        dark: 'bar',
+                    }),
+                })
+                assert.equal(String(metadata.logo), 'foo')
+                assert.equal(metadata.logo?.getVariant('light'), 'foo')
+                assert.equal(metadata.logo?.light, 'foo')
+                assert.equal(metadata.logo?.getVariant('dark'), 'bar')
+                assert.equal(metadata.logo?.dark, 'bar')
+            })
         })
     })
 })

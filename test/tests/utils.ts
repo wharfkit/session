@@ -2,7 +2,7 @@ import {assert} from 'chai'
 
 import zlib from 'pako'
 
-import {ChainDefinition, SigningRequest, Transaction} from '$lib'
+import {ChainDefinition, Logo, SigningRequest, Transaction} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
 import {appendAction, prependAction} from 'src/utils'
@@ -162,6 +162,26 @@ suite('utils', function () {
             commonAsserts(originalTransaction, modifiedTransaction)
             assert.isTrue(newAction.equals(modifiedTransaction.actions[0]))
             assert.isTrue(originalTransaction.actions[0].equals(modifiedTransaction.actions[1]))
+        })
+    })
+    suite('logo', function () {
+        test('returns light when stringified', function () {
+            const logo = Logo.from('foo')
+            assert.equal(String(logo), 'foo')
+        })
+        test('variants always available', function () {
+            const logo = Logo.from('foo')
+            assert.equal(logo.getVariant('dark'), 'foo')
+            assert.equal(logo.getVariant('light'), 'foo')
+        })
+        test('variants are correctly returned', function () {
+            const logo = Logo.from({
+                dark: 'foo',
+                light: 'bar',
+            })
+            assert.equal(String(logo), 'bar')
+            assert.equal(logo.getVariant('dark'), 'foo')
+            assert.equal(logo.getVariant('light'), 'bar')
         })
     })
 })

@@ -1,9 +1,9 @@
-import {Checksum256, Checksum256Type, PermissionLevel, PublicKey, Signature} from '@greymass/eosio'
+import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
-import {LocaleDefinitions} from './types'
+import {LocaleDefinitions, Logo} from './types'
 
 /**
  * The static configuration of a [[WalletPlugin]].
@@ -30,31 +30,39 @@ export interface WalletPluginConfig {
 /**
  * The metadata of a [[WalletPlugin]] for display purposes.
  */
-export interface WalletPluginMetadata {
+@Struct.type('wallet_plugin_metadata')
+export class WalletPluginMetadata extends Struct {
     /**
      * A display name for the wallet that is presented to users.
      */
-    name?: string
+    @Struct.field('string', {optional: true}) declare name?: string
     /**
      * A wallet description to further identify the wallet for users.
      */
-    description?: string
+    @Struct.field('string', {optional: true}) declare description?: string
     /**
      * Wallet branding
      */
-    logo?: string
+    @Struct.field(Logo, {optional: true}) declare logo?: Logo
     /**
      * Link to the homepage for the wallet
      */
-    homepage?: string
+    @Struct.field('string', {optional: true}) declare homepage?: string
     /**
      * Link to the download page for the wallet
      */
-    download?: string
+    @Struct.field('string', {optional: true}) declare download?: string
     /**
      * The public key being used by the wallet plugin
      */
-    publicKey?: PublicKey
+    @Struct.field('string', {optional: true}) declare publicKey?: string
+
+    static from(data) {
+        return new WalletPluginMetadata({
+            ...data,
+            logo: data.logo ? Logo.from(data.logo) : undefined,
+        })
+    }
 }
 
 /**
@@ -133,7 +141,7 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
         requiresPermissionSelect: false,
         requiresPermissionEntry: false,
     }
-    metadata: WalletPluginMetadata = {}
+    metadata: WalletPluginMetadata = new WalletPluginMetadata({})
     translations?: LocaleDefinitions
     abstract get id(): string
     abstract login(context: LoginContext): Promise<WalletPluginLoginResponse>

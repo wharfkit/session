@@ -10,6 +10,7 @@ import {
     TransactContext,
     WalletPluginConfig,
     WalletPluginData,
+    WalletPluginMetadata,
     WalletPluginSignResponse,
 } from '$lib'
 import {mockChainDefinition, mockPermissionLevel, mockPrivateKey} from './mock-config'
@@ -20,10 +21,11 @@ export function makeWallet() {
 }
 
 export class MockWalletPluginConfigs extends AbstractWalletPlugin {
-    readonly metadata = {
+    readonly metadata = WalletPluginMetadata.from({
         name: 'Mock Wallet Plugin',
         description: 'A mock wallet plugin for testing chain selection',
-    }
+        logo: 'https://assets.wharfkit.com/chain/jungle.png',
+    })
     testModify = false
     config: WalletPluginConfig
     constructor(config?: WalletPluginConfig, initialData: WalletPluginData = {}) {
