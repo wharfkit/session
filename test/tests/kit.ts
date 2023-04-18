@@ -179,6 +179,26 @@ suite('kit', function () {
                         )
                     )
                 })
+                test('default logo', async function () {
+                    const sessionKit = new SessionKit({
+                        ...mockSessionKitOptions,
+                        chains: [
+                            {
+                                id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
+                                url: 'https://telos.greymass.com',
+                                logo: 'https://assets.wharfkit.com/chain/telos.png',
+                            },
+                        ],
+                    })
+                    assert.instanceOf(sessionKit.chains[0], ChainDefinition)
+                    assert.instanceOf(sessionKit.chains[0].id, Checksum256)
+                    assert.instanceOf(sessionKit.chains[0].logo, Logo)
+                    assert.equal(
+                        String(sessionKit.chains[0].logo),
+                        'https://assets.wharfkit.com/chain/telos.png'
+                    )
+                    assert.isString(sessionKit.chains[0].name)
+                })
                 test('specify logo', async function () {
                     const sessionKit = new SessionKit({
                         ...mockSessionKitOptions,
@@ -197,6 +217,10 @@ suite('kit', function () {
                     assert.instanceOf(sessionKit.chains[0], ChainDefinition)
                     assert.instanceOf(sessionKit.chains[0].id, Checksum256)
                     assert.instanceOf(sessionKit.chains[0].logo, Logo)
+                    assert.equal(
+                        String(sessionKit.chains[0].logo),
+                        'https://assets.wharfkit.com/chain/eos.png'
+                    )
                     assert.instanceOf(sessionKit.chains[0].explorer, ExplorerDefinition)
                     assert.isString(sessionKit.chains[0].name)
                 })
