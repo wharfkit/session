@@ -30,11 +30,11 @@ export class Logo extends Struct {
     @Struct.field('string') declare dark: string
     @Struct.field('string') declare light: string
 
-    static from(value: LogoType): Logo {
-        if (typeof value === 'string') {
-            return new Logo({light: value, dark: value})
+    static from(data: LogoType): Logo {
+        if (typeof data === 'string') {
+            return new Logo({light: data, dark: data})
         }
-        return new Logo(value)
+        return super.from(data) as Logo
     }
 
     getVariant(variant: 'dark' | 'light'): string | undefined {
@@ -118,6 +118,8 @@ export class ExplorerDefinition extends Struct {
     }
 }
 
+export type ExplorerDefinitionType = ExplorerDefinition | {prefix: string; suffix: string}
+
 /**
  * The information required to interact with a given chain.
  */
@@ -138,7 +140,15 @@ export class ChainDefinition extends Struct {
     /**
      * The explorer definition for the chain.
      */
-    @Struct.field(ExplorerDefinition, {optional: true}) declare explorer?: ExplorerDefinition
+    @Struct.field(ExplorerDefinition, {optional: true}) declare explorer?: ExplorerDefinitionType
+
+    static from(data) {
+        return super.from({
+            ...data,
+            explorer: data.explorer ? ExplorerDefinition.from(data.explorer) : undefined,
+            logo: data.logo ? Logo.from(data.logo) : undefined,
+        }) as ChainDefinition
+    }
 
     get name() {
         const id = String(this.id)
@@ -162,7 +172,7 @@ export class ChainDefinition extends Struct {
 
 export type ChainDefinitionType =
     | ChainDefinition
-    | {id: Checksum256Type; url: string; explorer?: ExplorerDefinition; logo?: string}
+    | {id: Checksum256Type; url: string; explorer?: ExplorerDefinitionType; logo?: LogoType}
 
 export type LocaleDefinitions = Record<string, any>
 

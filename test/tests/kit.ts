@@ -1,10 +1,13 @@
 import {assert} from 'chai'
-import {Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {Checksum256, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 import {
     BaseTransactPlugin,
+    ChainDefinition,
+    ExplorerDefinition,
     LoginContext,
+    Logo,
     Session,
     SessionKit,
     UserInterfaceLoginResponse,
@@ -175,6 +178,27 @@ suite('kit', function () {
                             '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11'
                         )
                     )
+                })
+                test('specify logo', async function () {
+                    const sessionKit = new SessionKit({
+                        ...mockSessionKitOptions,
+                        chains: [
+                            {
+                                id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
+                                url: 'https://telos.greymass.com',
+                                logo: 'https://assets.wharfkit.com/chain/eos.png',
+                                explorer: {
+                                    prefix: 'https://explorer.telos.net/transaction/',
+                                    suffix: '',
+                                },
+                            },
+                        ],
+                    })
+                    assert.instanceOf(sessionKit.chains[0], ChainDefinition)
+                    assert.instanceOf(sessionKit.chains[0].id, Checksum256)
+                    assert.instanceOf(sessionKit.chains[0].logo, Logo)
+                    assert.instanceOf(sessionKit.chains[0].explorer, ExplorerDefinition)
+                    assert.isString(sessionKit.chains[0].name)
                 })
             })
             suite('permissionLevel', function () {
