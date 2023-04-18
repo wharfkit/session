@@ -136,6 +136,14 @@ export class ChainDefinition extends Struct {
         const id = String(this.id)
         return chainNames.has(id) ? chainNames.get(id) : 'Unknown blockchain'
     }
+
+    public getLogo() {
+        const id = String(this.id)
+        if (this.logo) {
+            return this.logo
+        }
+        return chainLogos.has(id) ? chainLogos.get(id) : undefined
+    }
 }
 
 export type ChainDefinitionType =
