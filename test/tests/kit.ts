@@ -43,15 +43,18 @@ function assertSessionMatchesMockSession(session: Session) {
 }
 
 suite('kit', function () {
+    let sessionKit
+    setup(async function () {
+        sessionKit = new SessionKit({...mockSessionKitOptions})
+        await sessionKit.logout()
+    })
     suite('construct', function () {
         test('instance', function () {
-            const sessionKit = new SessionKit(mockSessionKitOptions)
             assert.instanceOf(sessionKit, SessionKit)
         })
         suite('options', function () {
             suite('expireSeconds', function () {
                 test('default: 120', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login(defaultLoginOptions)
                     const result = await session.transact({action}, {broadcast: false})
                     // Get the chain info to get the current head block time from test cache
@@ -82,7 +85,6 @@ suite('kit', function () {
             })
             suite('transactPlugins', function () {
                 test('default', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     assert.lengthOf(sessionKit.transactPlugins, 1)
                     assert.instanceOf(sessionKit.transactPlugins[0], BaseTransactPlugin)
                 })
@@ -99,14 +101,12 @@ suite('kit', function () {
     })
     suite('login', function () {
         test('default', async function () {
-            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             assertSessionMatchesMockSession(session)
         })
         suite('options', function () {
             suite('chain', function () {
                 test('override', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const chain = 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
@@ -115,7 +115,6 @@ suite('kit', function () {
                     assert.isTrue(session.chain.id.equals(chain))
                 })
                 test('throws on unknown', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     assert.throws(() =>
                         sessionKit.getChainDefinition(
                             'c054efbc59625be7ce0d69ef26124fd349420b98fef2ed23fead4c558b9826b1'
@@ -125,7 +124,6 @@ suite('kit', function () {
             })
             suite('chains', function () {
                 test('specify subset', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         chain: undefined,
@@ -142,7 +140,6 @@ suite('kit', function () {
                     )
                 })
                 test('specify subset, wallet returns invalid ID choice', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     let error
                     try {
                         await sessionKit.login({
@@ -163,7 +160,6 @@ suite('kit', function () {
                     )
                 })
                 test('specify subset, specify selection', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         chain: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
@@ -226,7 +222,6 @@ suite('kit', function () {
             })
             suite('permissionLevel', function () {
                 test('typed', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const {session} = await sessionKit.login({
                         ...defaultLoginOptions,
                         permissionLevel: PermissionLevel.from('mock@interface'),
@@ -237,7 +232,6 @@ suite('kit', function () {
                     )
                 })
                 test('untyped', async function () {
-                    const sessionKit = new SessionKit(mockSessionKitOptions)
                     const result = await sessionKit.login({
                         ...defaultLoginOptions,
                         permissionLevel: 'mock@interface',
@@ -254,7 +248,6 @@ suite('kit', function () {
     })
     suite('logout', function () {
         test('no param', async function () {
-            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             assertSessionMatchesMockSession(session)
             const sessionsBeforeLogout = await sessionKit.getSessions()
@@ -264,7 +257,6 @@ suite('kit', function () {
             assert.lengthOf(sessionsAfterLogout, 0)
         })
         test('session param', async function () {
-            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             assertSessionMatchesMockSession(session)
             const sessionsBeforeLogout = await sessionKit.getSessions()
@@ -274,7 +266,6 @@ suite('kit', function () {
             assert.lengthOf(sessionsAfterLogout, 0)
         })
         test('serialized session param', async function () {
-            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             assertSessionMatchesMockSession(session)
             const sessionsBeforeLogout = await sessionKit.getSessions()
@@ -286,7 +277,6 @@ suite('kit', function () {
     })
     suite('restore', function () {
         test('session', async function () {
-            const sessionKit = new SessionKit({...mockSessionKitOptions})
             const {session} = await sessionKit.login()
             const mockSerializedSession = session.serialize()
             const restored = await mockSessionKit.restore(mockSerializedSession)
@@ -363,7 +353,6 @@ suite('kit', function () {
     })
     suite('ui', function () {
         test('default', async function () {
-            const sessionKit = new SessionKit(mockSessionKitOptions)
             assert.instanceOf(sessionKit.ui, MockUserInterface)
             const {session} = await sessionKit.login(defaultLoginOptions)
             assert.instanceOf(session.ui, MockUserInterface)
