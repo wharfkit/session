@@ -286,7 +286,7 @@ export class SessionKit {
         }
     }
 
-    async logout(session?: Session) {
+    async logout(session?: Session | SerializedSession) {
         if (!this.storage) {
             throw new Error('An instance of Storage must be provided to utilize the logout method.')
         }
@@ -294,10 +294,15 @@ export class SessionKit {
         if (session) {
             const sessions = await this.getSessions()
             if (sessions) {
-                const serialized = session.serialize()
+                let serialized = session
+                if (session instanceof Session) {
+                    serialized = session.serialize()
+                }
                 const other = sessions.filter((s: Record<string, any>) => {
                     return (
-                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
+                        !Checksum256.from(s.chain).equals(
+                            Checksum256.from(String(serialized.chain))
+                        ) ||
                         !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
                         !Name.from(s.permission).equals(Name.from(serialized.permission))
                     )

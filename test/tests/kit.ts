@@ -252,6 +252,38 @@ suite('kit', function () {
             })
         })
     })
+    suite('logout', function () {
+        test('no param', async function () {
+            const sessionKit = new SessionKit({...mockSessionKitOptions})
+            const {session} = await sessionKit.login()
+            assertSessionMatchesMockSession(session)
+            const sessionsBeforeLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsBeforeLogout, 1)
+            await sessionKit.logout()
+            const sessionsAfterLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsAfterLogout, 0)
+        })
+        test('session param', async function () {
+            const sessionKit = new SessionKit({...mockSessionKitOptions})
+            const {session} = await sessionKit.login()
+            assertSessionMatchesMockSession(session)
+            const sessionsBeforeLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsBeforeLogout, 1)
+            await sessionKit.logout(session)
+            const sessionsAfterLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsAfterLogout, 0)
+        })
+        test('serialized session param', async function () {
+            const sessionKit = new SessionKit({...mockSessionKitOptions})
+            const {session} = await sessionKit.login()
+            assertSessionMatchesMockSession(session)
+            const sessionsBeforeLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsBeforeLogout, 1)
+            await sessionKit.logout(session.serialize())
+            const sessionsAfterLogout = await sessionKit.getSessions()
+            assert.lengthOf(sessionsAfterLogout, 0)
+        })
+    })
     suite('restore', function () {
         test('session', async function () {
             const sessionKit = new SessionKit({...mockSessionKitOptions})

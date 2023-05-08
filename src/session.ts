@@ -1,6 +1,7 @@
 import zlib from 'pako'
 import {
     APIClient,
+    Checksum256Type,
     FetchProvider,
     Name,
     NameType,
@@ -63,9 +64,9 @@ export interface SessionOptions {
 }
 
 export interface SerializedSession {
-    actor: string
-    chain: string
-    permission: string
+    actor: NameType
+    chain: Checksum256Type
+    permission: NameType
     walletPlugin: SerializedWalletPlugin
 }
 
