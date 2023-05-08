@@ -1,12 +1,11 @@
 import {assert} from 'chai'
-import {Checksum256, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {Checksum256, PermissionLevel, TimePointSec} from '@greymass/eosio'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 import {
     BaseTransactPlugin,
     ChainDefinition,
     ExplorerDefinition,
-    LoginContext,
     Logo,
     Session,
     SessionKit,
@@ -369,7 +368,7 @@ suite('kit', function () {
             })
             test('walletPlugin returning invalid index throws', async function () {
                 class FailingUI extends MockUserInterface {
-                    async login(context: LoginContext): Promise<UserInterfaceLoginResponse> {
+                    async login(): Promise<UserInterfaceLoginResponse> {
                         return {
                             chainId: mockChainId,
                             permissionLevel: PermissionLevel.from(mockPermissionLevel),
