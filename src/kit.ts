@@ -57,7 +57,7 @@ export interface SessionKitOptions {
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
-    storage: SessionStorage
+    storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
