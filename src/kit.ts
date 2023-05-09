@@ -255,12 +255,11 @@ export class SessionKit {
             )
         }
 
-        // TODO: Implement beforeLogin hook
+        // Call the `beforeLogin` hooks that were registered by the LoginPlugins
+        for (const hook of context.hooks.beforeLogin) await hook(context)
 
         // Perform the login request against the selected walletPlugin
         const response: WalletPluginLoginResponse = await walletPlugin.login(context)
-
-        // TODO: Implement afterLogin hook
 
         // Create a session from the resulting login response
         const session = new Session(
@@ -271,6 +270,9 @@ export class SessionKit {
             },
             this.getSessionOptions(options)
         )
+
+        // Call the `afterLogin` hooks that were registered by the LoginPlugins
+        for (const hook of context.hooks.afterLogin) await hook(context)
 
         // Notify the UI that the login request has completed.
         await context.ui.onLoginComplete()
