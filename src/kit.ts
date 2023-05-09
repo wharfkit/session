@@ -274,11 +274,11 @@ export class SessionKit {
         // Call the `afterLogin` hooks that were registered by the LoginPlugins
         for (const hook of context.hooks.afterLogin) await hook(context)
 
-        // Notify the UI that the login request has completed.
-        await context.ui.onLoginComplete()
-
         // Save the session to storage if it has a storage instance.
         this.persistSession(session)
+
+        // Notify the UI that the login request has completed.
+        await context.ui.onLoginComplete()
 
         // Return the results of the login request.
         return {
