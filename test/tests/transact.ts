@@ -27,12 +27,7 @@ import {
     MockTransactPlugin,
     MockTransactResourceProviderPlugin,
 } from '$test/utils/mock-hook'
-import {
-    makeMockAction,
-    makeMockActions,
-    makeMockOfflineTransaction,
-    makeMockTransaction,
-} from '$test/utils/mock-transfer'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
 import {mockChainDefinition, mockPermissionLevel} from '$test/utils/mock-config'
 import {Transfer} from '$test/utils/setup/structs'
