@@ -515,11 +515,25 @@ export class Session {
     }
 
     async sign(transaction: TransactionType): Promise<Signature[]> {
-        if (!(this.abiProvider instanceof ABICache)) {
-            throw new Error('ABIProvider must be an instance of ABICache')
-        }
+        // Create a TransactContext for the WalletPlugin to use
+        const context = new TransactContext({
+            abiProvider: this.abiProvider,
+            chain: this.chain,
+            client: this.client,
+            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
+            fetch: this.fetch,
+            permissionLevel: this.permissionLevel,
+        })
         // Create a request based on the incoming transaction
-        const request = await this.createRequest(transaction, this.abiProvider)
+        const request = await SigningRequest.create(
+            {
+                transaction,
+                chainId: this.chain.id,
+            },
+            context.esrOptions
+        )
+        // Always set the broadcast flag to false on signing requests, Wharf needs to do it
+        request.setBroadcast(false)
         // Resolve the request since the WalletPlugin expects a ResolvedSigningRequest
         const resolvedTransaction: ResolvedTransaction = Serializer.objectify(
             Transaction.from(transaction)
@@ -531,15 +545,6 @@ export class Session {
             resolvedTransaction,
             ChainId.from(this.chain.id)
         )
-        // Create a TransactContext for the WalletPlugin to use
-        const context = new TransactContext({
-            abiProvider: this.abiProvider,
-            chain: this.chain,
-            client: this.client,
-            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
-            fetch: this.fetch,
-            permissionLevel: this.permissionLevel,
-        })
         // Request the signature from the WalletPlugin
         const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
             resolvedRequest,
