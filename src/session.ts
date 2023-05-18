@@ -1,6 +1,5 @@
 import zlib from 'pako'
 import {
-    ABI,
     APIClient,
     Checksum256Type,
     FetchProvider,
@@ -11,13 +10,17 @@ import {
     Serializer,
     Signature,
     SignedTransaction,
+    Transaction,
     TransactionType,
 } from '@greymass/eosio'
 import {
     AbiProvider,
+    ChainId,
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
+    ResolvedSigningRequest,
+    ResolvedTransaction,
     SigningRequest,
 } from 'eosio-signing-request'
 
@@ -511,32 +514,35 @@ export class Session {
         }
     }
 
-    async sign(transaction: TransactionType, abis: Map<string, ABI>): Promise<Signature[]> {
+    async sign(transaction: TransactionType): Promise<Signature[]> {
         if (!(this.abiProvider instanceof ABICache)) {
             throw new Error('ABIProvider must be an instance of ABICache')
         }
         // Create a request based on the incoming transaction
         const request = await this.createRequest(transaction, this.abiProvider)
         // Resolve the request since the WalletPlugin expects a ResolvedSigningRequest
-        const resolved = request.resolve(abis, this.permissionLevel, {
-            ...transaction,
-            chainId: this.chain.id,
-        })
+        const resolvedTransaction: ResolvedTransaction = Serializer.objectify(
+            Transaction.from(transaction)
+        )
+        const resolvedRequest = new ResolvedSigningRequest(
+            request,
+            this.permissionLevel,
+            Transaction.from(transaction),
+            resolvedTransaction,
+            ChainId.from(this.chain.id)
+        )
         // Create a TransactContext for the WalletPlugin to use
         const context = new TransactContext({
             abiProvider: this.abiProvider,
-            appName: this.appName,
             chain: this.chain,
             client: this.client,
             createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
             fetch: this.fetch,
             permissionLevel: this.permissionLevel,
-            storage: this.storage,
-            ui: this.ui,
         })
         // Request the signature from the WalletPlugin
         const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
-            resolved,
+            resolvedRequest,
             context
         )
         // Return the array of signature

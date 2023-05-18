@@ -187,16 +187,10 @@ suite('transact', function () {
         })
         suite('offline', function () {
             test('able to sign transaction', async function () {
-                const session = new Session(
-                    {
-                        chain: mockChainDefinition,
-                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
-                        walletPlugin: wallet,
-                    },
-                    mockSessionOptions
-                )
+                // Start with a Session
+                const session = new Session(mockSessionArgs, mockSessionOptions)
                 // Get a fully formed transaction from mockData for use offline
-                // This is actually an eosio.token:transfer, with a renamed contract/action to break caching
+                // This is actually an eosio.token:transfer, with a renamed contract/action to break unittest caching
                 const transaction = {
                     expiration: '2022-12-07T22:39:44',
                     ref_block_num: 2035,
@@ -220,45 +214,9 @@ suite('transact', function () {
                     ],
                     transaction_extensions: [],
                 }
-                // Define the ABI for the transaction
-                const abi = {
-                    version: 'eosio::abi/1.2',
-                    structs: [
-                        {
-                            name: 'transfer',
-                            base: '',
-                            fields: [
-                                {
-                                    name: 'from',
-                                    type: 'name',
-                                },
-                                {
-                                    name: 'to',
-                                    type: 'name',
-                                },
-                                {
-                                    name: 'quantity',
-                                    type: 'asset',
-                                },
-                                {
-                                    name: 'memo',
-                                    type: 'string',
-                                },
-                            ],
-                        },
-                    ],
-                    actions: [
-                        {
-                            name: 'bar',
-                            type: 'transfer',
-                            ricardian_contract: '',
-                        },
-                    ],
-                }
-                // Put the ABI into a map that the sign method expects
-                const abis: Map<string, ABI> = new Map([['foo', ABI.from(abi)]])
-                // Retrieve the signature(s)
-                const signatures = await session.sign(transaction, abis)
+                // Retrieve the signature(s), do not use the transact method path.
+                const signatures = await session.sign(transaction)
+                // Ensure data is good
                 assert.isArray(signatures)
                 assert.instanceOf(signatures[0], Signature)
             })
