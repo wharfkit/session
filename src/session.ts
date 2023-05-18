@@ -1,5 +1,6 @@
 import zlib from 'pako'
 import {
+    ABI,
     APIClient,
     Checksum256Type,
     FetchProvider,
@@ -8,7 +9,9 @@ import {
     PermissionLevel,
     PermissionLevelType,
     Serializer,
+    Signature,
     SignedTransaction,
+    TransactionType,
 } from '@greymass/eosio'
 import {
     AbiProvider,
@@ -506,6 +509,38 @@ export class Session {
             }
             throw new Error(error)
         }
+    }
+
+    async sign(transaction: TransactionType, abis: Map<string, ABI>): Promise<Signature[]> {
+        if (!(this.abiProvider instanceof ABICache)) {
+            throw new Error('ABIProvider must be an instance of ABICache')
+        }
+        // Create a request based on the incoming transaction
+        const request = await this.createRequest(transaction, this.abiProvider)
+        // Resolve the request since the WalletPlugin expects a ResolvedSigningRequest
+        const resolved = request.resolve(abis, this.permissionLevel, {
+            ...transaction,
+            chainId: this.chain.id,
+        })
+        // Create a TransactContext for the WalletPlugin to use
+        const context = new TransactContext({
+            abiProvider: this.abiProvider,
+            appName: this.appName,
+            chain: this.chain,
+            client: this.client,
+            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
+            fetch: this.fetch,
+            permissionLevel: this.permissionLevel,
+            storage: this.storage,
+            ui: this.ui,
+        })
+        // Request the signature from the WalletPlugin
+        const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
+            resolved,
+            context
+        )
+        // Return the array of signature
+        return walletResponse.signatures
     }
 
     serialize = (): SerializedSession =>

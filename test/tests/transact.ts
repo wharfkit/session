@@ -1,7 +1,14 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {
+    ABI,
+    PermissionLevel,
+    Serializer,
+    Signature,
+    TimePointSec,
+    Transaction,
+} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -20,9 +27,14 @@ import {
     MockTransactPlugin,
     MockTransactResourceProviderPlugin,
 } from '$test/utils/mock-hook'
-import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
+import {
+    makeMockAction,
+    makeMockActions,
+    makeMockOfflineTransaction,
+    makeMockTransaction,
+} from '$test/utils/mock-transfer'
 import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
+import {mockChainDefinition, mockPermissionLevel} from '$test/utils/mock-config'
 import {Transfer} from '$test/utils/setup/structs'
 import {mockSessionArgs, mockSessionOptions} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
@@ -176,6 +188,84 @@ suite('transact', function () {
                     }
                 )
                 assert.equal(result.request.getInfoKey('foo'), 'bar')
+            })
+        })
+        suite('offline', function () {
+            test('able to sign transaction', async function () {
+                const session = new Session(
+                    {
+                        chain: mockChainDefinition,
+                        permissionLevel: PermissionLevel.from(mockPermissionLevel),
+                        walletPlugin: wallet,
+                    },
+                    mockSessionOptions
+                )
+                // Get a fully formed transaction from mockData for use offline
+                // This is actually an eosio.token:transfer, with a renamed contract/action to break caching
+                const transaction = {
+                    expiration: '2022-12-07T22:39:44',
+                    ref_block_num: 2035,
+                    ref_block_prefix: 2373626664,
+                    max_net_usage_words: 0,
+                    max_cpu_usage_ms: 0,
+                    delay_sec: 0,
+                    context_free_actions: [],
+                    actions: [
+                        {
+                            account: 'foo',
+                            name: 'bar',
+                            authorization: [
+                                {
+                                    actor: 'wharfkit1111',
+                                    permission: 'test',
+                                },
+                            ],
+                            data: '104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001777686172666b6974206973207468652062657374203c33',
+                        },
+                    ],
+                    transaction_extensions: [],
+                }
+                // Define the ABI for the transaction
+                const abi = {
+                    version: 'eosio::abi/1.2',
+                    structs: [
+                        {
+                            name: 'transfer',
+                            base: '',
+                            fields: [
+                                {
+                                    name: 'from',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'to',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'quantity',
+                                    type: 'asset',
+                                },
+                                {
+                                    name: 'memo',
+                                    type: 'string',
+                                },
+                            ],
+                        },
+                    ],
+                    actions: [
+                        {
+                            name: 'bar',
+                            type: 'transfer',
+                            ricardian_contract: '',
+                        },
+                    ],
+                }
+                // Put the ABI into a map that the sign method expects
+                const abis: Map<string, ABI> = new Map([['foo', ABI.from(abi)]])
+                // Retrieve the signature(s)
+                const signatures = await session.sign(transaction, abis)
+                assert.isArray(signatures)
+                assert.instanceOf(signatures[0], Signature)
             })
         })
         suite('invalid', function () {
