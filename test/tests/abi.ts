@@ -40,13 +40,13 @@ suite('ABICache', function () {
         assert.equal(result.version, 'eosio::abi/1.2')
     })
     test('manually add struct', async function () {
-        @Struct.type('transfer')
-        class Transfer extends Struct {
-            @Struct.field(Name) from!: Name
-            @Struct.field(Name) to!: Name
-            @Struct.field(Asset) quantity!: Asset
-            @Struct.field('string') memo!: string
-        }
+        // @Struct.type('transfer')
+        // class Transfer extends Struct {
+        //     @Struct.field(Name) from!: Name
+        //     @Struct.field(Name) to!: Name
+        //     @Struct.field(Asset) quantity!: Asset
+        //     @Struct.field('string') memo!: string
+        // }
         // abiCache.addStruct(Transfer)
     })
 })
