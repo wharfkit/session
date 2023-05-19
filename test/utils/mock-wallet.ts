@@ -63,13 +63,13 @@ export class MockWalletPluginConfigs extends AbstractWalletPlugin {
                 {action: makeMockAction('modified transaction')},
                 context.esrOptions
             )
-            const modifiedResolved = await context.resolve(request)
-            const transaction = Transaction.from(modifiedResolved.transaction)
+            const resolved = await context.resolve(request)
+            const transaction = Transaction.from(resolved.transaction)
             const digest = transaction.signingDigest(Checksum256.from(context.chain.id))
             const privateKey = PrivateKey.from(this.data.privateKey)
             const signature = privateKey.signDigest(digest)
             return {
-                request: request,
+                resolved: resolved,
                 signatures: [signature],
             }
         }
