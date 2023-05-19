@@ -1,4 +1,4 @@
-import {ABI, API, APIClient, Name} from '@greymass/eosio'
+import {ABI, API, APIClient, NameType} from '@greymass/eosio'
 import {AbiProvider} from 'eosio-signing-request'
 
 /**
@@ -10,7 +10,7 @@ export class ABICache implements AbiProvider {
 
     constructor(readonly client: APIClient) {}
 
-    async getAbi(account: Name): Promise<ABI> {
+    async getAbi(account: NameType): Promise<ABI> {
         const key = String(account)
         let record = this.cache.get(key)
         if (!record) {
@@ -29,5 +29,10 @@ export class ABICache implements AbiProvider {
             }
         }
         return record
+    }
+
+    setAbi(account: NameType, abi: ABI) {
+        const key = String(account)
+        this.cache.set(key, abi)
     }
 }
