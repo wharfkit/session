@@ -20,7 +20,6 @@ import {
     RequestDataV3,
     RequestSignature,
     ResolvedSigningRequest,
-    ResolvedTransaction,
     SigningRequest,
 } from 'eosio-signing-request'
 

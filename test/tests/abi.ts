@@ -1,5 +1,5 @@
 import {makeClient} from '$test/utils/mock-client'
-import {ABI, ABICache, Asset, Name, Struct} from '@wharfkit/session'
+import {ABI, ABICache, Name} from '@wharfkit/session'
 import {assert} from 'chai'
 
 const client = makeClient()

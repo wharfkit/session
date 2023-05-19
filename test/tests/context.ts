@@ -1,13 +1,12 @@
 import {assert} from 'chai'
 
-import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
+import {Checksum256, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
-import {SigningRequest, TransactContext} from '$lib'
+import {SigningRequest} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
-import {makeContext, mockTransactContextOptions} from '$test/utils/mock-context'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {makeContext} from '$test/utils/mock-context'
 
 const context = makeContext()
 
