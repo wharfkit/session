@@ -535,14 +535,11 @@ export class Session {
         // Always set the broadcast flag to false on signing requests, Wharf needs to do it
         request.setBroadcast(false)
         // Resolve the request since the WalletPlugin expects a ResolvedSigningRequest
-        const resolvedTransaction: ResolvedTransaction = Serializer.objectify(
-            Transaction.from(transaction)
-        )
         const resolvedRequest = new ResolvedSigningRequest(
             request,
             this.permissionLevel,
             Transaction.from(transaction),
-            resolvedTransaction,
+            Serializer.objectify(Transaction.from(transaction)),
             ChainId.from(this.chain.id)
         )
         // Request the signature from the WalletPlugin
