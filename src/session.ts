@@ -514,11 +514,10 @@ export class Session {
      *
      * This function will NOT use plugins and will NOT broadcast the transaction.
      *
-     * @param {TransactionType} transaction
+     * @param {TransactionType} transaction A full transaction-like object
      * @returns {Promise<Signature[]>} The signature(s) for the transaction
-     * @mermaid - Transaction sequence diagram
      */
-    async sign(transaction: TransactionType): Promise<Signature[]> {
+    async signTransaction(transaction: TransactionType): Promise<Signature[]> {
         // Create a TransactContext for the WalletPlugin to use
         const context = new TransactContext({
             abiProvider: this.abiProvider,

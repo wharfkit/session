@@ -13,6 +13,7 @@ import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
 import {mockSessionArgs} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -359,7 +360,21 @@ suite('session', function () {
     suite('sign transaction', function () {
         test('able to sign transaction', async function () {
             // Start with a Session
-            const session = new Session(mockSessionArgs, mockSessionOptions)
+            const testSession = new Session(
+                {
+                    chain: {
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    },
+                    permissionLevel: 'account@permission',
+                    walletPlugin: new WalletPluginPrivateKey(
+                        '5Jtoxgny5tT7NiNFp1MLogviuPJ9NniWjnU4wKzaX4t7pL4kJ8s'
+                    ),
+                },
+                {
+                    fetch: mockFetch,
+                }
+            )
             // Get a fully formed transaction from mockData for use offline
             // This is actually an eosio.token:transfer, with a renamed contract/action to break unittest caching
             const transaction = {
@@ -386,7 +401,7 @@ suite('session', function () {
                 transaction_extensions: [],
             }
             // Retrieve the signature(s), do not use the transact method path.
-            const signatures = await session.sign(transaction)
+            const signatures = await testSession.signTransaction(transaction)
             // Ensure data is good
             assert.isArray(signatures)
             assert.instanceOf(signatures[0], Signature)
