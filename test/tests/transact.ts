@@ -1,7 +1,16 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {
+    Action,
+    Checksum256,
+    Name,
+    PermissionLevel,
+    Serializer,
+    Signature,
+    Struct,
+    TimePointSec,
+} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -288,6 +297,42 @@ suite('transact', function () {
                     String(result.transaction?.expiration),
                     String(TimePointSec.fromMilliseconds(expectedExpiration))
                 )
+            })
+        })
+        suite('structs', function () {
+            test('accepts custom structs', async function () {
+                const session = new Session(mockSessionArgs, mockSessionOptions)
+
+                // Define a custom struct
+                @Struct.type('approve')
+                class Approve extends Struct {
+                    @Struct.field(Name) proposer!: Name
+                    @Struct.field(Name) proposal_name!: Name
+                    @Struct.field(PermissionLevel) level!: PermissionLevel
+                    @Struct.field(Checksum256, {extension: true}) proposal_hash!: Checksum256
+                }
+
+                // Create an action from it
+                const action = Action.from({
+                    account: 'eosio.msig',
+                    name: 'approve',
+                    authorization: [session.permissionLevel],
+                    data: Approve.from({
+                        proposer: 'foo',
+                        proposal_name: 'bar',
+                        level: {
+                            actor: 'baz',
+                            permission: 'active',
+                        },
+                        proposal_hash:
+                            '596df39f4dd7681ceab82661b21301d8cfe4b853b89cf242d159601ec73ac048',
+                    }),
+                })
+
+                // Perform the transaction
+                const result = await session.transact({action}, {broadcast: false})
+
+                // The above calls get_abi, but could be completely avoided if the Struct (or the abi from the struct) was passed in
             })
         })
         suite('transactPlugins', function () {
