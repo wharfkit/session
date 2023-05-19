@@ -436,19 +436,15 @@ export class Session {
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
 
-            // If a request was returned from the wallet, determine if it was modified, then if it was allowed.
-            if (walletResponse.request) {
-                const requestWasModified = !request
-                    .getRawTransaction()
-                    .equals(walletResponse.request.getRawTransaction())
+            // If a ResolvedSigningRequest was returned from the wallet, determine if it was modified, then if it was allowed.
+            if (walletResponse.resolved) {
+                const {resolved} = walletResponse
+                const requestWasModified = !result.resolved.transaction.equals(resolved.transaction)
                 if (requestWasModified) {
                     if (allowModify) {
-                        result.request = walletResponse.request
-                        result.resolved = await context.resolve(
-                            walletResponse.request,
-                            expireSeconds
-                        )
-                        result.transaction = result.resolved.resolvedTransaction
+                        result.request = resolved.request
+                        result.resolved = resolved
+                        result.transaction = resolved.resolvedTransaction
                     } else {
                         throw new Error(
                             `The ${this.walletPlugin.metadata.name} plugin modified the transaction when it was not allowed to.`

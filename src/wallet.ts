@@ -1,5 +1,5 @@
 import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@greymass/eosio'
-import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
@@ -77,7 +77,7 @@ export interface WalletPluginLoginResponse {
  * The response for a sign call of a [[WalletPlugin]].
  */
 export interface WalletPluginSignResponse {
-    request?: SigningRequest
+    resolved?: ResolvedSigningRequest
     signatures: Signature[]
 }
 
