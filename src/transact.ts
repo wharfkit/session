@@ -30,16 +30,20 @@ export enum TransactHookTypes {
     afterBroadcast = 'afterBroadcast',
 }
 
-export type TransactHook = (
+export type TransactHookMutable = (
     request: SigningRequest,
-    context: TransactContext,
-    result?: TransactResult
+    context: TransactContext
+) => Promise<TransactHookResponse | void>
+
+export type TransactHookImmutable = (
+    result: TransactResult,
+    context: TransactContext
 ) => Promise<TransactHookResponse | void>
 
 export interface TransactHooks {
-    afterSign: TransactHook[]
-    beforeSign: TransactHook[]
-    afterBroadcast: TransactHook[]
+    afterSign: TransactHookImmutable[]
+    beforeSign: TransactHookMutable[]
+    afterBroadcast: TransactHookImmutable[]
 }
 
 export interface TransactHookResponse {
@@ -123,8 +127,18 @@ export class TransactContext {
         }
     }
 
-    addHook(t: TransactHookTypes, hook: TransactHook) {
-        this.hooks[t].push(hook)
+    addHook(t: TransactHookTypes, hook: TransactHookMutable | TransactHookImmutable) {
+        switch (t) {
+            case TransactHookTypes.beforeSign: {
+                this.hooks[t].push(hook as TransactHookMutable)
+                break
+            }
+            case TransactHookTypes.afterSign:
+            case TransactHookTypes.afterBroadcast: {
+                this.hooks[t].push(hook as TransactHookImmutable)
+                break
+            }
+        }
     }
 
     async getInfo(): Promise<API.v1.GetInfoResponse> {

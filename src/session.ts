@@ -454,7 +454,7 @@ export class Session {
             }
 
             // Run the `afterSign` hooks that were registered by the TransactPlugins
-            for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
+            for (const hook of context.hooks.afterSign) await hook(result, context)
 
             if (willBroadcast) {
                 if (context.ui) {
@@ -472,8 +472,7 @@ export class Session {
                 result.response = await context.client.v1.chain.send_transaction(signed)
 
                 // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
-                for (const hook of context.hooks.afterBroadcast)
-                    await hook(result.request.clone(), context, result)
+                for (const hook of context.hooks.afterBroadcast) await hook(result, context)
 
                 if (context.ui) {
                     // Notify the UI that the transaction has completed the broadcast logic
