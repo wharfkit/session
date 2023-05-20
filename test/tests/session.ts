@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABIDef, Name, PermissionLevel, TimePointSec} from '@greymass/eosio'
+import {ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@greymass/eosio'
 
 import {mockFetch} from '$test/utils/mock-fetch'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
@@ -13,6 +13,7 @@ import {MockUserInterface} from '$test/utils/mock-userinterface'
 import {makeClient} from '$test/utils/mock-client'
 import {mockSessionArgs} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
+import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -354,6 +355,56 @@ suite('session', function () {
             assert.doesNotThrow(() => {
                 JSON.stringify(serialized)
             })
+        })
+    })
+    suite('sign transaction', function () {
+        test('able to sign transaction', async function () {
+            // Start with a Session
+            const testSession = new Session(
+                {
+                    chain: {
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    },
+                    permissionLevel: 'account@permission',
+                    walletPlugin: new WalletPluginPrivateKey(
+                        '5Jtoxgny5tT7NiNFp1MLogviuPJ9NniWjnU4wKzaX4t7pL4kJ8s'
+                    ),
+                },
+                {
+                    fetch: mockFetch,
+                }
+            )
+            // Get a fully formed transaction from mockData for use offline
+            // This is actually an eosio.token:transfer, with a renamed contract/action to break unittest caching
+            const transaction = {
+                expiration: '2022-12-07T22:39:44',
+                ref_block_num: 2035,
+                ref_block_prefix: 2373626664,
+                max_net_usage_words: 0,
+                max_cpu_usage_ms: 0,
+                delay_sec: 0,
+                context_free_actions: [],
+                actions: [
+                    {
+                        account: 'foo',
+                        name: 'bar',
+                        authorization: [
+                            {
+                                actor: 'wharfkit1111',
+                                permission: 'test',
+                            },
+                        ],
+                        data: '104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001777686172666b6974206973207468652062657374203c33',
+                    },
+                ],
+                transaction_extensions: [],
+            }
+            // Retrieve the signature(s), do not use the transact method path.
+            const signatures = await testSession.signTransaction(transaction)
+            // Ensure data is good
+            assert.isArray(signatures)
+            assert.instanceOf(signatures[0], Signature)
         })
     })
 })

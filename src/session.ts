@@ -1,19 +1,25 @@
 import zlib from 'pako'
 import {
     APIClient,
+    Checksum256Type,
     FetchProvider,
     Name,
     NameType,
     PermissionLevel,
     PermissionLevelType,
     Serializer,
+    Signature,
     SignedTransaction,
+    Transaction,
+    TransactionType,
 } from '@greymass/eosio'
 import {
     AbiProvider,
+    ChainId,
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
+    ResolvedSigningRequest,
     SigningRequest,
 } from 'eosio-signing-request'
 
@@ -63,9 +69,9 @@ export interface SessionOptions {
 }
 
 export interface SerializedSession {
-    actor: string
-    chain: string
-    permission: string
+    actor: NameType
+    chain: Checksum256Type
+    permission: NameType
     walletPlugin: SerializedWalletPlugin
 }
 
@@ -430,19 +436,15 @@ export class Session {
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
 
-            // If a request was returned from the wallet, determine if it was modified, then if it was allowed.
-            if (walletResponse.request) {
-                const requestWasModified = !request
-                    .getRawTransaction()
-                    .equals(walletResponse.request.getRawTransaction())
+            // If a ResolvedSigningRequest was returned from the wallet, determine if it was modified, then if it was allowed.
+            if (walletResponse.resolved) {
+                const {resolved} = walletResponse
+                const requestWasModified = !result.resolved.transaction.equals(resolved.transaction)
                 if (requestWasModified) {
                     if (allowModify) {
-                        result.request = walletResponse.request
-                        result.resolved = await context.resolve(
-                            walletResponse.request,
-                            expireSeconds
-                        )
-                        result.transaction = result.resolved.resolvedTransaction
+                        result.request = resolved.request
+                        result.resolved = resolved
+                        result.transaction = resolved.resolvedTransaction
                     } else {
                         throw new Error(
                             `The ${this.walletPlugin.metadata.name} plugin modified the transaction when it was not allowed to.`
@@ -452,7 +454,7 @@ export class Session {
             }
 
             // Run the `afterSign` hooks that were registered by the TransactPlugins
-            for (const hook of context.hooks.afterSign) await hook(result.request.clone(), context)
+            for (const hook of context.hooks.afterSign) await hook(result, context)
 
             if (willBroadcast) {
                 if (context.ui) {
@@ -470,8 +472,7 @@ export class Session {
                 result.response = await context.client.v1.chain.send_transaction(signed)
 
                 // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
-                for (const hook of context.hooks.afterBroadcast)
-                    await hook(result.request.clone(), context, result)
+                for (const hook of context.hooks.afterBroadcast) await hook(result, context)
 
                 if (context.ui) {
                     // Notify the UI that the transaction has completed the broadcast logic
@@ -505,6 +506,51 @@ export class Session {
             }
             throw new Error(error)
         }
+    }
+
+    /**
+     * Request a signature for a given transaction.
+     *
+     * This function will NOT use plugins and will NOT broadcast the transaction.
+     *
+     * @param {TransactionType} transaction A full transaction-like object
+     * @returns {Promise<Signature[]>} The signature(s) for the transaction
+     */
+    async signTransaction(transaction: TransactionType): Promise<Signature[]> {
+        // Create a TransactContext for the WalletPlugin to use
+        const context = new TransactContext({
+            abiProvider: this.abiProvider,
+            chain: this.chain,
+            client: this.client,
+            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
+            fetch: this.fetch,
+            permissionLevel: this.permissionLevel,
+        })
+        // Create a request based on the incoming transaction
+        const request = await SigningRequest.create(
+            {
+                transaction,
+                chainId: this.chain.id,
+            },
+            context.esrOptions
+        )
+        // Always set the broadcast flag to false on signing requests, Wharf needs to do it
+        request.setBroadcast(false)
+        // Resolve the request since the WalletPlugin expects a ResolvedSigningRequest
+        const resolvedRequest = new ResolvedSigningRequest(
+            request,
+            this.permissionLevel,
+            Transaction.from(transaction),
+            Serializer.objectify(Transaction.from(transaction)),
+            ChainId.from(this.chain.id)
+        )
+        // Request the signature from the WalletPlugin
+        const walletResponse: WalletPluginSignResponse = await this.walletPlugin.sign(
+            resolvedRequest,
+            context
+        )
+        // Return the array of signature
+        return walletResponse.signatures
     }
 
     serialize = (): SerializedSession =>

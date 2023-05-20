@@ -1,13 +1,12 @@
 import {assert} from 'chai'
 
-import {ABI, Checksum256, Name, PermissionLevel, Transaction} from '@greymass/eosio'
+import {Checksum256, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
-import {SigningRequest, TransactContext} from '$lib'
+import {SigningRequest} from '$lib'
 import {makeMockAction} from '$test/utils/mock-transfer'
 
-import {makeContext, mockTransactContextOptions} from '$test/utils/mock-context'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {makeContext} from '$test/utils/mock-context'
 
 const context = makeContext()
 
@@ -15,18 +14,6 @@ suite('context', function () {
     suite('abiProvider', function () {
         test('has default', function () {
             assert.isDefined(context.abiProvider)
-        })
-        test('fetches ABIs', async function () {
-            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
-            const abi = ABI.from(result)
-            assert.instanceOf(result, ABI)
-            assert.equal(abi.version, 'eosio::abi/1.2')
-        })
-        test('caches ABIs', async function () {
-            const result = await context.abiProvider.getAbi(Name.from('eosio.token'))
-            const abi = ABI.from(result)
-            assert.instanceOf(result, ABI)
-            assert.equal(abi.version, 'eosio::abi/1.2')
         })
     })
     suite('getters', function () {

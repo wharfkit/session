@@ -57,7 +57,7 @@ export interface SessionKitOptions {
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
-    storage: SessionStorage
+    storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
@@ -146,147 +146,156 @@ export class SessionKit {
      *   D --> E[Session]
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
-        if (!this.ui) {
-            throw new Error(
-                'An instance of a UserInterface must be provided to utilize the login method.'
-            )
-        }
-
-        // Create LoginContext for this login request.
-        const context = new LoginContext({
-            appName: this.appName,
-            chain: undefined,
-            chains:
-                options && options?.chains
-                    ? options.chains.map((c) => this.getChainDefinition(c))
-                    : this.chains,
-            fetch: this.fetch,
-            ui: this.ui,
-            walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
-                return {
-                    config: plugin.config,
-                    metadata: WalletPluginMetadata.from(plugin.metadata),
-                }
-            }),
-        })
-
-        // Tell the UI a login request is beginning.
-        await context.ui.onLogin()
-
-        // Predetermine chain (if possible) to prevent uneeded UI interactions.
-        if (options && options.chain) {
-            context.chain = this.getChainDefinition(options.chain, context.chains)
-            context.uiRequirements.requiresChainSelect = false
-        } else if (context.chains.length === 1) {
-            context.chain = context.chains[0]
-            context.uiRequirements.requiresChainSelect = false
-        }
-
-        // Predetermine permission (if possible) to prevent uneeded UI interactions.
-        if (options?.permissionLevel) {
-            context.permissionLevel = PermissionLevel.from(options.permissionLevel)
-            context.uiRequirements.requiresPermissionSelect = false
-        }
-
-        // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
-        let walletPlugin: WalletPlugin | undefined = undefined
-        if (this.walletPlugins.length === 1) {
-            walletPlugin = this.walletPlugins[0] // Default to first when only one.
-            context.uiRequirements.requiresWalletSelect = false
-        } else if (options?.walletPlugin) {
-            walletPlugin = this.walletPlugins.find((p) => p.id === options.walletPlugin)
-            if (walletPlugin) {
-                context.uiRequirements.requiresWalletSelect = false
+        try {
+            if (!this.ui) {
+                throw new Error(
+                    'An instance of a UserInterface must be provided to utilize the login method.'
+                )
             }
-        }
 
-        // Determine if the login process requires any user interaction.
-        if (
-            context.uiRequirements.requiresChainSelect ||
-            context.uiRequirements.requiresPermissionSelect ||
-            context.uiRequirements.requiresPermissionEntry ||
-            context.uiRequirements.requiresWalletSelect
-        ) {
-            // Perform UserInterface.login() flow to get determine the chain, permission, and WalletPlugin.
-            const uiLoginResponse = await context.ui.login(context)
+            // Create LoginContext for this login request.
+            const context = new LoginContext({
+                appName: this.appName,
+                chain: undefined,
+                chains:
+                    options && options?.chains
+                        ? options.chains.map((c) => this.getChainDefinition(c))
+                        : this.chains,
+                fetch: this.fetch,
+                ui: this.ui,
+                walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
+                    return {
+                        config: plugin.config,
+                        metadata: WalletPluginMetadata.from(plugin.metadata),
+                    }
+                }),
+            })
 
-            // Attempt to set the current WalletPlugin to the index the UI requested
-            if (uiLoginResponse.walletPluginIndex !== undefined) {
-                walletPlugin = this.walletPlugins[uiLoginResponse.walletPluginIndex]
+            // Tell the UI a login request is beginning.
+            await context.ui.onLogin()
+
+            // Predetermine chain (if possible) to prevent uneeded UI interactions.
+            if (options && options.chain) {
+                context.chain = this.getChainDefinition(options.chain, context.chains)
+                context.uiRequirements.requiresChainSelect = false
+            } else if (context.chains.length === 1) {
+                context.chain = context.chains[0]
+                context.uiRequirements.requiresChainSelect = false
+            }
+
+            // Predetermine permission (if possible) to prevent uneeded UI interactions.
+            if (options?.permissionLevel) {
+                context.permissionLevel = PermissionLevel.from(options.permissionLevel)
+                context.uiRequirements.requiresPermissionSelect = false
+            }
+
+            // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
+            let walletPlugin: WalletPlugin | undefined = undefined
+            if (this.walletPlugins.length === 1) {
+                walletPlugin = this.walletPlugins[0] // Default to first when only one.
+                context.uiRequirements.requiresWalletSelect = false
+            } else if (options?.walletPlugin) {
+                walletPlugin = this.walletPlugins.find((p) => p.id === options.walletPlugin)
+                if (walletPlugin) {
+                    context.uiRequirements.requiresWalletSelect = false
+                }
+            }
+
+            // Determine if the login process requires any user interaction.
+            if (
+                context.uiRequirements.requiresChainSelect ||
+                context.uiRequirements.requiresPermissionSelect ||
+                context.uiRequirements.requiresPermissionEntry ||
+                context.uiRequirements.requiresWalletSelect
+            ) {
+                // Perform UserInterface.login() flow to get determine the chain, permission, and WalletPlugin.
+                const uiLoginResponse = await context.ui.login(context)
+
+                // Attempt to set the current WalletPlugin to the index the UI requested
+                if (uiLoginResponse.walletPluginIndex !== undefined) {
+                    walletPlugin = this.walletPlugins[uiLoginResponse.walletPluginIndex]
+                }
+
+                if (!walletPlugin) {
+                    throw new Error('UserInterface did not return a valid WalletPlugin index.')
+                }
+
+                // Attempt to set the current chain to match the UI response
+                if (uiLoginResponse.chainId) {
+                    // Ensure the chain ID returned by the UI is in the list of chains
+                    if (!context.chains.some((c) => c.id.equals(uiLoginResponse.chainId!))) {
+                        throw new Error(
+                            'UserInterface did not return a chain ID matching the subset of chains.'
+                        )
+                    }
+
+                    // Set the context.chain definition from the new chain ID
+                    context.chain = this.getChainDefinition(uiLoginResponse.chainId, context.chains)
+                }
+
+                // Set the PermissionLevel from the UI response to the context
+                if (uiLoginResponse.permissionLevel) {
+                    context.permissionLevel = PermissionLevel.from(uiLoginResponse.permissionLevel)
+                }
             }
 
             if (!walletPlugin) {
-                throw new Error('UserInterface did not return a valid WalletPlugin index.')
+                throw new Error('No WalletPlugin available to perform the login.')
             }
 
-            // Attempt to set the current chain to match the UI response
-            if (uiLoginResponse.chainId) {
-                // Ensure the chain ID returned by the UI is in the list of chains
-                if (!context.chains.some((c) => c.id.equals(uiLoginResponse.chainId!))) {
-                    throw new Error(
-                        'UserInterface did not return a chain ID matching the subset of chains.'
-                    )
-                }
-
-                // Set the context.chain definition from the new chain ID
-                context.chain = this.getChainDefinition(uiLoginResponse.chainId, context.chains)
+            // Ensure the wallet plugin supports the chain that was selected
+            const {supportedChains} = walletPlugin.config
+            if (
+                context.chain &&
+                supportedChains &&
+                supportedChains.length &&
+                !supportedChains.includes(String(context.chain.id))
+            ) {
+                throw new Error(
+                    `The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${context.chain.id}'`
+                )
             }
 
-            // Set the PermissionLevel from the UI response to the context
-            if (uiLoginResponse.permissionLevel) {
-                context.permissionLevel = PermissionLevel.from(uiLoginResponse.permissionLevel)
-            }
-        }
+            // Call the `beforeLogin` hooks that were registered by the LoginPlugins
+            for (const hook of context.hooks.beforeLogin) await hook(context)
 
-        if (!walletPlugin) {
-            throw new Error('No WalletPlugin available to perform the login.')
-        }
+            // Perform the login request against the selected walletPlugin
+            const response: WalletPluginLoginResponse = await walletPlugin.login(context)
 
-        // Ensure the wallet plugin supports the chain that was selected
-        const {supportedChains} = walletPlugin.config
-        if (
-            context.chain &&
-            supportedChains &&
-            supportedChains.length &&
-            !supportedChains.includes(String(context.chain.id))
-        ) {
-            throw new Error(
-                `The wallet plugin '${walletPlugin.metadata.name}' does not support the chain '${context.chain.id}'`
+            // Create a session from the resulting login response
+            const session = new Session(
+                {
+                    chain: this.getChainDefinition(response.chain),
+                    permissionLevel: response.permissionLevel,
+                    walletPlugin,
+                },
+                this.getSessionOptions(options)
             )
-        }
 
-        // TODO: Implement beforeLogin hook
+            // Call the `afterLogin` hooks that were registered by the LoginPlugins
+            for (const hook of context.hooks.afterLogin) await hook(context)
 
-        // Perform the login request against the selected walletPlugin
-        const response: WalletPluginLoginResponse = await walletPlugin.login(context)
+            // Save the session to storage if it has a storage instance.
+            this.persistSession(session)
 
-        // TODO: Implement afterLogin hook
+            // Notify the UI that the login request has completed.
+            await context.ui.onLoginComplete()
 
-        // Create a session from the resulting login response
-        const session = new Session(
-            {
-                chain: this.getChainDefinition(response.chain),
-                permissionLevel: response.permissionLevel,
-                walletPlugin,
-            },
-            this.getSessionOptions(options)
-        )
-
-        // Notify the UI that the login request has completed.
-        await context.ui.onLoginComplete()
-
-        // Save the session to storage if it has a storage instance.
-        this.persistSession(session)
-
-        // Return the results of the login request.
-        return {
-            context,
-            response,
-            session,
+            // Return the results of the login request.
+            return {
+                context,
+                response,
+                session,
+            }
+        } catch (error: any) {
+            if (this.ui) {
+                await this.ui.onError(error)
+            }
+            throw new Error(error)
         }
     }
 
-    async logout(session?: Session) {
+    async logout(session?: Session | SerializedSession) {
         if (!this.storage) {
             throw new Error('An instance of Storage must be provided to utilize the logout method.')
         }
@@ -294,10 +303,15 @@ export class SessionKit {
         if (session) {
             const sessions = await this.getSessions()
             if (sessions) {
-                const serialized = session.serialize()
+                let serialized = session
+                if (session instanceof Session) {
+                    serialized = session.serialize()
+                }
                 const other = sessions.filter((s: Record<string, any>) => {
                     return (
-                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
+                        !Checksum256.from(s.chain).equals(
+                            Checksum256.from(String(serialized.chain))
+                        ) ||
                         !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
                         !Name.from(s.permission).equals(Name.from(serialized.permission))
                     )

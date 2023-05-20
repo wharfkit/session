@@ -118,7 +118,9 @@ export class ExplorerDefinition extends Struct {
     }
 }
 
-export type ExplorerDefinitionType = ExplorerDefinition | {prefix: string; suffix: string}
+export type ExplorerDefinitionType =
+    | ExplorerDefinition
+    | {prefix: string; suffix: string; url: (id: string) => string}
 
 /**
  * The information required to interact with a given chain.
