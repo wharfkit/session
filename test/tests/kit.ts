@@ -205,6 +205,7 @@ suite('kit', function () {
                                 explorer: {
                                     prefix: 'https://explorer.telos.net/transaction/',
                                     suffix: '',
+                                    url: (id) => this.prefix + id + this.suffix,
                                 },
                             },
                         ],
