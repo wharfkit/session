@@ -22,7 +22,7 @@ import {
     mockPermissionLevel,
 } from '$test/utils/mock-config'
 import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {mockSessionKit, mockSessionKitOptions} from '$test/utils/mock-session'
+import {mockSessionKit, mockSessionKitArgs, mockSessionKitOptions} from '$test/utils/mock-session'
 import {MockStorage} from '$test/utils/mock-storage'
 
 const action = makeMockAction()
@@ -34,7 +34,7 @@ const defaultLoginOptions = {
 
 function assertSessionMatchesMockSession(session: Session) {
     assert.instanceOf(session, Session)
-    assert.isTrue(session.appName?.equals(mockSessionKitOptions.appName))
+    assert.isTrue(session.appName?.equals(mockSessionKitArgs.appName))
     assert.equal(session.allowModify, true)
     assert.equal(session.broadcast, true)
     assert.equal(session.expireSeconds, 120)
@@ -45,7 +45,7 @@ function assertSessionMatchesMockSession(session: Session) {
 suite('kit', function () {
     let sessionKit
     setup(async function () {
-        sessionKit = new SessionKit({...mockSessionKitOptions})
+        sessionKit = new SessionKit(mockSessionKitArgs, mockSessionKitOptions)
         await sessionKit.logout()
     })
     suite('construct', function () {
@@ -66,7 +66,7 @@ suite('kit', function () {
                     )
                 })
                 test('override: 60', async function () {
-                    const sessionKit = new SessionKit({
+                    const sessionKit = new SessionKit(mockSessionKitArgs, {
                         ...mockSessionKitOptions,
                         expireSeconds: 60,
                     })
@@ -89,7 +89,7 @@ suite('kit', function () {
                     assert.instanceOf(sessionKit.transactPlugins[0], BaseTransactPlugin)
                 })
                 test('override', async function () {
-                    const sessionKit = new SessionKit({
+                    const sessionKit = new SessionKit(mockSessionKitArgs, {
                         ...mockSessionKitOptions,
                         transactPlugins: [new MockTransactPlugin()],
                     })
@@ -175,16 +175,19 @@ suite('kit', function () {
                     )
                 })
                 test('default logo', async function () {
-                    const sessionKit = new SessionKit({
-                        ...mockSessionKitOptions,
-                        chains: [
-                            {
-                                id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
-                                url: 'https://telos.greymass.com',
-                                logo: 'https://assets.wharfkit.com/chain/telos.png',
-                            },
-                        ],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            ...mockSessionKitArgs,
+                            chains: [
+                                {
+                                    id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
+                                    url: 'https://telos.greymass.com',
+                                    logo: 'https://assets.wharfkit.com/chain/telos.png',
+                                },
+                            ],
+                        },
+                        mockSessionKitOptions
+                    )
                     assert.instanceOf(sessionKit.chains[0], ChainDefinition)
                     assert.instanceOf(sessionKit.chains[0].id, Checksum256)
                     assert.instanceOf(sessionKit.chains[0].logo, Logo)
@@ -195,21 +198,24 @@ suite('kit', function () {
                     assert.isString(sessionKit.chains[0].name)
                 })
                 test('specify logo', async function () {
-                    const sessionKit = new SessionKit({
-                        ...mockSessionKitOptions,
-                        chains: [
-                            {
-                                id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
-                                url: 'https://telos.greymass.com',
-                                logo: 'https://assets.wharfkit.com/chain/eos.png',
-                                explorer: {
-                                    prefix: 'https://explorer.telos.net/transaction/',
-                                    suffix: '',
-                                    url: (id) => this.prefix + id + this.suffix,
+                    const sessionKit = new SessionKit(
+                        {
+                            ...mockSessionKitArgs,
+                            chains: [
+                                {
+                                    id: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
+                                    url: 'https://telos.greymass.com',
+                                    logo: 'https://assets.wharfkit.com/chain/eos.png',
+                                    explorer: {
+                                        prefix: 'https://explorer.telos.net/transaction/',
+                                        suffix: '',
+                                        url: (id) => this.prefix + id + this.suffix,
+                                    },
                                 },
-                            },
-                        ],
-                    })
+                            ],
+                        },
+                        mockSessionKitOptions
+                    )
                     assert.instanceOf(sessionKit.chains[0], ChainDefinition)
                     assert.instanceOf(sessionKit.chains[0].id, Checksum256)
                     assert.instanceOf(sessionKit.chains[0].logo, Logo)
@@ -287,7 +293,7 @@ suite('kit', function () {
             assertSessionMatchesMockSession(restored)
         })
         test('no session returns undefined', async function () {
-            const sessionKit = new SessionKit({
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
                 ...mockSessionKitOptions,
                 storage: new MockStorage(),
             })
@@ -295,10 +301,13 @@ suite('kit', function () {
             assert.isUndefined(restored)
         })
         test('throws if wallet not found', async function () {
-            const sessionKit = new SessionKit({
-                ...mockSessionKitOptions,
-                walletPlugins: [new MockWalletPluginConfigs()],
-            })
+            const sessionKit = new SessionKit(
+                {
+                    ...mockSessionKitArgs,
+                    walletPlugins: [new MockWalletPluginConfigs()],
+                },
+                mockSessionKitOptions
+            )
             const {session} = await sessionKit.login()
             const mockSerializedSession = session.serialize()
             let error
@@ -312,7 +321,7 @@ suite('kit', function () {
     })
     suite('restoreAll', function () {
         test('restores no sessions', async function () {
-            const sessionKit = new SessionKit({
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
                 ...mockSessionKitOptions,
                 storage: new MockStorage(),
             })
@@ -323,7 +332,7 @@ suite('kit', function () {
         })
         test('restores all sessions', async function () {
             // New kit w/ empty storage
-            const sessionKit = new SessionKit({
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
                 ...mockSessionKitOptions,
                 storage: new MockStorage(),
             })
@@ -359,30 +368,36 @@ suite('kit', function () {
             assert.instanceOf(session.ui, MockUserInterface)
         })
         test('override', async function () {
-            const sessionKit = new SessionKit({
-                ...mockSessionKitOptions,
-                ui: new MockUserInterface(),
-            })
+            const sessionKit = new SessionKit(
+                {...mockSessionKitArgs, ui: new MockUserInterface()},
+                mockSessionKitOptions
+            )
             assert.instanceOf(sessionKit.ui, MockUserInterface)
             const {session} = await sessionKit.login(defaultLoginOptions)
             assert.instanceOf(session.ui, MockUserInterface)
         })
         suite('onSelectWallet', function () {
             test('if 1 walletPlugin, use it without UI selection', async function () {
-                const sessionKit = new SessionKit({
-                    ...mockSessionKitOptions,
-                    walletPlugins: [makeWallet()],
-                })
+                const sessionKit = new SessionKit(
+                    {
+                        ...mockSessionKitArgs,
+                        walletPlugins: [makeWallet()],
+                    },
+                    mockSessionKitOptions
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                 })
                 assertSessionMatchesMockSession(session)
             })
             test('if >1 walletPlugin, force selection', async function () {
-                const sessionKit = new SessionKit({
-                    ...mockSessionKitOptions,
-                    walletPlugins: [makeWallet(), makeWallet()],
-                })
+                const sessionKit = new SessionKit(
+                    {
+                        ...mockSessionKitArgs,
+                        walletPlugins: [makeWallet(), makeWallet()],
+                    },
+                    mockSessionKitOptions
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                 })
@@ -398,11 +413,14 @@ suite('kit', function () {
                         }
                     }
                 }
-                const sessionKit = new SessionKit({
-                    ...mockSessionKitOptions,
-                    ui: new FailingUI(),
-                    walletPlugins: [makeWallet(), makeWallet()],
-                })
+                const sessionKit = new SessionKit(
+                    {
+                        ...mockSessionKitArgs,
+                        ui: new FailingUI(),
+                        walletPlugins: [makeWallet(), makeWallet()],
+                    },
+                    mockSessionKitOptions
+                )
                 let error
                 try {
                     await sessionKit.login()

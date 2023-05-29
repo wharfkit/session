@@ -50,18 +50,21 @@ export interface RestoreArgs {
     walletPlugin: Record<string, any>
 }
 
-export interface SessionKitOptions {
-    allowModify?: boolean
+export interface SessionKitArgs {
     appName: NameType
     chains: ChainDefinitionType[]
+    ui: UserInterface
+    walletPlugins: WalletPlugin[]
+}
+
+export interface SessionKitOptions {
+    allowModify?: boolean
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
-    ui: UserInterface
-    walletPlugins: WalletPlugin[]
 }
 
 /**
@@ -80,17 +83,15 @@ export class SessionKit {
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
 
-    constructor(options: SessionKitOptions) {
-        // Store options passed on the kit
-        if (typeof options.allowModify !== 'undefined') {
-            this.allowModify = options.allowModify
-        }
-        this.appName = Name.from(options.appName)
-        this.chains = options.chains.map((chain) => ChainDefinition.from(chain))
-        // Override default expireSeconds for all sessions if specified
-        if (options.expireSeconds) {
-            this.expireSeconds = options.expireSeconds
-        }
+    constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
+        // Save the appName to the SessionKit instance
+        this.appName = Name.from(args.appName)
+        // Map the chains provided to ChainDefinition instances
+        this.chains = args.chains.map((chain) => ChainDefinition.from(chain))
+        // Save the UserInterface instance to the SessionKit
+        this.ui = args.ui
+        // Establish default plugins for wallet flow
+        this.walletPlugins = args.walletPlugins
         // Override fetch if provided
         if (options.fetch) {
             this.fetch = options.fetch
@@ -114,14 +115,18 @@ export class SessionKit {
         } else {
             this.transactPlugins = [new BaseTransactPlugin()]
         }
+        // Store options passed on the kit
+        if (typeof options.allowModify !== 'undefined') {
+            this.allowModify = options.allowModify
+        }
+        // Override default expireSeconds for all sessions if specified
+        if (options.expireSeconds) {
+            this.expireSeconds = options.expireSeconds
+        }
         // Establish default options for transact plugins
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        // Save the UserInterface instance to the SessionKit
-        this.ui = options.ui
-        // Establish default plugins for wallet flow
-        this.walletPlugins = options.walletPlugins
     }
 
     getChainDefinition(id: Checksum256Type, override?: ChainDefinition[]): ChainDefinition {
