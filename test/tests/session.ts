@@ -254,19 +254,23 @@ suite('session', function () {
             })
             suite('transactPlugins', function () {
                 test('default', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                        }
+                    )
                     const {session} = await sessionKit.login({
                         permissionLevel: mockPermissionLevel,
                     })
@@ -275,39 +279,47 @@ suite('session', function () {
                     assert.instanceOf(session.transactPlugins[0], BaseTransactPlugin)
                 })
                 test('inherit', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        transactPlugins: [new MockTransactPlugin()],
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                            transactPlugins: [new MockTransactPlugin()],
+                        }
+                    )
                     const {session} = await sessionKit.login({permissionLevel: mockPermissionLevel})
                     assert.instanceOf(session, Session)
                     assert.lengthOf(session.transactPlugins, 1)
                     assert.instanceOf(session.transactPlugins[0], MockTransactPlugin)
                 })
                 test('override', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                        }
+                    )
                     const {session} = await sessionKit.login({
                         permissionLevel: mockPermissionLevel,
                         transactPlugins: [new MockTransactPlugin()],

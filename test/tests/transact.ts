@@ -400,23 +400,27 @@ suite('transact', function () {
             })
             test('kit constructor', async function () {
                 const {action} = await mockData()
-                const sessionKit = new SessionKit({
-                    appName: 'demo.app',
-                    chains: [
-                        {
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        },
-                    ],
-                    fetch: mockFetch, // Required for unit tests
-                    storage: new MockStorage(),
-                    transactPlugins: [new MockTransactResourceProviderPlugin()],
-                    transactPluginsOptions: {
-                        disableExamplePlugin: true,
+                const sessionKit = new SessionKit(
+                    {
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            },
+                        ],
+                        ui: new MockUserInterface(),
+                        walletPlugins: [makeWallet()],
                     },
-                    ui: new MockUserInterface(),
-                    walletPlugins: [makeWallet()],
-                })
+                    {
+                        fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                        transactPluginsOptions: {
+                            disableExamplePlugin: true,
+                        },
+                    }
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                 })
@@ -430,20 +434,24 @@ suite('transact', function () {
             })
             test('login', async function () {
                 const {action} = await mockData()
-                const sessionKit = new SessionKit({
-                    appName: 'demo.app',
-                    chains: [
-                        {
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        },
-                    ],
-                    fetch: mockFetch, // Required for unit tests
-                    storage: new MockStorage(),
-                    transactPlugins: [new MockTransactResourceProviderPlugin()],
-                    ui: new MockUserInterface(),
-                    walletPlugins: [makeWallet()],
-                })
+                const sessionKit = new SessionKit(
+                    {
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            },
+                        ],
+                        ui: new MockUserInterface(),
+                        walletPlugins: [makeWallet()],
+                    },
+                    {
+                        fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                     transactPluginsOptions: {
