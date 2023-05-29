@@ -60,7 +60,7 @@ export interface SessionKitOptions {
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
-    ui?: UserInterface
+    ui: UserInterface
     walletPlugins: WalletPlugin[]
 }
 
@@ -77,7 +77,7 @@ export class SessionKit {
     readonly storage: SessionStorage
     readonly transactPlugins: AbstractTransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
-    readonly ui?: UserInterface
+    readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
 
     constructor(options: SessionKitOptions) {
@@ -118,9 +118,8 @@ export class SessionKit {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        if (options.ui) {
-            this.ui = options.ui
-        }
+        // Save the UserInterface instance to the SessionKit
+        this.ui = options.ui
         // Establish default plugins for wallet flow
         this.walletPlugins = options.walletPlugins
     }
@@ -147,12 +146,6 @@ export class SessionKit {
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
         try {
-            if (!this.ui) {
-                throw new Error(
-                    'An instance of a UserInterface must be provided to utilize the login method.'
-                )
-            }
-
             // Create LoginContext for this login request.
             const context = new LoginContext({
                 appName: this.appName,
@@ -289,9 +282,7 @@ export class SessionKit {
                 session,
             }
         } catch (error: any) {
-            if (this.ui) {
-                await this.ui.onError(error)
-            }
+            await this.ui.onError(error)
             throw new Error(error)
         }
     }
