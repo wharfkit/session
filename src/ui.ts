@@ -1,4 +1,4 @@
-import {Checksum256Type, PermissionLevelType} from '@greymass/eosio'
+import {AssetType, Checksum256Type, PermissionLevelType} from '@greymass/eosio'
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
@@ -13,13 +13,63 @@ export interface PromptArgs {
     elements: PromptElement[]
 }
 
-/**
- * The different types of elements that can be used in a [[PromptArgs]].
- */
+export type PromptElementTypes =
+    | 'accept'
+    | 'asset'
+    | 'button'
+    | 'close'
+    | 'countdown'
+    | 'link'
+    | 'qr'
+    | 'textarea'
+
 export interface PromptElement {
-    type: 'accept' | 'asset' | 'button' | 'close' | 'countdown' | 'link' | 'qr' | 'textarea'
+    type: PromptElementTypes
+    data?: PromptElementData
+}
+
+export interface PromptElementDataTypes {
+    accept: PromptElementDataAccept
+    asset: PromptElementDataAsset
+    button: PromptElementDataButton
+    close: PromptElementDataClose
+    countdown: PromptElementDataCountdown
+    link: PromptElementDataLink
+    qr: PromptElementDataQR
+    textarea: PromptElementDataTextarea
+}
+
+export interface PromptElementData {}
+export interface PromptElementDataAccept extends PromptElementData {}
+export interface PromptElementDataAsset extends PromptElementData {
+    label: string
+    value: AssetType
+}
+export interface PromptElementDataButton extends PromptElementData {
+    label: string
+    icon?: string
+    onClick: () => void
+    variant: 'primary' | 'secondary' | 'outlined'
+    autofocus?: boolean
+}
+export interface PromptElementDataClose extends PromptElementData {}
+export interface PromptElementDataCountdown extends PromptElementData {
     label?: string
-    data?: unknown
+    end?: string
+    logo?: string
+    loading?: boolean
+}
+export interface PromptElementDataLink extends PromptElementData {
+    button?: boolean
+    href: string
+    label: string
+    icon?: string
+    variant?: 'primary' | 'secondary' | 'outlined'
+    target?: string
+}
+export interface PromptElementDataQR extends PromptElementData {}
+export interface PromptElementDataTextarea extends PromptElementData {
+    content?: string
 }
 
 /**
