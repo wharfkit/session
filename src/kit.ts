@@ -47,7 +47,7 @@ export interface RestoreArgs {
     chain: Checksum256Type
     actor: NameType
     permission: NameType
-    walletPlugin: Record<string, any>
+    walletPlugin?: Record<string, any>
 }
 
 export interface SessionKitArgs {
@@ -322,7 +322,7 @@ export class SessionKit {
 
     async restore(args?: RestoreArgs, options?: LoginOptions): Promise<Session | undefined> {
         // If no args were provided, attempt to default restore the session from storage.
-        if (!args && this.storage) {
+        if (!args) {
             const data = await this.storage.read('session')
             if (data) {
                 args = JSON.parse(data)
@@ -335,30 +335,71 @@ export class SessionKit {
             throw new Error('Either a RestoreArgs object or a Storage instance must be provided.')
         }
 
+        let serializedSession: SerializedSession
+
+        // Retrieve all sessions from storage
+        const data = await this.storage.read('sessions')
+
+        if (data) {
+            // If sessions exist, restore the session that matches the provided args
+            const sessions = JSON.parse(data)
+            serializedSession = sessions.find((s: SerializedSession) => {
+                return (
+                    args &&
+                    s.chain === args.chain &&
+                    s.actor === args.actor &&
+                    s.permission === args.permission
+                )
+            })
+        } else {
+            // If no sessions were found, but the args contains all the data for a serialized session, use args
+            if (args.walletPlugin) {
+                serializedSession = {
+                    chain: args.chain,
+                    actor: args.actor,
+                    permission: args.permission,
+                    walletPlugin: {
+                        id: args.walletPlugin.id,
+                        data: args.walletPlugin.data,
+                    },
+                }
+            } else {
+                // Otherwise throw an error since we can't establish the session data
+                throw new Error('No sessions found in storage. A wallet plugin must be provided.')
+            }
+        }
+
         // Ensure a WalletPlugin was found with the provided ID.
         const walletPlugin = this.walletPlugins.find((p) => {
             if (!args) {
                 return false
             }
-            return p.id === args.walletPlugin.id
+            return p.id === serializedSession.walletPlugin.id
         })
 
         if (!walletPlugin) {
-            throw new Error(`No WalletPlugin found with the ID of: '${args.walletPlugin.id}'`)
+            throw new Error(
+                `No WalletPlugin found with the ID of: '${serializedSession.walletPlugin.id}'`
+            )
         }
 
-        // If walletPlugin data was provided, set it on the walletPlugin instance.
-        if (args.walletPlugin.data) {
+        // Set the wallet data from the serialized session
+        if (serializedSession.walletPlugin.data) {
+            walletPlugin.data = serializedSession.walletPlugin.data
+        }
+
+        // If walletPlugin data was provided by args, override
+        if (args.walletPlugin && args.walletPlugin.data) {
             walletPlugin.data = args.walletPlugin.data
         }
 
         // Create a new session from the provided args.
         const session = new Session(
             {
-                chain: this.getChainDefinition(args.chain),
+                chain: this.getChainDefinition(serializedSession.chain),
                 permissionLevel: PermissionLevel.from({
-                    actor: args.actor,
-                    permission: args.permission,
+                    actor: serializedSession.actor,
+                    permission: serializedSession.permission,
                 }),
                 walletPlugin,
             },

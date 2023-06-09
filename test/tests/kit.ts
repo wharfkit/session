@@ -300,6 +300,19 @@ suite('kit', function () {
             const restored = await sessionKit.restore()
             assert.isUndefined(restored)
         })
+        test('can restore with just actor, permission, and chainId', async function () {
+            const {session} = await sessionKit.login()
+            const mockSerializedSession = session.serialize()
+            const restored = await mockSessionKit.restore({
+                actor: mockSerializedSession.actor,
+                permission: mockSerializedSession.permission,
+                chain: mockSerializedSession.chain,
+            })
+            if (!restored) {
+                throw new Error('Failed to restore session')
+            }
+            assertSessionMatchesMockSession(restored)
+        })
         test('throws if wallet not found', async function () {
             const sessionKit = new SessionKit(
                 {
