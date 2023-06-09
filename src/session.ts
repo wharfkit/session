@@ -429,10 +429,6 @@ export class Session {
                 context
             )
 
-            if (context.ui) {
-                await context.ui.onSignComplete()
-            }
-
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
 
@@ -455,6 +451,10 @@ export class Session {
 
             // Run the `afterSign` hooks that were registered by the TransactPlugins
             for (const hook of context.hooks.afterSign) await hook(result, context)
+
+            if (context.ui) {
+                await context.ui.onSignComplete()
+            }
 
             if (willBroadcast) {
                 if (context.ui) {
