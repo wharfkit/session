@@ -162,6 +162,7 @@ export class SessionKit {
                         ? options.chains.map((c) => this.getChainDefinition(c))
                         : this.chains,
                 fetch: this.fetch,
+                loginPlugins: this.loginPlugins,
                 ui: this.ui,
                 walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
                     return {
