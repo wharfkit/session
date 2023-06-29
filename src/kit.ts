@@ -45,8 +45,8 @@ export interface LoginResult {
 
 export interface RestoreArgs {
     chain: Checksum256Type
-    actor: NameType
-    permission: NameType
+    actor?: NameType
+    permission?: NameType
     walletPlugin?: Record<string, any>
 }
 
@@ -343,17 +343,25 @@ export class SessionKit {
         if (data) {
             // If sessions exist, restore the session that matches the provided args
             const sessions = JSON.parse(data)
-            serializedSession = sessions.find((s: SerializedSession) => {
-                return (
-                    args &&
-                    s.chain === args.chain &&
-                    s.actor === args.actor &&
-                    s.permission === args.permission
-                )
-            })
+            if (args.actor && args.permission) {
+                // If all args are provided, return exact match
+                serializedSession = sessions.find((s: SerializedSession) => {
+                    return (
+                        args &&
+                        s.chain === args.chain &&
+                        s.actor === args.actor &&
+                        s.permission === args.permission
+                    )
+                })
+            } else {
+                // If no actor/permission defined, return based on chain
+                serializedSession = sessions.find((s: SerializedSession) => {
+                    return args && s.chain === args.chain && s.default
+                })
+            }
         } else {
             // If no sessions were found, but the args contains all the data for a serialized session, use args
-            if (args.walletPlugin) {
+            if (args.actor && args.permission && args.walletPlugin) {
                 serializedSession = {
                     chain: args.chain,
                     actor: args.actor,
@@ -427,28 +435,55 @@ export class SessionKit {
         return sessions
     }
 
-    async persistSession(session: Session) {
+    async persistSession(session: Session, setAsDefault = true) {
         // TODO: Allow disabling of session persistence via kit options
+
         // If no storage exists, do nothing.
         if (!this.storage) {
             return
         }
-        // Serialize and save the current session to storage.
+
+        // Serialize session passed in
         const serialized = session.serialize()
+
+        // Specify whether or not this is now the default for the given chain
+        serialized.default = setAsDefault
+
+        // Set this as the current session for all chains
         this.storage.write('session', JSON.stringify(serialized))
+
         // Add the current session to the list of sessions, preventing duplication.
         const existing = await this.storage.read('sessions')
         if (existing) {
-            const sessions = JSON.parse(existing)
-            const other = sessions.filter((s: Record<string, any>) => {
-                return (
-                    !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
-                    !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
-                    !Name.from(s.permission).equals(Name.from(serialized.permission))
-                )
+            const stored = JSON.parse(existing)
+            const sessions: SerializedSession[] = stored
+                // Filter out any matching session to ensure no duplicates
+                .filter((s: SerializedSession): boolean => {
+                    return (
+                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
+                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
+                        !Name.from(s.permission).equals(Name.from(serialized.permission))
+                    )
+                })
+                // Remove the default status from all other sessions for this chain
+                .map((s: SerializedSession): SerializedSession => {
+                    if (session.chain.id.equals(s.chain)) {
+                        s.default = false
+                    }
+                    return s
+                })
+
+            // Merge arrays
+            const orderedSessions = [...sessions, serialized]
+
+            // Sort sessions by chain, actor, and permission
+            orderedSessions.sort((a: SerializedSession, b: SerializedSession) => {
+                const chain = String(a.chain).localeCompare(String(b.chain))
+                const actor = String(a.actor).localeCompare(String(b.actor))
+                const permission = String(a.permission).localeCompare(String(b.permission))
+                return chain || actor || permission
             })
-            const orderedSessions = [...other, serialized]
-            // TODO: Sort sessions by chain, actor, and permission
+
             this.storage.write('sessions', JSON.stringify(orderedSessions))
         } else {
             this.storage.write('sessions', JSON.stringify([serialized]))
