@@ -1272,10 +1272,10 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/mock-data@^1.0.0-beta4":
-  version "1.0.0-beta4"
-  resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.0.0-beta4.tgz#3f375597adfefb1cdead6e83c4635b0f6fe4d4bb"
-  integrity sha512-HOcD7xFA607n5Ap1k9FvRYTKG4kdMaKosWxw5pAHCIXoY/9CUqyPGOG9qOsdL/J4GlDiVQaxoo1nbqxBGfVaGQ==
+"@wharfkit/mock-data@^1.0.0-beta6":
+  version "1.0.0-beta6"
+  resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.0.0-beta6.tgz#a2957cc8be8ef038b632a71e346f20fe51fb8af3"
+  integrity sha512-ZG3tRWH2oq+//bc8CsVsY57wqUejDpgYCOhTGYYYba9qgxoO3RwvuUsMnhnWoPtSiw6VBMjiN1ZS1aMLhC6/OA==
   dependencies:
     "@greymass/eosio" "^0.6.10"
     "@wharfkit/session" "^1.0.0-beta1"
