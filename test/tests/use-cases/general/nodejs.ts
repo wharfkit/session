@@ -20,8 +20,8 @@ import {
     mockPermissionName,
     mockPrivateKey,
     mockUrl,
-} from '$test/utils/mock-config'
-import {mockFetch} from '$test/utils/mock-fetch'
+} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
 
 /**
  * Required arguments for manually establishing a session.

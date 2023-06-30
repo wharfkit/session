@@ -3,11 +3,11 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {ChainDefinition, Logo, SigningRequest, Transaction} from '$lib'
-import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeMockAction} from '@wharfkit/mock-data'
 
 import {appendAction, prependAction} from 'src/utils'
-import {mockData} from '$test/utils/mock-data'
-import {mockChainId} from '$test/utils/mock-config'
+import {mockData} from '@wharfkit/mock-data'
+import {mockChainId} from '@wharfkit/mock-data'
 
 const newAction = makeMockAction('new action')
 

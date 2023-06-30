@@ -3,16 +3,16 @@ import {assert} from 'chai'
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
 import {ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@greymass/eosio'
 
-import {mockFetch} from '$test/utils/mock-fetch'
-import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
+import {mockFetch} from '@wharfkit/mock-data'
+import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
 import {nodejsUsage} from './use-cases/general/nodejs'
-import {makeMockAction} from '$test/utils/mock-transfer'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {makeClient} from '$test/utils/mock-client'
-import {mockSessionArgs} from '$test/utils/mock-session'
-import {MockStorage} from '$test/utils/mock-storage'
+import {makeMockAction} from '@wharfkit/mock-data'
+import {makeWallet} from '@wharfkit/mock-data'
+import {mockPermissionLevel} from '@wharfkit/mock-data'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {makeClient} from '@wharfkit/mock-data'
+import {mockSessionArgs} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 const wallet = makeWallet()
@@ -357,7 +357,7 @@ suite('session', function () {
                     actor: 'wharfkit1111',
                     permission: 'test',
                     walletPlugin: {
-                        id: 'keysigner',
+                        id: 'wallet-plugin-privatekey',
                         data: {
                             privateKey: 'PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH',
                         },

@@ -3,7 +3,7 @@ import {assert} from 'chai'
 import {LocaleDefinitions} from 'src/types'
 import {UserInterface, UserInterfaceTranslateOptions} from 'src/ui'
 
-import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {MockUserInterface} from '@wharfkit/mock-data'
 
 const mockLocaleDefinitions: LocaleDefinitions = {
     en: {

@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 
-import {makeClient} from '$test/utils/mock-client'
-import {makeContext} from '$test/utils/mock-context'
+import {makeClient} from '@wharfkit/mock-data'
+import {makeContext} from '@wharfkit/mock-data'
 
 const client = makeClient()
 const context = makeContext()

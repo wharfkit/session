@@ -7,12 +7,12 @@ import SessionKit, {
     SessionKitOptions,
     WalletPluginMetadata,
 } from '$lib'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
-import {mockFetch} from '$test/utils/mock-fetch'
-import {makeMockAction} from '$test/utils/mock-transfer'
-import {MockStorage} from '$test/utils/mock-storage'
-import {mockChainDefinitions, mockPrivateKey} from '$test/utils/mock-config'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
+import {makeMockAction} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
+import {mockChainDefinitions, mockPrivateKey} from '@wharfkit/mock-data'
 
 const chains = [
     ChainDefinition.from({

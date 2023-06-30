@@ -13,9 +13,9 @@ import {
     TransactHookTypes,
 } from '$lib'
 
-import {mockChainId, mockUrl} from '$test/utils/mock-config'
-import {mockFetch} from '$test/utils/mock-fetch'
-import {makeWallet} from '$test/utils/mock-wallet'
+import {mockChainId, mockUrl} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
+import {makeWallet} from '@wharfkit/mock-data'
 
 const wallet = makeWallet()
 

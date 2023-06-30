@@ -4,9 +4,9 @@ import {Checksum256, PermissionLevel, Transaction} from '@greymass/eosio'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'
-import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeMockAction} from '@wharfkit/mock-data'
 
-import {makeContext} from '$test/utils/mock-context'
+import {makeContext} from '@wharfkit/mock-data'
 
 const context = makeContext()
 

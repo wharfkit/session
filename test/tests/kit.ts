@@ -12,18 +12,18 @@ import {
     UserInterfaceLoginResponse,
 } from '$lib'
 
-import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
-import {MockTransactPlugin} from '$test/utils/mock-hook'
-import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
+import {MockTransactPlugin} from '@wharfkit/mock-data'
+import {makeMockAction} from '@wharfkit/mock-data'
 import {
     mockChainDefinition,
     mockChainDefinitions,
     mockChainId,
     mockPermissionLevel,
-} from '$test/utils/mock-config'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {mockSessionKit, mockSessionKitArgs, mockSessionKitOptions} from '$test/utils/mock-session'
-import {MockStorage} from '$test/utils/mock-storage'
+} from '@wharfkit/mock-data'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {mockSessionKit, mockSessionKitArgs, mockSessionKitOptions} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
 
 const action = makeMockAction()
 

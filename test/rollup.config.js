@@ -91,7 +91,7 @@ export default [
                 entries: [
                     {find: '$lib', replacement: path.join(__dirname, '..', 'lib/session.m.js')},
                     {
-                        find: '$test/utils/mock-fetch',
+                        find: '@wharfkit/mock-data',
                         replacement: './test/utils/browser-fetch.ts',
                     },
                 ],

@@ -12,21 +12,21 @@ import SessionKit, {
     TransactHookTypes,
 } from '$lib'
 
-import {makeClient} from '$test/utils/mock-client'
-import {mockFetch} from '$test/utils/mock-fetch'
+import {makeClient} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
 import {
     mockMetadataFooWriterPlugin,
     mockTransactActionPrependerPlugin,
     MockTransactPlugin,
     MockTransactResourceProviderPlugin,
-} from '$test/utils/mock-hook'
-import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
+} from '@wharfkit/mock-data'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '@wharfkit/mock-data'
+import {makeWallet} from '@wharfkit/mock-data'
+import {mockPermissionLevel} from '@wharfkit/mock-data'
 import {Transfer} from '$test/utils/setup/structs'
-import {mockSessionArgs, mockSessionOptions} from '$test/utils/mock-session'
-import {MockStorage} from '$test/utils/mock-storage'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {mockSessionArgs, mockSessionOptions} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
+import {MockUserInterface} from '@wharfkit/mock-data'
 
 const client = makeClient()
 const wallet = makeWallet()

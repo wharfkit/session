@@ -5,7 +5,7 @@ import {Action, AssetType, Name, NameType, PermissionLevel, Session, TransactRes
 import {Buyrambytes, Delegatebw, Linkauth, Newaccount, Transfer, Updateauth} from './structs'
 
 // Mock of Fetch for debugging/testing
-// import {mockFetch} from '$test/utils/mock-fetch'
+// import {mockFetch} from '@wharfkit/mock-data'
 
 /**
  * THIS INFORMATION NEEDS TO BE POPULATED

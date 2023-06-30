@@ -1,4 +1,4 @@
-import {makeClient} from '$test/utils/mock-client'
+import {makeClient} from '@wharfkit/mock-data'
 import {ABI, ABICache, Name} from '@wharfkit/session'
 import {assert} from 'chai'
 
