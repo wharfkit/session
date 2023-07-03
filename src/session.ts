@@ -27,6 +27,7 @@ import {ABICache} from './abi'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    TransactABIDef,
     TransactArgs,
     TransactContext,
     TransactOptions,
@@ -56,6 +57,7 @@ export interface SessionArgs {
  * Options for creating a new [[Session]].
  */
 export interface SessionOptions {
+    abis?: TransactABIDef[]
     abiProvider?: AbiProvider
     allowModify?: boolean
     appName?: NameType
@@ -81,6 +83,7 @@ export interface SerializedSession {
  */
 export class Session {
     readonly appName: Name | undefined
+    readonly abis: TransactABIDef[] = []
     readonly abiProvider: AbiProvider
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
@@ -120,6 +123,9 @@ export class Session {
         // Handle all the optional values provided
         if (options.appName) {
             this.appName = Name.from(options.appName)
+        }
+        if (options.abis) {
+            this.abis = [...options.abis]
         }
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
@@ -338,6 +344,22 @@ export class Session {
 
             // The abi provider to use for this transaction, falling back to the session instance
             const abiProvider = options?.abiProvider || this.abiProvider
+
+            // Collect all the ABIs that have been passed in manually
+            const abiDefs: TransactABIDef[] = [...this.abis]
+            if (options?.abis) {
+                // If we have ABIs in the options, add them.
+                abiDefs.push(...options.abis)
+            }
+
+            // If an array of ABIs are provided, set them on the abiProvider
+            if (abiProvider['setAbi']) {
+                abiDefs.forEach((def: TransactABIDef) =>
+                    abiProvider['setAbi'](def.account, def.abi)
+                )
+            } else {
+                throw new Error('Custom `abiProvider` does not support `setAbi` method.')
+            }
 
             // The TransactPlugins to use for this transaction, falling back to the session instance
             const transactPlugins = options?.transactPlugins || this.transactPlugins

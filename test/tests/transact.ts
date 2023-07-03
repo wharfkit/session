@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {ABI, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -190,6 +190,67 @@ suite('transact', function () {
         })
     })
     suite('options', async function () {
+        suite('abis', function () {
+            test('passing as option', async function () {
+                const {action, session} = await mockData()
+                const abi = {
+                    version: 'eosio::abi/1.2',
+                    types: [],
+                    structs: [
+                        {
+                            name: 'transfer',
+                            base: '',
+                            fields: [
+                                {
+                                    name: 'from',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'to',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'quantity',
+                                    type: 'asset',
+                                },
+                                {
+                                    name: 'memo',
+                                    type: 'string',
+                                },
+                            ],
+                        },
+                    ],
+                    actions: [
+                        {
+                            name: 'transfer',
+                            type: 'transfer',
+                            ricardian_contract: '',
+                        },
+                    ],
+                    tables: [],
+                    ricardian_clauses: [],
+                    error_messages: [],
+                    abi_extensions: [],
+                    variants: [],
+                    action_results: [],
+                }
+                if (!abi) {
+                    assert.fail('No abi returned from get_abi')
+                }
+                const result = await session.transact(
+                    {action},
+                    {
+                        abis: [
+                            {
+                                account: 'eosio.token',
+                                abi,
+                            },
+                        ],
+                    }
+                )
+                assetValidTransactResponse(result)
+            })
+        })
         suite('allowModify', function () {
             test('default: true', async function () {
                 const {action, session} = await mockData()

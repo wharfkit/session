@@ -54,6 +54,61 @@ suite('session', function () {
                     assert.equal(testSession.abiProvider['foo'], 'bar')
                 })
             })
+            suite('abis', function () {
+                test('passing for entire session', async function () {
+                    const abi = {
+                        version: 'eosio::abi/1.2',
+                        types: [],
+                        structs: [
+                            {
+                                name: 'transfer',
+                                base: '',
+                                fields: [
+                                    {
+                                        name: 'from',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'to',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'quantity',
+                                        type: 'asset',
+                                    },
+                                    {
+                                        name: 'memo',
+                                        type: 'string',
+                                    },
+                                ],
+                            },
+                        ],
+                        actions: [
+                            {
+                                name: 'transfer',
+                                type: 'transfer',
+                                ricardian_contract: '',
+                            },
+                        ],
+                        tables: [],
+                        ricardian_clauses: [],
+                        error_messages: [],
+                        abi_extensions: [],
+                        variants: [],
+                        action_results: [],
+                    }
+                    const testSession = new Session(mockSessionArgs, {
+                        ...mockSessionOptions,
+                        abis: [
+                            {
+                                account: 'eosio.token',
+                                abi,
+                            },
+                        ],
+                    })
+                    assert.lengthOf(testSession.abis, 1)
+                })
+            })
             suite('allowModify', function () {
                 test('default: true', async function () {
                     const result = await session.transact({action}, mockTransactOptions)

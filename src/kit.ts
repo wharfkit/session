@@ -19,6 +19,7 @@ import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    TransactABIDef,
     TransactPlugin,
     TransactPluginsOptions,
 } from './transact'
@@ -58,6 +59,7 @@ export interface SessionKitArgs {
 }
 
 export interface SessionKitOptions {
+    abis?: TransactABIDef[]
     allowModify?: boolean
     expireSeconds?: number
     fetch?: Fetch
@@ -71,6 +73,7 @@ export interface SessionKitOptions {
  * Request a session from an account.
  */
 export class SessionKit {
+    readonly abis: TransactABIDef[] = []
     readonly allowModify: boolean = true
     readonly appName: Name
     readonly chains: ChainDefinition[]
@@ -97,6 +100,10 @@ export class SessionKit {
             this.fetch = options.fetch
         } else {
             this.fetch = getFetch(options)
+        }
+        // Add any ABIs manually provided
+        if (options.abis) {
+            this.abis = [...options.abis]
         }
         // Establish default plugins for login flow
         if (options.loginPlugins) {
@@ -512,6 +519,7 @@ export class SessionKit {
 
     getSessionOptions(options?: LoginOptions) {
         return {
+            abis: this.abis,
             allowModify: this.allowModify,
             appName: this.appName,
             expireSeconds: this.expireSeconds,

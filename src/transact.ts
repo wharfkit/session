@@ -1,11 +1,13 @@
 import zlib from 'pako'
 import {
+    ABIDef,
     AnyAction,
     AnyTransaction,
     API,
     APIClient,
     Checksum256Type,
     Name,
+    NameType,
     PermissionLevel,
     Serializer,
     Signature,
@@ -186,6 +188,10 @@ export interface TransactArgs {
  */
 export interface TransactOptions {
     /**
+     * An array of ABIs to use when resolving the transaction.
+     */
+    abis?: TransactABIDef[]
+    /**
      * An optional AbiProvider to control how ABIs are loaded.
      */
     abiProvider?: AbiProvider
@@ -221,6 +227,11 @@ export interface TransactOptions {
      * Optional parameter to control whether signatures returned from plugins are validated.
      */
     validatePluginSignatures?: boolean
+}
+
+export interface TransactABIDef {
+    account: NameType
+    abi: ABIDef
 }
 
 export interface TransactRevision {

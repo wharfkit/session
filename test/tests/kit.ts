@@ -53,6 +53,63 @@ suite('kit', function () {
             assert.instanceOf(sessionKit, SessionKit)
         })
         suite('options', function () {
+            suite('abis', function () {
+                test('passing for all sessions', async function () {
+                    const abi = {
+                        version: 'eosio::abi/1.2',
+                        types: [],
+                        structs: [
+                            {
+                                name: 'transfer',
+                                base: '',
+                                fields: [
+                                    {
+                                        name: 'from',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'to',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'quantity',
+                                        type: 'asset',
+                                    },
+                                    {
+                                        name: 'memo',
+                                        type: 'string',
+                                    },
+                                ],
+                            },
+                        ],
+                        actions: [
+                            {
+                                name: 'transfer',
+                                type: 'transfer',
+                                ricardian_contract: '',
+                            },
+                        ],
+                        tables: [],
+                        ricardian_clauses: [],
+                        error_messages: [],
+                        abi_extensions: [],
+                        variants: [],
+                        action_results: [],
+                    }
+                    const sessionKit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        abis: [
+                            {
+                                account: 'eosio.token',
+                                abi,
+                            },
+                        ],
+                    })
+                    assert.lengthOf(sessionKit.abis, 1)
+                    const {session} = await sessionKit.login()
+                    assert.lengthOf(session.abis, 1)
+                })
+            })
             suite('expireSeconds', function () {
                 test('default: 120', async function () {
                     const {session} = await sessionKit.login(defaultLoginOptions)
