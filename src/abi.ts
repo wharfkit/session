@@ -1,10 +1,12 @@
 import {ABI, API, APIClient, NameType} from '@greymass/eosio'
 import {AbiProvider} from 'eosio-signing-request'
 
+export interface ABICacheInterface extends AbiProvider {}
+
 /**
  * Given an APIClient instance, this class provides an AbiProvider interface for retrieving and caching ABIs.
  */
-export class ABICache implements AbiProvider {
+export class ABICache implements ABICacheInterface {
     readonly cache: Map<string, ABI> = new Map()
     readonly pending: Map<string, Promise<API.v1.GetAbiResponse>> = new Map()
 

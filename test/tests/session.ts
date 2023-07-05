@@ -39,19 +39,19 @@ suite('session', function () {
             assert.instanceOf(session, Session)
         })
         suite('options', function () {
-            suite('abiProvider', function () {
+            suite('abiCache', function () {
                 test('specify provider', function () {
                     const client = makeClient()
-                    const abiProvider = {
+                    const abiCache = {
                         foo: 'bar',
                         getAbi: async (account) =>
                             (await client.v1.chain.get_abi(account)).abi as ABIDef,
                     }
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
-                        abiProvider,
+                        abiCache,
                     })
-                    assert.equal(testSession.abiProvider['foo'], 'bar')
+                    assert.equal(testSession.abiCache['foo'], 'bar')
                 })
             })
             suite('abis', function () {

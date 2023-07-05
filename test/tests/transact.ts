@@ -158,11 +158,11 @@ suite('transact', function () {
             })
             test('object maintains payload metadata', async function () {
                 const {action, session} = await mockData()
-                const abiProvider = new ABICache(this.client)
+                const abiCache = new ABICache(this.client)
                 const request = await SigningRequest.create(
                     {action},
                     {
-                        abiProvider,
+                        abiProvider: abiCache,
                         zlib,
                     }
                 )

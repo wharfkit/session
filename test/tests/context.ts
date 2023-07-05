@@ -11,9 +11,9 @@ import {makeContext} from '@wharfkit/mock-data'
 const context = makeContext()
 
 suite('context', function () {
-    suite('abiProvider', function () {
+    suite('abiCache', function () {
         test('has default', function () {
-            assert.isDefined(context.abiProvider)
+            assert.isDefined(context.abiCache)
         })
     })
     suite('getters', function () {
