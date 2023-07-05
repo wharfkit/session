@@ -1,7 +1,12 @@
-import {ABI, API, APIClient, NameType} from '@greymass/eosio'
+import {ABI, ABIDef, API, APIClient, NameType} from '@greymass/eosio'
 import {AbiProvider} from 'eosio-signing-request'
 
-export interface ABICacheInterface extends AbiProvider {}
+export interface ABICacheInterface extends AbiProvider {
+    readonly cache: Map<string, ABI>
+    readonly pending: Map<string, Promise<API.v1.GetAbiResponse>>
+    getAbi(account: NameType): Promise<ABI>
+    setAbi(account: NameType, abi: ABIDef): void
+}
 
 /**
  * Given an APIClient instance, this class provides an AbiProvider interface for retrieving and caching ABIs.
@@ -33,8 +38,8 @@ export class ABICache implements ABICacheInterface {
         return record
     }
 
-    setAbi(account: NameType, abi: ABI) {
+    setAbi(account: NameType, abi: ABIDef) {
         const key = String(account)
-        this.cache.set(key, abi)
+        this.cache.set(key, ABI.from(abi))
     }
 }

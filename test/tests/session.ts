@@ -1,7 +1,15 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@greymass/eosio'
+import {
+    ABI,
+    ABIDef,
+    Name,
+    NameType,
+    PermissionLevel,
+    Signature,
+    TimePointSec,
+} from '@greymass/eosio'
 
 import {mockFetch} from '@wharfkit/mock-data'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
@@ -44,8 +52,11 @@ suite('session', function () {
                     const client = makeClient()
                     const abiCache = {
                         foo: 'bar',
+                        cache: new Map(),
+                        pending: new Map(),
                         getAbi: async (account) =>
-                            (await client.v1.chain.get_abi(account)).abi as ABIDef,
+                            ABI.from((await client.v1.chain.get_abi(account)).abi as ABIDef),
+                        setAbi: () => {},
                     }
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
