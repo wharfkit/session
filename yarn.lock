@@ -1272,6 +1272,26 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
+"@wharfkit/abicache@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.0.0.tgz#d9f7dc38dce0e9cffd7de351b366c1aa1b719c46"
+  integrity sha512-crfXFPlmxkqDdgvVIFjcHGx3kkLdXj2JbUsu3XYnxJf91tWWbHAfNn2ba3UifsFDTE9BdUFd2Cz+FLTi464Gew==
+  dependencies:
+    "@greymass/eosio" "^0.6.10"
+    eosio-signing-request "^2.5.3"
+    pako "^2.0.4"
+    tslib "^2.1.0"
+
+"@wharfkit/contract@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-0.2.1.tgz#df8353a71b18bbbfdc01945f4bc955dad8c42c00"
+  integrity sha512-fwxqBYTfN3QFJEqCvijLbVE6eY4K+6Y04E0lI8U/IINKtazyMeou+dPuEqwTWMqwaRtKo5Re5gtARi6LgrRR2A==
+  dependencies:
+    "@greymass/eosio" "^0.6.10"
+    "@wharfkit/abicache" "^1.0.0"
+    eosio-signing-request "^2.5.3"
+    tslib "^2.1.0"
+
 "@wharfkit/mock-data@^1.0.0-beta10":
   version "1.0.0-beta10"
   resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.0.0-beta10.tgz#7271c3c397bffaa3b6b2f4726bff8d1917928f3f"
@@ -1291,6 +1311,13 @@
     "@greymass/eosio" "^0.6.10"
     eosio-signing-request "^2.5.3"
     pako "^2.0.4"
+    tslib "^2.1.0"
+
+"@wharfkit/transact-plugin-resource-provider@^1.0.0-beta1":
+  version "1.0.0-beta1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/transact-plugin-resource-provider/-/transact-plugin-resource-provider-1.0.0-beta1.tgz#63e998d8e2ce00b44885bfc81cfc8326e9294720"
+  integrity sha512-RhJUzf1q4+q5DgA3j+h82Mm5iTM/Ubglru7v+X/Icq3d0j+JgAbDUG/ARs09TwlT5hXQzRuDR8UIgLkxHkzlEQ==
+  dependencies:
     tslib "^2.1.0"
 
 "@wharfkit/wallet-plugin-privatekey@^0.5.0":

@@ -68,6 +68,77 @@ suite('transact', function () {
                 const result = await session.transact({action: Serializer.objectify(action)})
                 assetValidTransactResponse(result)
             })
+            test('from contract kit', async function () {
+                const session = new Session(
+                    {
+                        ...mockSessionArgs,
+                        permissionLevel: {
+                            actor: 'wharfkit1125',
+                            permission: 'test',
+                        },
+                    },
+                    mockSessionOptions
+                )
+                const kit = new ContractKit(
+                    {
+                        client,
+                    },
+                    {
+                        abiCache: session.abiCache,
+                    }
+                )
+                const contract = await kit.load('eosio')
+                const action = contract.action('claimrewards', {owner: 'teamgreymass'})
+                const result = await session.transact(
+                    {action},
+                    {transactPlugins: [new TransactPluginResourceProvider()]}
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].permission.equals('test')
+                )
+            })
+            test('from contract kit (to append to transaction)', async function () {
+                const session = new Session(
+                    {
+                        ...mockSessionArgs,
+                        permissionLevel: {
+                            actor: 'wharfkit1125',
+                            permission: 'test',
+                        },
+                    },
+                    mockSessionOptions
+                )
+                const kit = new ContractKit(
+                    {
+                        client,
+                    },
+                    {
+                        abiCache: session.abiCache,
+                    }
+                )
+                const contract = await kit.load('eosio')
+                const action = contract.action('claimrewards', {owner: 'teamgreymass'})
+                const info = await client.v1.chain.get_info()
+                const header = info.getTransactionHeader()
+
+                const transaction = Transaction.from({
+                    ...header,
+                    actions: [action],
+                })
+                const result = await session.transact(
+                    {transaction},
+                    {transactPlugins: [new TransactPluginResourceProvider()]}
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].permission.equals('test')
+                )
+            })
         })
         suite('actions', function () {
             test('typed', async function () {
