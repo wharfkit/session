@@ -1,17 +1,34 @@
 import {assert} from 'chai'
 
-import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
+import SessionKit, {
+    AbstractTransactPlugin,
+    BaseTransactPlugin,
+    ChainDefinition,
+    PlaceholderName,
+    PlaceholderPermission,
+    Session,
+    SessionOptions,
+    SigningRequest,
+    TransactContext,
+    TransactHookTypes,
+} from '$lib'
 import {
     ABI,
     ABIDef,
     Name,
-    NameType,
     PermissionLevel,
+    Serializer,
     Signature,
     TimePointSec,
 } from '@greymass/eosio'
 
-import {mockFetch} from '@wharfkit/mock-data'
+import {
+    makeContext,
+    makeMockActions,
+    makeMockTransaction,
+    mockFetch,
+    mockSession,
+} from '@wharfkit/mock-data'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
 import {nodejsUsage} from './use-cases/general/nodejs'
 import {makeMockAction} from '@wharfkit/mock-data'
@@ -22,6 +39,7 @@ import {makeClient} from '@wharfkit/mock-data'
 import {mockSessionArgs} from '@wharfkit/mock-data'
 import {MockStorage} from '@wharfkit/mock-data'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
+import {Transfer} from '$test/utils/setup/structs'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -412,6 +430,108 @@ suite('session', function () {
                 ui: new MockUserInterface(),
             })
             assert.instanceOf(testSession.ui, MockUserInterface)
+        })
+    })
+    suite('placeholder resolution before the beforeSign hook', function () {
+        // A plugin to ensure placeholders are resolved before being passed into plugins
+        async function check(request: SigningRequest) {
+            const firstAction = request.getRawActions()[0]
+            const firstAuthorizer = firstAction.authorization[0]
+            const data = Serializer.decode({
+                data: firstAction.data,
+                type: Transfer,
+            })
+            assert.isFalse(
+                data.from.equals(PlaceholderName),
+                `Placeholder not resolved for data.from (${String(data.from)})`
+            )
+            assert.isFalse(
+                firstAuthorizer.actor.equals(PlaceholderName),
+                `Placeholder not resolved for actor (${String(firstAuthorizer.actor)})`
+            )
+            assert.isFalse(
+                firstAuthorizer.permission.equals(PlaceholderPermission),
+                `Placeholder not resolved for permission (${String(firstAuthorizer.permission)})`
+            )
+        }
+        const placeholderCheckPlugin: AbstractTransactPlugin = {
+            id: 'placeholder_checker',
+            register: (context: TransactContext) =>
+                context.addHook(TransactHookTypes.beforeSign, check),
+        }
+        // Mock data for these tests, overriding the `from` field to be a placeholder
+        const actionData = Serializer.decode({
+            data: makeMockAction().data,
+            type: Transfer,
+        })
+        actionData.from = PlaceholderName
+        // Testing against various action types to ensure placeholders resolve
+        test('action', async function () {
+            const action = makeMockAction()
+            action.data = Serializer.encode({object: actionData})
+            action.authorization = [
+                PermissionLevel.from({actor: PlaceholderName, permission: PlaceholderPermission}),
+            ]
+            await mockSession.transact({action}, {transactPlugins: [placeholderCheckPlugin]})
+        })
+        test('actions', async function () {
+            const actions = makeMockActions()
+            actions[0].data = Serializer.encode({object: actionData})
+            actions[0].authorization = [
+                PermissionLevel.from({actor: PlaceholderName, permission: PlaceholderPermission}),
+            ]
+            await mockSession.transact({actions}, {transactPlugins: [placeholderCheckPlugin]})
+        })
+        test('transaction', async function () {
+            const info = await makeClient().v1.chain.get_info()
+            const transaction = makeMockTransaction(info)
+            transaction.actions[0].data = Serializer.encode({object: actionData})
+            transaction.actions[0].authorization = [
+                PermissionLevel.from({actor: PlaceholderName, permission: PlaceholderPermission}),
+            ]
+            await mockSession.transact({transaction}, {transactPlugins: [placeholderCheckPlugin]})
+        })
+        test('request (string)', async function () {
+            await mockSession.transact(
+                {
+                    request:
+                        'esr:gmNgZGBY1mTC_MoglIGBIVzX5uxZRqAQGDBBaSOYQMPGiXGxar2ntKB8Flf_YBAt6BocpBCQWJmTn5hSrOAWEq7IzMAAAA',
+                },
+                {transactPlugins: [placeholderCheckPlugin]}
+            )
+        })
+
+        test('request (ESR)', async function () {
+            const transaction = {
+                expiration: '2023-07-25T18:22:28',
+                ref_block_num: 47003,
+                ref_block_prefix: 845168116,
+                max_net_usage_words: 0,
+                max_cpu_usage_ms: 0,
+                delay_sec: 0,
+                context_free_actions: [],
+                actions: [
+                    {
+                        account: 'eosio.token',
+                        name: 'transfer',
+                        authorization: [{actor: '............1', permission: '............2'}],
+                        data: {
+                            from: '............1',
+                            to: 'teamgreymass',
+                            quantity: '0.0042 EOS',
+                            memo: 'ESR Payloads FTW!',
+                        },
+                    },
+                ],
+                transaction_extensions: [],
+            }
+            const request = await SigningRequest.create({transaction}, makeContext().esrOptions)
+            await mockSession.transact(
+                {
+                    request,
+                },
+                {transactPlugins: [placeholderCheckPlugin]}
+            )
         })
     })
     suite('serialize', function () {
