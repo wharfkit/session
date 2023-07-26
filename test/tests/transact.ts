@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {ABI, PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
+import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@greymass/eosio'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
@@ -27,6 +27,8 @@ import {Transfer} from '$test/utils/setup/structs'
 import {mockSessionArgs, mockSessionOptions} from '@wharfkit/mock-data'
 import {MockStorage} from '@wharfkit/mock-data'
 import {MockUserInterface} from '@wharfkit/mock-data'
+import {ContractKit} from '@wharfkit/contract'
+import {TransactPluginResourceProvider} from '@wharfkit/transact-plugin-resource-provider'
 
 const client = makeClient()
 const wallet = makeWallet()

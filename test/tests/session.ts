@@ -56,7 +56,9 @@ suite('session', function () {
                         pending: new Map(),
                         getAbi: async (account) =>
                             ABI.from((await client.v1.chain.get_abi(account)).abi as ABIDef),
-                        setAbi: () => {},
+                        setAbi: () => {
+                            // NYI
+                        },
                     }
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,

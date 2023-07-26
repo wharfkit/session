@@ -25,7 +25,7 @@ const controlKey = 'EOS6XXTaRpWhPwnb7CTV9zVsCBrvCpYMMPSk8E8hsJxhf6VFW9DYN'
 const testKey = 'EOS6RMS3nvoN9StPzZizve6WdovaDkE5KkEcCDXW7LbepyAioMiK6'
 
 // Cosigner Key for wharfkitnoop
-const noopKey = 'EOS8WUgppBZ1NjnGASYeLwQ3PkNLvdnfnchumsSpo6ApCAzbETczm'
+// const noopKey = 'EOS8WUgppBZ1NjnGASYeLwQ3PkNLvdnfnchumsSpo6ApCAzbETczm'
 
 // Minimum RAM bytes to create an account
 const requiredRamBytes = 1599
@@ -406,10 +406,12 @@ async function run() {
         // Check if account exists
         try {
             await masterSession.client.v1.chain.get_account(Name.from(account.name))
+            // eslint-disable-next-line no-console
             console.log(`account ${account.name} already exists`)
         } catch (e) {
             // Create account
             const result = await createAccount(masterSession, account)
+            // eslint-disable-next-line no-console
             console.log(`created ${account.name} ${result.resolved?.transaction.id}`)
         }
     }
@@ -423,9 +425,11 @@ async function run() {
             return String(permission.perm_name) === 'test'
         })
         if (hasTestPermission) {
+            // eslint-disable-next-line no-console
             console.log(`account ${account.name} already has test permission...`)
         } else {
             const result = await createTestPermission(account)
+            // eslint-disable-next-line no-console
             console.log(
                 `created test permission on ${account.name} ${result.resolved?.transaction.id}}`
             )
