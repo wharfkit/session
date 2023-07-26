@@ -155,17 +155,26 @@ export class TransactContext {
 
     async resolve(request: SigningRequest, expireSeconds = 120): Promise<ResolvedSigningRequest> {
         // Build the transaction header
-        const info = await this.getInfo()
-        const header = info.getTransactionHeader(expireSeconds)
+        let resolveArgs = {
+            chainId: this.chain.id,
+        }
+
+        // Check if this request requires tapos generation
+        if (request.requiresTapos()) {
+            const info = await this.getInfo()
+            const header = info.getTransactionHeader(expireSeconds)
+            // override resolve args to include tapos headers
+            resolveArgs = {
+                ...resolveArgs,
+                ...header,
+            }
+        }
 
         // Load ABIs required to resolve this request
         const abis = await request.fetchAbis(this.abiCache)
 
         // Resolve the request and return
-        return request.resolve(abis, this.permissionLevel, {
-            ...header,
-            chainId: this.chain.id,
-        })
+        return request.resolve(abis, this.permissionLevel, resolveArgs)
     }
 }
 /**
