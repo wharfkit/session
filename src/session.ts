@@ -22,7 +22,7 @@ import {
     SigningRequest,
 } from 'eosio-signing-request'
 
-import {ABICache, ABICacheInterface} from './abi'
+import {ABICache, ABICacheInterface} from '@wharfkit/abicache'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,

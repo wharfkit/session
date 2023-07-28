@@ -1,5 +1,6 @@
 import {makeClient} from '@wharfkit/mock-data'
-import {ABI, ABICache, Name} from '@wharfkit/session'
+import {ABI, Name} from '@wharfkit/session'
+import {ABICache} from '@wharfkit/abicache'
 import {assert} from 'chai'
 
 const client = makeClient()

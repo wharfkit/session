@@ -8,3 +8,4 @@ export default SessionKit
 // expose dependencies
 export * from 'eosio-signing-request'
 export * from '@wharfkit/antelope'
+export * from '@wharfkit/abicache'

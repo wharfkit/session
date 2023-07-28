@@ -22,7 +22,7 @@ import {
 import {SessionStorage} from './storage'
 import {ChainDefinition, Fetch, LocaleDefinitions} from './types'
 import {UserInterface} from './ui'
-import {ABICacheInterface} from './abi'
+import {ABICacheInterface} from '@wharfkit/abicache'
 
 export type TransactPluginsOptions = Record<string, unknown>
 

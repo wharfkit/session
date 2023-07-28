@@ -1,4 +1,3 @@
-export * from './abi'
 export * from './kit'
 export * from './login'
 export * from './session'

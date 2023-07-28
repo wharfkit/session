@@ -4,14 +4,9 @@ import zlib from 'pako'
 import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
-import SessionKit, {
-    ABICache,
-    ChainDefinition,
-    Session,
-    TransactContext,
-    TransactHookTypes,
-} from '$lib'
+import SessionKit, {ChainDefinition, Session, TransactContext, TransactHookTypes} from '$lib'
 
+import {ABICache} from '@wharfkit/abicache'
 import {makeClient} from '@wharfkit/mock-data'
 import {mockFetch} from '@wharfkit/mock-data'
 import {
