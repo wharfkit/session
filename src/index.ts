@@ -9,3 +9,4 @@ export default SessionKit
 export * from 'eosio-signing-request'
 export * from '@wharfkit/antelope'
 export * from '@wharfkit/abicache'
+export * from '@wharfkit/common'

@@ -19,6 +19,7 @@
     "dependencies": {
         "@wharfkit/abicache": "^1.0.1-beta2",
         "@wharfkit/antelope": "^0.7.3",
+        "@wharfkit/common": "^1.0.1",
         "eosio-signing-request": "^3.0.0-beta1",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"

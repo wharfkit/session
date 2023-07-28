@@ -1,8 +1,8 @@
 import {Checksum256Type, PermissionLevelType} from '@wharfkit/antelope'
+import {Cancelable, LocaleDefinitions} from '@wharfkit/common'
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
-import {Cancelable, LocaleDefinitions} from './types'
 
 /**
  * The arguments for a [[UserInterface.prompt]] call.

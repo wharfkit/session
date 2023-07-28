@@ -12,6 +12,8 @@ import {
     Serializer,
     Signature,
 } from '@wharfkit/antelope'
+import {ABICacheInterface} from '@wharfkit/abicache'
+import {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ResolvedSigningRequest,
     ResolvedTransaction,
@@ -20,9 +22,7 @@ import {
 } from 'eosio-signing-request'
 
 import {SessionStorage} from './storage'
-import {ChainDefinition, Fetch, LocaleDefinitions} from './types'
 import {UserInterface} from './ui'
-import {ABICacheInterface} from '@wharfkit/abicache'
 
 export type TransactPluginsOptions = Record<string, unknown>
 

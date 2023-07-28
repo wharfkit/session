@@ -13,6 +13,7 @@ import {
     Transaction,
     TransactionType,
 } from '@wharfkit/antelope'
+import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ChainId,
     RequestDataV2,
@@ -36,7 +37,6 @@ import {
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
-import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from './types'
 import {getFetch} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'

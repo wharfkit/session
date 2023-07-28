@@ -6,6 +6,7 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@wharfkit/antelope'
+import {ChainDefinition, ChainDefinitionType, Fetch} from '@wharfkit/common'
 
 import {
     AbstractLoginPlugin,
@@ -23,7 +24,6 @@ import {
     TransactPlugin,
     TransactPluginsOptions,
 } from './transact'
-import {ChainDefinition, ChainDefinitionType, Fetch} from './types'
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
 import {getFetch} from './utils'

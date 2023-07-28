@@ -1,9 +1,9 @@
 import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@wharfkit/antelope'
+import {LocaleDefinitions, Logo} from '@wharfkit/common'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
-import {LocaleDefinitions, Logo} from './types'
 
 /**
  * The static configuration of a [[WalletPlugin]].
