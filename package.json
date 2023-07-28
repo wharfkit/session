@@ -17,6 +17,7 @@
         "prepare": "make"
     },
     "dependencies": {
+        "@wharfkit/abicache": "^1.0.1-beta1",
         "@wharfkit/antelope": "^0.7.3",
         "eosio-signing-request": "^3.0.0-beta1",
         "pako": "^2.0.4",
@@ -40,8 +41,8 @@
         "@types/node": "^18.7.18",
         "@typescript-eslint/eslint-plugin": "^5.20.0",
         "@typescript-eslint/parser": "^5.20.0",
-        "@wharfkit/contract": "^0.2.1",
-        "@wharfkit/mock-data": "^1.0.0-beta10",
+        "@wharfkit/contract": "^0.3.0",
+        "@wharfkit/mock-data": "^1.0.0-beta13",
         "@wharfkit/transact-plugin-resource-provider": "^1.0.0-beta1",
         "@wharfkit/wallet-plugin-privatekey": "^0.5.0",
         "chai": "^4.3.4",
