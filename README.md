@@ -1,6 +1,6 @@
 # @wharfkit/session
 
-[![Unit Tests](https://github.com/wharfkit/session/actions/workflows/test.yml/badge.svg)](https://github.com/wharfkit/session/actions/workflows/test.yml?query=branch%3Amain)
+[![Unit Tests](https://github.com/wharfkit/session/actions/workflows/test.yml/badge.svg)](https://github.com/wharfkit/session/actions/workflows/test.yml?query=branch%3Amaster)
 
 ###### Session Kit - An Antelope blockchain session management toolkit
 
