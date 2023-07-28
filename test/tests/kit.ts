@@ -5,6 +5,7 @@ import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 import {
     BaseTransactPlugin,
     ChainDefinition,
+    Chains,
     ExplorerDefinition,
     Logo,
     Session,
@@ -51,6 +52,19 @@ suite('kit', function () {
     suite('construct', function () {
         test('instance', function () {
             assert.instanceOf(sessionKit, SessionKit)
+        })
+        suite('args', function () {
+            test('Chains definitions', async function () {
+                const kit = new SessionKit(
+                    {
+                        ...mockSessionKitArgs,
+                        chains: [Chains.Jungle4, Chains.EOS],
+                    },
+                    mockSessionKitOptions
+                )
+                const result = await kit.login({chain: Chains.EOS.id})
+                assert.isTrue(result.response.chain.equals(Chains.EOS.id))
+            })
         })
         suite('options', function () {
             suite('abis', function () {
