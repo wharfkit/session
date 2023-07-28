@@ -1261,10 +1261,10 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/abicache@^1.0.1-beta1":
-  version "1.0.1-beta1"
-  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.0.1-beta1.tgz#3cf687c0d6f282eb0d7486b206e18b6314b6f299"
-  integrity sha512-uNFzyn4/bxgmCcZgXRbaHisygChFIQDEknfroe6EmVCJjfnowbBlHPTD0PS2YUBD1yFE7XEeCbAESYjEtT/5xQ==
+"@wharfkit/abicache@^1.0.1-beta2":
+  version "1.0.1-beta2"
+  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.0.1-beta2.tgz#e36d87484719a6afb34111de6a198ebaa79dfc99"
+  integrity sha512-vjcUUCQXfamGoUWHAfCvbEEBb5M80LuugxR6tYUk5nYJQ1L8oBZonSDl/q4iUEBD4CfMzUEU/vtVLQonfhEcDw==
   dependencies:
     "@wharfkit/antelope" "^0.7.3"
     eosio-signing-request "^3.0.0-beta1"
@@ -1282,12 +1282,12 @@
     hash.js "^1.0.0"
     tslib "^2.0.3"
 
-"@wharfkit/contract@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-0.3.0.tgz#b259d3d1879f41332242add02f32b16c150063d7"
-  integrity sha512-lyJBpabBC2gLnWBDDoksjNjeU/7IiWRPAz/MKNVyGcdlkSE8f6cOk/1824iyCNKFqi5ugI9oemlHelk7wzOWfw==
+"@wharfkit/contract@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-0.3.1.tgz#b47a07dbfdddc4b3d07926e75fdd96c48da55835"
+  integrity sha512-2EC3A+m55SAO8qCxeYnVCylE5PaW81GlF301PvvzXHFUyCVeMECcKT4oLU6GW0DTxTIi0KiOSrEVfU2ZAzlh+w==
   dependencies:
-    "@wharfkit/abicache" "^1.0.1-beta1"
+    "@wharfkit/abicache" "^1.0.1-beta2"
     "@wharfkit/antelope" "^0.7.3"
     eosio-signing-request "^3.0.0-beta1"
     tslib "^2.1.0"

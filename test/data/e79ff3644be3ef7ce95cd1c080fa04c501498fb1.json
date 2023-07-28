@@ -1,0 +1,17 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/chain/get_raw_abi",
+        "params": {
+            "method": "POST",
+            "body": "{\"account_name\":\"greymassnoop\"}"
+        }
+    },
+    "status": 200,
+    "json": {
+        "account_name": "greymassnoop",
+        "code_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "abi_hash": "1245e8954bce991492621cd66ffe556ef2c2925ee03071a3fba996c83040f867",
+        "abi": "DmVvc2lvOjphYmkvMS4xAAEEbm9vcAAAAQAAAAAAUCmdBG5vb3AZVGhpcyBhY3Rpb24gZG9lcyBub3RoaW5nLgAAAAAA="
+    },
+    "text": "{\"account_name\":\"greymassnoop\",\"code_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"abi_hash\":\"1245e8954bce991492621cd66ffe556ef2c2925ee03071a3fba996c83040f867\",\"abi\":\"DmVvc2lvOjphYmkvMS4xAAEEbm9vcAAAAQAAAAAAUCmdBG5vb3AZVGhpcyBhY3Rpb24gZG9lcyBub3RoaW5nLgAAAAAA=\"}"
+}
