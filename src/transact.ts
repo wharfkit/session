@@ -60,7 +60,7 @@ export type TransactHookResponseType = TransactHookResponse | void
  */
 export interface TransactContextOptions {
     abiCache: ABICacheInterface
-    appName?: Name
+    appName?: NameType
     chain: ChainDefinition
     client: APIClient
     createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -80,7 +80,7 @@ export interface TransactContextOptions {
  */
 export class TransactContext {
     readonly abiCache: ABICacheInterface
-    readonly appName: Name | undefined
+    readonly appName?: string
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -98,7 +98,7 @@ export class TransactContext {
 
     constructor(options: TransactContextOptions) {
         this.abiCache = options.abiCache
-        this.appName = options.appName
+        this.appName = String(options.appName)
         this.chain = options.chain
         this.client = options.client
         this.createRequest = options.createRequest

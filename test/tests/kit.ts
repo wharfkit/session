@@ -34,7 +34,7 @@ const defaultLoginOptions = {
 
 function assertSessionMatchesMockSession(session: Session) {
     assert.instanceOf(session, Session)
-    assert.isTrue(session.appName?.equals(mockSessionKitArgs.appName))
+    assert.equal(session.appName, mockSessionKitArgs.appName)
     assert.equal(session.allowModify, true)
     assert.equal(session.broadcast, true)
     assert.equal(session.expireSeconds, 120)

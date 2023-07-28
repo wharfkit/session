@@ -81,7 +81,7 @@ export interface SerializedSession {
  * A representation of a session to interact with a specific blockchain account.
  */
 export class Session {
-    readonly appName: Name | undefined
+    readonly appName?: string
     readonly abis: TransactABIDef[] = []
     readonly abiCache: ABICacheInterface
     readonly allowModify: boolean = true
@@ -121,7 +121,7 @@ export class Session {
 
         // Handle all the optional values provided
         if (options.appName) {
-            this.appName = Name.from(options.appName)
+            this.appName = String(options.appName)
         }
         if (options.abis) {
             this.abis = [...options.abis]

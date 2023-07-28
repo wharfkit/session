@@ -75,7 +75,7 @@ export interface SessionKitOptions {
 export class SessionKit {
     readonly abis: TransactABIDef[] = []
     readonly allowModify: boolean = true
-    readonly appName: Name
+    readonly appName: string
     readonly chains: ChainDefinition[]
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
@@ -88,7 +88,7 @@ export class SessionKit {
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
         // Save the appName to the SessionKit instance
-        this.appName = Name.from(args.appName)
+        this.appName = String(args.appName)
         // Map the chains provided to ChainDefinition instances
         this.chains = args.chains.map((chain) => ChainDefinition.from(chain))
         // Save the UserInterface instance to the SessionKit
