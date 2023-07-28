@@ -2,7 +2,7 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'
-import {Name, Transaction} from '@greymass/eosio'
+import {Name, Transaction} from '@wharfkit/antelope'
 
 import {makeClient} from '@wharfkit/mock-data'
 import {makeContext} from '@wharfkit/mock-data'

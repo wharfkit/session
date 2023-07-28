@@ -51,7 +51,7 @@ Before submitting a pull request make sure to run `make check` and `make format`
 
 ## Dependencies
 
--   [@greymass/eosio](https://github.com/greymass/eosio): Core library to provide Antelope data types.
+-   [@wharfkit/antelope](https://github.com/wharfkit/antelope): Core library to provide Antelope data types.
 -   [eosio-signing-request](https://github.com/greymass/eosio-signing-request): Antelope Signing Request Protocol.
 -   [pako](https://github.com/nodeca/pako): zlib javascript port, used to compress signing requests.
 

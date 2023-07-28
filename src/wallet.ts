@@ -1,4 +1,4 @@
-import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@greymass/eosio'
+import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@wharfkit/antelope'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'

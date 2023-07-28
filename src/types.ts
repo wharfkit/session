@@ -1,4 +1,4 @@
-import {Checksum256, Checksum256Type, Struct} from '@greymass/eosio'
+import {Checksum256, Checksum256Type, Struct} from '@wharfkit/antelope'
 
 export type Fetch = (input: any, init?: any) => Promise<any>
 

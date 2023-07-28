@@ -12,7 +12,7 @@ import {
     SignedTransaction,
     Transaction,
     TransactionType,
-} from '@greymass/eosio'
+} from '@wharfkit/antelope'
 import {
     ChainId,
     RequestDataV2,
@@ -216,7 +216,7 @@ export class Session {
     }
 
     /**
-     * Lifted from @greymass/eosio-signing-request.
+     * Lifted from @wharfkit/antelope-signing-request.
      *
      * Copy of: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
      *
@@ -238,7 +238,7 @@ export class Session {
      */
     /* istanbul ignore next */
     cloneRequest(request: SigningRequest, abiCache: ABICacheInterface): SigningRequest {
-        // Lifted from @greymass/eosio-signing-request method `clone()`
+        // Lifted from @wharfkit/antelope-signing-request method `clone()`
         // This was done to modify the zlib and abiProvider
         // TODO: Modify ESR library to expose this `clone()` functionality
         // TODO: This if statement should potentially just be:

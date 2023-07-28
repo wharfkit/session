@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import {Checksum256, PermissionLevel, Transaction} from '@greymass/eosio'
+import {Checksum256, PermissionLevel, Transaction} from '@wharfkit/antelope'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'

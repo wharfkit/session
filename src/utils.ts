@@ -1,4 +1,4 @@
-import {Action, AnyAction, FetchProviderOptions, Transaction} from '@greymass/eosio'
+import {Action, AnyAction, FetchProviderOptions, Transaction} from '@wharfkit/antelope'
 import {SigningRequest} from 'eosio-signing-request'
 
 import {Fetch} from './types'

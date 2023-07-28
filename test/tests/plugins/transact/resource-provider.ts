@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import {Action, Asset, AssetType, Name, Signature, Struct} from '@greymass/eosio'
+import {Action, Asset, AssetType, Name, Signature, Struct} from '@wharfkit/antelope'
 
 import {
     AbstractTransactPlugin,

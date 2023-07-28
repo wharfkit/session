@@ -5,7 +5,7 @@ import {
     NameType,
     PermissionLevel,
     PermissionLevelType,
-} from '@greymass/eosio'
+} from '@wharfkit/antelope'
 
 import {
     AbstractLoginPlugin,

@@ -7,4 +7,4 @@ export default SessionKit
 
 // expose dependencies
 export * from 'eosio-signing-request'
-export * from '@greymass/eosio'
+export * from '@wharfkit/antelope'

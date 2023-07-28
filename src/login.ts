@@ -1,4 +1,4 @@
-import {APIClient, FetchProvider, Name, PermissionLevel} from '@greymass/eosio'
+import {APIClient, FetchProvider, Name, PermissionLevel} from '@wharfkit/antelope'
 import {SigningRequestEncodingOptions} from 'eosio-signing-request'
 import zlib from 'pako'
 

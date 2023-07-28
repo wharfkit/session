@@ -11,7 +11,7 @@ import {
     PermissionLevel,
     Serializer,
     Signature,
-} from '@greymass/eosio'
+} from '@wharfkit/antelope'
 import {
     ResolvedSigningRequest,
     ResolvedTransaction,

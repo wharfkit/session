@@ -1,4 +1,4 @@
-import {Checksum256Type, PermissionLevelType} from '@greymass/eosio'
+import {Checksum256Type, PermissionLevelType} from '@wharfkit/antelope'
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'

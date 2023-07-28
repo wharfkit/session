@@ -1,4 +1,4 @@
-import {ABI, ABIDef, API, APIClient, NameType} from '@greymass/eosio'
+import {ABI, ABIDef, API, APIClient, NameType} from '@wharfkit/antelope'
 import {AbiProvider} from 'eosio-signing-request'
 
 export interface ABICacheInterface extends AbiProvider {

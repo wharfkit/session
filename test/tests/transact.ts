@@ -1,7 +1,7 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@greymass/eosio'
+import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
 import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
 
 import SessionKit, {
