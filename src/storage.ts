@@ -14,7 +14,7 @@ export interface SessionStorage {
 }
 
 export class BrowserLocalStorage implements SessionStorage {
-    constructor(readonly keyPrefix: string) {}
+    constructor(readonly keyPrefix: string = '') {}
     async write(key: string, data: string): Promise<void> {
         localStorage.setItem(this.storageKey(key), data)
     }

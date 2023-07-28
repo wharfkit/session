@@ -114,7 +114,7 @@ export class SessionKit {
         if (options.storage) {
             this.storage = options.storage
         } else {
-            this.storage = new BrowserLocalStorage(this.appName.toString())
+            this.storage = new BrowserLocalStorage()
         }
         // Establish default plugins for transact flow
         if (options.transactPlugins) {
