@@ -1,8 +1,8 @@
-import {APIClient, FetchProvider, Name, PermissionLevel} from '@greymass/eosio'
-import {SigningRequestEncodingOptions} from 'eosio-signing-request'
+import {APIClient, FetchProvider, NameType, PermissionLevel} from '@wharfkit/antelope'
+import type {ChainDefinition, Fetch} from '@wharfkit/common'
+import {SigningRequestEncodingOptions} from '@wharfkit/signing-request'
 import zlib from 'pako'
 
-import {ChainDefinition, Fetch} from './types'
 import {UserInterface} from './ui'
 import {WalletPluginConfig, WalletPluginMetadata} from './wallet'
 
@@ -22,7 +22,7 @@ export interface LoginHooks {
  * Options for creating a new context for a [[Kit.login]] call.
  */
 export interface LoginContextOptions {
-    appName?: Name
+    appName?: NameType
     // client: APIClient
     chain?: ChainDefinition
     chains?: ChainDefinition[]
@@ -52,7 +52,7 @@ export interface UserInterfaceWalletPlugin {
  * provide a way for plugins to add hooks into the process.
  */
 export class LoginContext {
-    appName: Name | undefined
+    appName?: string
     // client: APIClient
     chain?: ChainDefinition
     chains: ChainDefinition[] = []
@@ -71,7 +71,7 @@ export class LoginContext {
     }
     walletPlugins: UserInterfaceWalletPlugin[] = []
     constructor(options: LoginContextOptions) {
-        this.appName = options.appName
+        this.appName = String(options.appName)
         // this.client = options.client
         if (options.chains) {
             this.chains = options.chains

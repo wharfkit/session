@@ -1,32 +1,29 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec} from '@greymass/eosio'
-import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
+import {ResolvedSigningRequest, SigningRequest} from '@wharfkit/signing-request'
 
-import SessionKit, {
-    ABICache,
-    ChainDefinition,
-    Session,
-    TransactContext,
-    TransactHookTypes,
-} from '$lib'
+import SessionKit, {ChainDefinition, Session, TransactContext, TransactHookTypes} from '$lib'
 
-import {makeClient} from '$test/utils/mock-client'
-import {mockFetch} from '$test/utils/mock-fetch'
+import {ABICache} from '@wharfkit/abicache'
+import {makeClient} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
 import {
     mockMetadataFooWriterPlugin,
     mockTransactActionPrependerPlugin,
     MockTransactPlugin,
     MockTransactResourceProviderPlugin,
-} from '$test/utils/mock-hook'
-import {makeMockAction, makeMockActions, makeMockTransaction} from '$test/utils/mock-transfer'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
+} from '@wharfkit/mock-data'
+import {makeMockAction, makeMockActions, makeMockTransaction} from '@wharfkit/mock-data'
+import {makeWallet} from '@wharfkit/mock-data'
+import {mockPermissionLevel} from '@wharfkit/mock-data'
 import {Transfer} from '$test/utils/setup/structs'
-import {mockSessionArgs, mockSessionOptions} from '$test/utils/mock-session'
-import {MockStorage} from '$test/utils/mock-storage'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
+import {mockSessionArgs, mockSessionOptions} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {ContractKit} from '@wharfkit/contract'
+import {TransactPluginResourceProvider} from '@wharfkit/transact-plugin-resource-provider'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -67,6 +64,77 @@ suite('transact', function () {
                 const {action, session} = await mockData()
                 const result = await session.transact({action: Serializer.objectify(action)})
                 assetValidTransactResponse(result)
+            })
+            test('from contract kit', async function () {
+                const session = new Session(
+                    {
+                        ...mockSessionArgs,
+                        permissionLevel: {
+                            actor: 'wharfkit1125',
+                            permission: 'test',
+                        },
+                    },
+                    mockSessionOptions
+                )
+                const kit = new ContractKit(
+                    {
+                        client,
+                    },
+                    {
+                        abiCache: session.abiCache,
+                    }
+                )
+                const contract = await kit.load('eosio')
+                const action = contract.action('claimrewards', {owner: 'teamgreymass'})
+                const result = await session.transact(
+                    {action},
+                    {transactPlugins: [new TransactPluginResourceProvider()]}
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].permission.equals('test')
+                )
+            })
+            test('from contract kit (to append to transaction)', async function () {
+                const session = new Session(
+                    {
+                        ...mockSessionArgs,
+                        permissionLevel: {
+                            actor: 'wharfkit1125',
+                            permission: 'test',
+                        },
+                    },
+                    mockSessionOptions
+                )
+                const kit = new ContractKit(
+                    {
+                        client,
+                    },
+                    {
+                        abiCache: session.abiCache,
+                    }
+                )
+                const contract = await kit.load('eosio')
+                const action = contract.action('claimrewards', {owner: 'teamgreymass'})
+                const info = await client.v1.chain.get_info()
+                const header = info.getTransactionHeader()
+
+                const transaction = Transaction.from({
+                    ...header,
+                    actions: [action],
+                })
+                const result = await session.transact(
+                    {transaction},
+                    {transactPlugins: [new TransactPluginResourceProvider()]}
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
+                )
+                assert.isTrue(
+                    result.transaction?.actions[0].authorization[0].permission.equals('test')
+                )
             })
         })
         suite('actions', function () {
@@ -158,11 +226,11 @@ suite('transact', function () {
             })
             test('object maintains payload metadata', async function () {
                 const {action, session} = await mockData()
-                const abiProvider = new ABICache(this.client)
+                const abiCache = new ABICache(this.client)
                 const request = await SigningRequest.create(
                     {action},
                     {
-                        abiProvider,
+                        abiProvider: abiCache,
                         zlib,
                     }
                 )
@@ -190,6 +258,67 @@ suite('transact', function () {
         })
     })
     suite('options', async function () {
+        suite('abis', function () {
+            test('passing as option', async function () {
+                const {action, session} = await mockData()
+                const abi = {
+                    version: 'eosio::abi/1.2',
+                    types: [],
+                    structs: [
+                        {
+                            name: 'transfer',
+                            base: '',
+                            fields: [
+                                {
+                                    name: 'from',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'to',
+                                    type: 'name',
+                                },
+                                {
+                                    name: 'quantity',
+                                    type: 'asset',
+                                },
+                                {
+                                    name: 'memo',
+                                    type: 'string',
+                                },
+                            ],
+                        },
+                    ],
+                    actions: [
+                        {
+                            name: 'transfer',
+                            type: 'transfer',
+                            ricardian_contract: '',
+                        },
+                    ],
+                    tables: [],
+                    ricardian_clauses: [],
+                    error_messages: [],
+                    abi_extensions: [],
+                    variants: [],
+                    action_results: [],
+                }
+                if (!abi) {
+                    assert.fail('No abi returned from get_abi')
+                }
+                const result = await session.transact(
+                    {action},
+                    {
+                        abis: [
+                            {
+                                account: 'eosio.token',
+                                abi,
+                            },
+                        ],
+                    }
+                )
+                assetValidTransactResponse(result)
+            })
+        })
         suite('allowModify', function () {
             test('default: true', async function () {
                 const {action, session} = await mockData()
@@ -400,23 +529,27 @@ suite('transact', function () {
             })
             test('kit constructor', async function () {
                 const {action} = await mockData()
-                const sessionKit = new SessionKit({
-                    appName: 'demo.app',
-                    chains: [
-                        {
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        },
-                    ],
-                    fetch: mockFetch, // Required for unit tests
-                    storage: new MockStorage(),
-                    transactPlugins: [new MockTransactResourceProviderPlugin()],
-                    transactPluginsOptions: {
-                        disableExamplePlugin: true,
+                const sessionKit = new SessionKit(
+                    {
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            },
+                        ],
+                        ui: new MockUserInterface(),
+                        walletPlugins: [makeWallet()],
                     },
-                    ui: new MockUserInterface(),
-                    walletPlugins: [makeWallet()],
-                })
+                    {
+                        fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                        transactPluginsOptions: {
+                            disableExamplePlugin: true,
+                        },
+                    }
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                 })
@@ -430,20 +563,24 @@ suite('transact', function () {
             })
             test('login', async function () {
                 const {action} = await mockData()
-                const sessionKit = new SessionKit({
-                    appName: 'demo.app',
-                    chains: [
-                        {
-                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                            url: 'https://jungle4.greymass.com',
-                        },
-                    ],
-                    fetch: mockFetch, // Required for unit tests
-                    storage: new MockStorage(),
-                    transactPlugins: [new MockTransactResourceProviderPlugin()],
-                    ui: new MockUserInterface(),
-                    walletPlugins: [makeWallet()],
-                })
+                const sessionKit = new SessionKit(
+                    {
+                        appName: 'demo.app',
+                        chains: [
+                            {
+                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                url: 'https://jungle4.greymass.com',
+                            },
+                        ],
+                        ui: new MockUserInterface(),
+                        walletPlugins: [makeWallet()],
+                    },
+                    {
+                        fetch: mockFetch, // Required for unit tests
+                        storage: new MockStorage(),
+                        transactPlugins: [new MockTransactResourceProviderPlugin()],
+                    }
+                )
                 const {session} = await sessionKit.login({
                     permissionLevel: mockPermissionLevel,
                     transactPluginsOptions: {

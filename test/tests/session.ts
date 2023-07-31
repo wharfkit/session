@@ -1,18 +1,18 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@greymass/eosio'
+import {ABI, ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@wharfkit/antelope'
 
-import {mockFetch} from '$test/utils/mock-fetch'
-import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '$test/utils/mock-hook'
+import {mockFetch} from '@wharfkit/mock-data'
+import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
 import {nodejsUsage} from './use-cases/general/nodejs'
-import {makeMockAction} from '$test/utils/mock-transfer'
-import {makeWallet} from '$test/utils/mock-wallet'
-import {mockPermissionLevel} from '$test/utils/mock-config'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {makeClient} from '$test/utils/mock-client'
-import {mockSessionArgs} from '$test/utils/mock-session'
-import {MockStorage} from '$test/utils/mock-storage'
+import {makeMockAction} from '@wharfkit/mock-data'
+import {makeWallet} from '@wharfkit/mock-data'
+import {mockPermissionLevel} from '@wharfkit/mock-data'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {makeClient} from '@wharfkit/mock-data'
+import {mockSessionArgs} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 const wallet = makeWallet()
@@ -39,19 +39,79 @@ suite('session', function () {
             assert.instanceOf(session, Session)
         })
         suite('options', function () {
-            suite('abiProvider', function () {
+            suite('abiCache', function () {
                 test('specify provider', function () {
                     const client = makeClient()
-                    const abiProvider = {
+                    const abiCache = {
                         foo: 'bar',
+                        cache: new Map(),
+                        pending: new Map(),
                         getAbi: async (account) =>
-                            (await client.v1.chain.get_abi(account)).abi as ABIDef,
+                            ABI.from((await client.v1.chain.get_abi(account)).abi as ABIDef),
+                        setAbi: () => {
+                            // NYI
+                        },
                     }
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
-                        abiProvider,
+                        abiCache,
                     })
-                    assert.equal(testSession.abiProvider['foo'], 'bar')
+                    assert.equal(testSession.abiCache['foo'], 'bar')
+                })
+            })
+            suite('abis', function () {
+                test('passing for entire session', async function () {
+                    const abi = {
+                        version: 'eosio::abi/1.2',
+                        types: [],
+                        structs: [
+                            {
+                                name: 'transfer',
+                                base: '',
+                                fields: [
+                                    {
+                                        name: 'from',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'to',
+                                        type: 'name',
+                                    },
+                                    {
+                                        name: 'quantity',
+                                        type: 'asset',
+                                    },
+                                    {
+                                        name: 'memo',
+                                        type: 'string',
+                                    },
+                                ],
+                            },
+                        ],
+                        actions: [
+                            {
+                                name: 'transfer',
+                                type: 'transfer',
+                                ricardian_contract: '',
+                            },
+                        ],
+                        tables: [],
+                        ricardian_clauses: [],
+                        error_messages: [],
+                        abi_extensions: [],
+                        variants: [],
+                        action_results: [],
+                    }
+                    const testSession = new Session(mockSessionArgs, {
+                        ...mockSessionOptions,
+                        abis: [
+                            {
+                                account: 'eosio.token',
+                                abi,
+                            },
+                        ],
+                    })
+                    assert.lengthOf(testSession.abis, 1)
                 })
             })
             suite('allowModify', function () {
@@ -254,19 +314,23 @@ suite('session', function () {
             })
             suite('transactPlugins', function () {
                 test('default', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                        }
+                    )
                     const {session} = await sessionKit.login({
                         permissionLevel: mockPermissionLevel,
                     })
@@ -275,39 +339,47 @@ suite('session', function () {
                     assert.instanceOf(session.transactPlugins[0], BaseTransactPlugin)
                 })
                 test('inherit', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        transactPlugins: [new MockTransactPlugin()],
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                            transactPlugins: [new MockTransactPlugin()],
+                        }
+                    )
                     const {session} = await sessionKit.login({permissionLevel: mockPermissionLevel})
                     assert.instanceOf(session, Session)
                     assert.lengthOf(session.transactPlugins, 1)
                     assert.instanceOf(session.transactPlugins[0], MockTransactPlugin)
                 })
                 test('override', async function () {
-                    const sessionKit = new SessionKit({
-                        appName: 'demo.app',
-                        chains: [
-                            {
-                                id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
-                                url: 'https://jungle4.greymass.com',
-                            },
-                        ],
-                        fetch: mockFetch, // Required for unit tests
-                        storage: new MockStorage(),
-                        ui: new MockUserInterface(),
-                        walletPlugins: [makeWallet()],
-                    })
+                    const sessionKit = new SessionKit(
+                        {
+                            appName: 'demo.app',
+                            chains: [
+                                {
+                                    id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                                    url: 'https://jungle4.greymass.com',
+                                },
+                            ],
+                            ui: new MockUserInterface(),
+                            walletPlugins: [makeWallet()],
+                        },
+                        {
+                            fetch: mockFetch, // Required for unit tests
+                            storage: new MockStorage(),
+                        }
+                    )
                     const {session} = await sessionKit.login({
                         permissionLevel: mockPermissionLevel,
                         transactPlugins: [new MockTransactPlugin()],
@@ -345,7 +417,7 @@ suite('session', function () {
                     actor: 'wharfkit1111',
                     permission: 'test',
                     walletPlugin: {
-                        id: 'keysigner',
+                        id: 'wallet-plugin-privatekey',
                         data: {
                             privateKey: 'PVT_K1_25XP1Lt1Rt87hyymouSieBbgnUEAerS1yQHi9wqHC2Uek2mgzH',
                         },

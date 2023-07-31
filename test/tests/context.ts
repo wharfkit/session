@@ -1,19 +1,19 @@
 import {assert} from 'chai'
 
-import {Checksum256, PermissionLevel, Transaction} from '@greymass/eosio'
+import {Checksum256, PermissionLevel, Transaction} from '@wharfkit/antelope'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'
-import {makeMockAction} from '$test/utils/mock-transfer'
+import {makeMockAction} from '@wharfkit/mock-data'
 
-import {makeContext} from '$test/utils/mock-context'
+import {makeContext} from '@wharfkit/mock-data'
 
 const context = makeContext()
 
 suite('context', function () {
-    suite('abiProvider', function () {
+    suite('abiCache', function () {
         test('has default', function () {
-            assert.isDefined(context.abiProvider)
+            assert.isDefined(context.abiCache)
         })
     })
     suite('getters', function () {

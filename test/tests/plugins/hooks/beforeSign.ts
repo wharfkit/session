@@ -2,13 +2,13 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {SigningRequest} from '$lib'
-import {Name, Transaction} from '@greymass/eosio'
+import {Name, Transaction} from '@wharfkit/antelope'
 
-import {makeClient} from '$test/utils/mock-client'
-import {makeContext} from '$test/utils/mock-context'
-import {mockTransactResourceProviderPresignHook} from '$test/utils/mock-hook'
-import {makeMockAction, makeMockTransaction} from '$test/utils/mock-transfer'
-import {mockAccountName} from '$test/utils/mock-config'
+import {makeClient} from '@wharfkit/mock-data'
+import {makeContext} from '@wharfkit/mock-data'
+import {mockTransactResourceProviderPresignHook} from '@wharfkit/mock-data'
+import {makeMockAction, makeMockTransaction} from '@wharfkit/mock-data'
+import {mockAccountName} from '@wharfkit/mock-data'
 
 const client = makeClient()
 const context = makeContext()

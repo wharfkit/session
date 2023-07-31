@@ -1,7 +1,6 @@
-import {Action, AnyAction, FetchProviderOptions, Transaction} from '@greymass/eosio'
-import {SigningRequest} from 'eosio-signing-request'
-
-import {Fetch} from './types'
+import {Action, AnyAction, FetchProviderOptions, Transaction} from '@wharfkit/antelope'
+import type {Fetch} from '@wharfkit/common'
+import {SigningRequest} from '@wharfkit/signing-request'
 
 /**
  * Return an instance of fetch.

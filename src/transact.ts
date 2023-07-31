@@ -1,25 +1,27 @@
 import zlib from 'pako'
 import {
+    ABIDef,
     AnyAction,
     AnyTransaction,
     API,
     APIClient,
     Checksum256Type,
     Name,
+    NameType,
     PermissionLevel,
     Serializer,
     Signature,
-} from '@greymass/eosio'
+} from '@wharfkit/antelope'
+import {ABICacheInterface} from '@wharfkit/abicache'
+import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
-    AbiProvider,
     ResolvedSigningRequest,
     ResolvedTransaction,
     SigningRequest,
     SigningRequestEncodingOptions,
-} from 'eosio-signing-request'
+} from '@wharfkit/signing-request'
 
 import {SessionStorage} from './storage'
-import {ChainDefinition, Fetch, LocaleDefinitions} from './types'
 import {UserInterface} from './ui'
 
 export type TransactPluginsOptions = Record<string, unknown>
@@ -57,8 +59,8 @@ export type TransactHookResponseType = TransactHookResponse | void
  * Options for creating a new context for a [[Session.transact]] call.
  */
 export interface TransactContextOptions {
-    abiProvider: AbiProvider
-    appName?: Name
+    abiCache: ABICacheInterface
+    appName?: NameType
     chain: ChainDefinition
     client: APIClient
     createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -77,8 +79,8 @@ export interface TransactContextOptions {
  * provide a way for plugins to add hooks into the process.
  */
 export class TransactContext {
-    readonly abiProvider: AbiProvider
-    readonly appName: Name | undefined
+    readonly abiCache: ABICacheInterface
+    readonly appName?: string
     readonly chain: ChainDefinition
     readonly client: APIClient
     readonly createRequest: (args: TransactArgs) => Promise<SigningRequest>
@@ -95,8 +97,8 @@ export class TransactContext {
     readonly ui?: UserInterface
 
     constructor(options: TransactContextOptions) {
-        this.abiProvider = options.abiProvider
-        this.appName = options.appName
+        this.abiCache = options.abiCache
+        this.appName = String(options.appName)
         this.chain = options.chain
         this.client = options.client
         this.createRequest = options.createRequest
@@ -122,7 +124,7 @@ export class TransactContext {
 
     get esrOptions(): SigningRequestEncodingOptions {
         return {
-            abiProvider: this.abiProvider,
+            abiProvider: this.abiCache,
             zlib,
         }
     }
@@ -153,17 +155,26 @@ export class TransactContext {
 
     async resolve(request: SigningRequest, expireSeconds = 120): Promise<ResolvedSigningRequest> {
         // Build the transaction header
-        const info = await this.getInfo()
-        const header = info.getTransactionHeader(expireSeconds)
+        let resolveArgs = {
+            chainId: this.chain.id,
+        }
+
+        // Check if this request requires tapos generation
+        if (request.requiresTapos()) {
+            const info = await this.getInfo()
+            const header = info.getTransactionHeader(expireSeconds)
+            // override resolve args to include tapos headers
+            resolveArgs = {
+                ...resolveArgs,
+                ...header,
+            }
+        }
 
         // Load ABIs required to resolve this request
-        const abis = await request.fetchAbis(this.abiProvider)
+        const abis = await request.fetchAbis(this.abiCache)
 
         // Resolve the request and return
-        return request.resolve(abis, this.permissionLevel, {
-            ...header,
-            chainId: this.chain.id,
-        })
+        return request.resolve(abis, this.permissionLevel, resolveArgs)
     }
 }
 /**
@@ -186,9 +197,13 @@ export interface TransactArgs {
  */
 export interface TransactOptions {
     /**
-     * An optional AbiProvider to control how ABIs are loaded.
+     * An array of ABIs to use when resolving the transaction.
      */
-    abiProvider?: AbiProvider
+    abis?: TransactABIDef[]
+    /**
+     * An optional ABICacheInterface to control how ABIs are loaded.
+     */
+    abiCache?: ABICacheInterface
     /**
      * Whether to allow the signer to make modifications to the request
      * (e.g. applying a cosigner action to pay for resources).
@@ -221,6 +236,11 @@ export interface TransactOptions {
      * Optional parameter to control whether signatures returned from plugins are validated.
      */
     validatePluginSignatures?: boolean
+}
+
+export interface TransactABIDef {
+    account: NameType
+    abi: ABIDef
 }
 
 export interface TransactRevision {

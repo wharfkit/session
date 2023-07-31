@@ -12,21 +12,23 @@ import {
     SignedTransaction,
     Transaction,
     TransactionType,
-} from '@greymass/eosio'
+} from '@wharfkit/antelope'
+import {ChainDefinition} from '@wharfkit/common'
+import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
-    AbiProvider,
     ChainId,
     RequestDataV2,
     RequestDataV3,
     RequestSignature,
     ResolvedSigningRequest,
     SigningRequest,
-} from 'eosio-signing-request'
+} from '@wharfkit/signing-request'
 
-import {ABICache} from './abi'
+import {ABICache, ABICacheInterface} from '@wharfkit/abicache'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    TransactABIDef,
     TransactArgs,
     TransactContext,
     TransactOptions,
@@ -36,7 +38,6 @@ import {
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
-import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from './types'
 import {getFetch} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
@@ -56,7 +57,8 @@ export interface SessionArgs {
  * Options for creating a new [[Session]].
  */
 export interface SessionOptions {
-    abiProvider?: AbiProvider
+    abis?: TransactABIDef[]
+    abiCache?: ABICacheInterface
     allowModify?: boolean
     appName?: NameType
     broadcast?: boolean
@@ -71,6 +73,7 @@ export interface SessionOptions {
 export interface SerializedSession {
     actor: NameType
     chain: Checksum256Type
+    default?: boolean
     permission: NameType
     walletPlugin: SerializedWalletPlugin
 }
@@ -79,8 +82,9 @@ export interface SerializedSession {
  * A representation of a session to interact with a specific blockchain account.
  */
 export class Session {
-    readonly appName: Name | undefined
-    readonly abiProvider: AbiProvider
+    readonly appName?: string
+    readonly abis: TransactABIDef[] = []
+    readonly abiCache: ABICacheInterface
     readonly allowModify: boolean = true
     readonly broadcast: boolean = true
     readonly chain: ChainDefinition
@@ -118,7 +122,10 @@ export class Session {
 
         // Handle all the optional values provided
         if (options.appName) {
-            this.appName = Name.from(options.appName)
+            this.appName = String(options.appName)
+        }
+        if (options.abis) {
+            this.abis = [...options.abis]
         }
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
@@ -145,10 +152,10 @@ export class Session {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
-        if (options.abiProvider) {
-            this.abiProvider = options.abiProvider
+        if (options.abiCache) {
+            this.abiCache = options.abiCache
         } else {
-            this.abiProvider = new ABICache(this.client)
+            this.abiCache = new ABICache(this.client)
         }
         if (options.ui) {
             this.ui = options.ui
@@ -210,9 +217,9 @@ export class Session {
     }
 
     /**
-     * Lifted from @greymass/eosio-signing-request.
+     * Lifted from @wharfkit/antelope-signing-request.
      *
-     * Copy of: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
+     * Copy of: https://github.com/greymass/@wharfkit/signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
      *
      * TODO: Remove. This will no longer be needed once the `clone` functionality in ESR is updated
      */
@@ -224,15 +231,15 @@ export class Session {
     /**
      * Create a clone of the given SigningRequest
      *
-     * Overrides: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112
+     * Overrides: https://github.com/greymass/@wharfkit/signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112
      *
      * @param {SigningRequest} request The SigningRequest to clone
-     * @param {AbiProvider} abiProvider The AbiProvider to use for the clone
-     * @returns Returns a cloned SigningRequest with updated abiProvider and zlib
+     * @param {ABICacheInterface} abiCache The ABICacheInterface to use for the clone
+     * @returns Returns a cloned SigningRequest with updated abiCache and zlib
      */
     /* istanbul ignore next */
-    cloneRequest(request: SigningRequest, abiProvider: AbiProvider): SigningRequest {
-        // Lifted from @greymass/eosio-signing-request method `clone()`
+    cloneRequest(request: SigningRequest, abiCache: ABICacheInterface): SigningRequest {
+        // Lifted from @wharfkit/antelope-signing-request method `clone()`
         // This was done to modify the zlib and abiProvider
         // TODO: Modify ESR library to expose this `clone()` functionality
         // TODO: This if statement should potentially just be:
@@ -243,24 +250,24 @@ export class Session {
         }
         const RequestData = this.storageType(request.version)
         const data = RequestData.from(JSON.parse(JSON.stringify(request.data)))
-        return new SigningRequest(request.version, data, zlib, abiProvider, signature)
+        return new SigningRequest(request.version, data, zlib, abiCache, signature)
     }
 
     /**
      * Convert any provided form of TransactArgs to a SigningRequest
      *
      * @param {TransactArgs} args
-     * @param {AbiProvider} abiProvider
+     * @param {ABICacheInterface} abiCache
      * @returns Returns a SigningRequest
      */
-    async createRequest(args: TransactArgs, abiProvider: AbiProvider): Promise<SigningRequest> {
+    async createRequest(args: TransactArgs, abiCache: ABICacheInterface): Promise<SigningRequest> {
         let request: SigningRequest
         const options = {
-            abiProvider,
+            abiProvider: abiCache,
             zlib,
         }
         if (args.request && args.request instanceof SigningRequest) {
-            request = this.cloneRequest(args.request, abiProvider)
+            request = this.cloneRequest(args.request, abiCache)
         } else if (args.request) {
             request = SigningRequest.from(args.request, options)
         } else {
@@ -283,15 +290,15 @@ export class Session {
      *
      * @param {SigningRequest} previous
      * @param {SigningRequest} modified
-     * @param abiProvider
+     * @param abiCache
      * @returns
      */
     async updateRequest(
         previous: SigningRequest,
         modified: SigningRequest,
-        abiProvider: AbiProvider
+        abiCache: ABICacheInterface
     ): Promise<SigningRequest> {
-        const updatedRequest: SigningRequest = this.cloneRequest(modified, abiProvider)
+        const updatedRequest: SigningRequest = this.cloneRequest(modified, abiCache)
         const info = updatedRequest.getRawInfo()
         // Take all the metadata from the previous and set it on the modified request.
         // This will preserve the metadata as it is modified by various plugins.
@@ -336,7 +343,21 @@ export class Session {
                     : this.broadcast
 
             // The abi provider to use for this transaction, falling back to the session instance
-            const abiProvider = options?.abiProvider || this.abiProvider
+            const abiCache = options?.abiCache || this.abiCache
+
+            // Collect all the ABIs that have been passed in manually
+            const abiDefs: TransactABIDef[] = [...this.abis]
+            if (options?.abis) {
+                // If we have ABIs in the options, add them.
+                abiDefs.push(...options.abis)
+            }
+
+            // If an array of ABIs are provided, set them on the abiCache
+            if (abiCache['setAbi']) {
+                abiDefs.forEach((def: TransactABIDef) => abiCache['setAbi'](def.account, def.abi))
+            } else {
+                throw new Error('Custom `abiCache` does not support `setAbi` method.')
+            }
 
             // The TransactPlugins to use for this transaction, falling back to the session instance
             const transactPlugins = options?.transactPlugins || this.transactPlugins
@@ -351,11 +372,11 @@ export class Session {
 
             // The context object for this transaction
             const context = new TransactContext({
-                abiProvider,
+                abiCache,
                 appName: this.appName,
                 chain: this.chain,
                 client: this.client,
-                createRequest: (args: TransactArgs) => this.createRequest(args, abiProvider),
+                createRequest: (args: TransactArgs) => this.createRequest(args, abiCache),
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
                 storage: this.storage,
@@ -376,7 +397,7 @@ export class Session {
             }
 
             // Process incoming TransactArgs and convert to a SigningRequest
-            let request: SigningRequest = await this.createRequest(args, abiProvider)
+            let request: SigningRequest = await this.createRequest(args, abiCache)
 
             // Create TransactResult to eventually respond to this call with
             const result: TransactResult = {
@@ -400,7 +421,7 @@ export class Session {
 
                     // If modification is allowed, change the current request.
                     if (allowModify) {
-                        request = await this.updateRequest(request, response.request, abiProvider)
+                        request = await this.updateRequest(request, response.request, abiCache)
                     }
 
                     if (response.signatures) {
@@ -429,10 +450,6 @@ export class Session {
                 context
             )
 
-            if (context.ui) {
-                await context.ui.onSignComplete()
-            }
-
             // Merge signatures in to the TransactResult
             result.signatures.push(...walletResponse.signatures)
 
@@ -455,6 +472,11 @@ export class Session {
 
             // Run the `afterSign` hooks that were registered by the TransactPlugins
             for (const hook of context.hooks.afterSign) await hook(result, context)
+
+            // Notify the UI that the signing operations are complete
+            if (context.ui) {
+                await context.ui.onSignComplete()
+            }
 
             if (willBroadcast) {
                 if (context.ui) {
@@ -519,10 +541,10 @@ export class Session {
     async signTransaction(transaction: TransactionType): Promise<Signature[]> {
         // Create a TransactContext for the WalletPlugin to use
         const context = new TransactContext({
-            abiProvider: this.abiProvider,
+            abiCache: this.abiCache,
             chain: this.chain,
             client: this.client,
-            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiProvider),
+            createRequest: (args: TransactArgs) => this.createRequest(args, this.abiCache),
             fetch: this.fetch,
             permissionLevel: this.permissionLevel,
         })

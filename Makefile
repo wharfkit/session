@@ -10,7 +10,7 @@ lib: ${SRC_FILES} package.json tsconfig.json node_modules rollup.config.js
 
 .PHONY: test
 test: node_modules
-	@TS_NODE_PROJECT='./test/tsconfig.json' \
+	@TS_NODE_PROJECT='./test/tsconfig.json' MOCK_DIR='./test/data' \
 		${BIN}/mocha ${MOCHA_OPTS} ${TEST_FILES} --no-timeout --grep '$(grep)'
 
 test/watch: node_modules
@@ -28,13 +28,13 @@ coverage: build/coverage
 
 .PHONY: ci-test
 ci-test: node_modules
-	@TS_NODE_PROJECT='./test/tsconfig.json' \
+	@TS_NODE_PROJECT='./test/tsconfig.json' MOCK_DIR='./test/data' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=text \
 		${BIN}/mocha ${MOCHA_OPTS} -R list ${TEST_FILES}
 
 .PHONY: check
 check: node_modules
-	@${BIN}/eslint src --ext .ts --max-warnings 0 --format unix && echo "Ok"
+	@${BIN}/eslint src test --ext .ts --max-warnings 0 --format unix && echo "Ok"
 
 .PHONY: format
 format: node_modules

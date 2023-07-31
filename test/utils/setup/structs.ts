@@ -1,4 +1,4 @@
-import {Asset, Name, PublicKey, Struct, UInt16, UInt32} from '@greymass/eosio'
+import {Asset, Name, PublicKey, Struct, UInt16, UInt32} from '@wharfkit/antelope'
 
 @Struct.type('key_weight')
 export class KeyWeight extends Struct {

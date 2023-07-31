@@ -1,12 +1,18 @@
 import {assert} from 'chai'
 
-import SessionKit, {ChainDefinition, Logo, SessionKitOptions, WalletPluginMetadata} from '$lib'
-import {MockUserInterface} from '$test/utils/mock-userinterface'
-import {makeWallet, MockWalletPluginConfigs} from '$test/utils/mock-wallet'
-import {mockFetch} from '$test/utils/mock-fetch'
-import {makeMockAction} from '$test/utils/mock-transfer'
-import {MockStorage} from '$test/utils/mock-storage'
-import {mockChainDefinitions, mockPrivateKey} from '$test/utils/mock-config'
+import SessionKit, {
+    ChainDefinition,
+    Logo,
+    SessionKitArgs,
+    SessionKitOptions,
+    WalletPluginMetadata,
+} from '$lib'
+import {MockUserInterface} from '@wharfkit/mock-data'
+import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
+import {mockFetch} from '@wharfkit/mock-data'
+import {makeMockAction} from '@wharfkit/mock-data'
+import {MockStorage} from '@wharfkit/mock-data'
+import {mockChainDefinitions, mockPrivateKey} from '@wharfkit/mock-data'
 
 const chains = [
     ChainDefinition.from({
@@ -27,13 +33,16 @@ const chains = [
     }),
 ]
 
-const defaultSessionKitOptions: SessionKitOptions = {
+const defaultSessionKitArgs: SessionKitArgs = {
     appName: 'demo.app',
     chains,
-    fetch: mockFetch, // Required for unit tests
-    storage: new MockStorage(),
     ui: new MockUserInterface(),
     walletPlugins: [makeWallet()],
+}
+
+const defaultSessionKitOptions: SessionKitOptions = {
+    fetch: mockFetch, // Required for unit tests
+    storage: new MockStorage(),
 }
 
 suite('walletPlugin', function () {
@@ -67,10 +76,13 @@ suite('walletPlugin', function () {
                 requiresPermissionSelect: false,
             })
             assert.isTrue(walletPlugin.config.requiresChainSelect)
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const result = await kit.login({
                 permissionLevel: 'mock@interface',
             })
@@ -84,10 +96,13 @@ suite('walletPlugin', function () {
                 requiresPermissionSelect: false,
             })
             assert.isFalse(walletPlugin.config.requiresChainSelect)
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const result = await kit.login({
                 permissionLevel: 'mock@interface',
             })
@@ -103,10 +118,13 @@ suite('walletPlugin', function () {
                 requiresPermissionSelect: true,
             })
             assert.isTrue(walletPlugin.config.requiresPermissionSelect)
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const result = await kit.login({
                 chain: chains[0].id,
             })
@@ -120,10 +138,13 @@ suite('walletPlugin', function () {
                 requiresPermissionSelect: false,
             })
             assert.isFalse(walletPlugin.config.requiresPermissionSelect)
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const result = await kit.login({
                 chain: chains[0].id,
             })
@@ -141,10 +162,13 @@ suite('walletPlugin', function () {
                     '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
                 ],
             })
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             await kit.login({
                 permissionLevel: 'mock@interface',
             })
@@ -157,10 +181,13 @@ suite('walletPlugin', function () {
                     'f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12', // WAX (Testnet)
                 ],
             })
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             let error
             try {
                 await kit.login({
@@ -180,10 +207,13 @@ suite('walletPlugin', function () {
                     '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590', // mockUserInterface Default
                 ],
             })
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             await kit.login({
                 chain: '34593b65376aee3c9b06ea8a8595122b39333aaab4c76ad52587831fcc096590',
                 permissionLevel: 'mock@interface',
@@ -197,10 +227,13 @@ suite('walletPlugin', function () {
                     'f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12', // WAX (Testnet)
                 ],
             })
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             let error
             try {
                 await kit.login({
@@ -219,10 +252,13 @@ suite('walletPlugin', function () {
                     testModify: true,
                     privateKey: mockPrivateKey,
                 })
-                const kit = new SessionKit({
-                    ...defaultSessionKitOptions,
-                    walletPlugins: [walletPlugin],
-                })
+                const kit = new SessionKit(
+                    {
+                        ...defaultSessionKitArgs,
+                        walletPlugins: [walletPlugin],
+                    },
+                    defaultSessionKitOptions
+                )
                 const loginResult = await kit.login({
                     chain: chains[0].id,
                     permissionLevel: 'mock@interface',
@@ -233,11 +269,16 @@ suite('walletPlugin', function () {
                 const walletPlugin = new MockWalletPluginConfigs(undefined, {
                     testModify: true,
                 })
-                const kit = new SessionKit({
-                    ...defaultSessionKitOptions,
-                    allowModify: false,
-                    walletPlugins: [walletPlugin],
-                })
+                const kit = new SessionKit(
+                    {
+                        ...defaultSessionKitArgs,
+                        walletPlugins: [walletPlugin],
+                    },
+                    {
+                        ...defaultSessionKitOptions,
+                        allowModify: false,
+                    }
+                )
                 const loginResult = await kit.login({
                     chain: chains[0].id,
                     permissionLevel: 'mock@interface',
@@ -258,11 +299,16 @@ suite('walletPlugin', function () {
                     testModify: true,
                     privateKey: mockPrivateKey,
                 })
-                const kit = new SessionKit({
-                    ...defaultSessionKitOptions,
-                    allowModify: true,
-                    walletPlugins: [walletPlugin],
-                })
+                const kit = new SessionKit(
+                    {
+                        ...defaultSessionKitArgs,
+                        walletPlugins: [walletPlugin],
+                    },
+                    {
+                        ...defaultSessionKitOptions,
+                        allowModify: true,
+                    }
+                )
                 const loginResult = await kit.login({
                     chain: chains[0].id,
                     permissionLevel: 'mock@interface',
@@ -274,10 +320,13 @@ suite('walletPlugin', function () {
     suite('storage', function () {
         test('empty data', async function () {
             const walletPlugin = new MockWalletPluginConfigs()
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const response = await kit.login()
             assert.deepEqual(response.session.serialize(), {
                 chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
@@ -299,10 +348,13 @@ suite('walletPlugin', function () {
                     foo: 'baz',
                 }
             )
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const response = await kit.login()
             assert.deepEqual(response.session.serialize(), {
                 chain: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
@@ -329,10 +381,13 @@ suite('walletPlugin', function () {
                 },
             }
             const walletPlugin = new MockWalletPluginConfigs()
-            const kit = new SessionKit({
-                ...defaultSessionKitOptions,
-                walletPlugins: [walletPlugin],
-            })
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
             const session = await kit.restore(serializedSession)
             if (!session) {
                 throw new Error('Failed to restore session')
