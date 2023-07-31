@@ -13,7 +13,8 @@ import {
     Transaction,
     TransactionType,
 } from '@wharfkit/antelope'
-import {ChainDefinition, ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import {ChainDefinition} from '@wharfkit/common'
+import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ChainId,
     RequestDataV2,

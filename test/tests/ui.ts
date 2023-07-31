@@ -1,6 +1,6 @@
 import {assert} from 'chai'
 
-import {LocaleDefinitions} from '@wharfkit/common'
+import type {LocaleDefinitions} from '@wharfkit/common'
 import {MockUserInterface} from '@wharfkit/mock-data'
 
 import {UserInterface, UserInterfaceTranslateOptions} from 'src/ui'

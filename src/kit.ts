@@ -6,7 +6,8 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@wharfkit/antelope'
-import {ChainDefinition, ChainDefinitionType, Fetch} from '@wharfkit/common'
+import {ChainDefinition} from '@wharfkit/common'
+import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
 
 import {
     AbstractLoginPlugin,

@@ -1,5 +1,6 @@
 import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@wharfkit/antelope'
-import {LocaleDefinitions, Logo} from '@wharfkit/common'
+import {Logo} from '@wharfkit/common'
+import type {LocaleDefinitions} from '@wharfkit/common'
 import {ResolvedSigningRequest} from 'eosio-signing-request'
 
 import {LoginContext} from './login'

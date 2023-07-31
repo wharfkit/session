@@ -13,7 +13,7 @@ import {
     Signature,
 } from '@wharfkit/antelope'
 import {ABICacheInterface} from '@wharfkit/abicache'
-import {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ResolvedSigningRequest,
     ResolvedTransaction,

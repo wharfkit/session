@@ -1,5 +1,5 @@
 import {Action, AnyAction, FetchProviderOptions, Transaction} from '@wharfkit/antelope'
-import {Fetch} from '@wharfkit/common'
+import type {Fetch} from '@wharfkit/common'
 import {SigningRequest} from 'eosio-signing-request'
 
 /**
