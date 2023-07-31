@@ -1282,10 +1282,10 @@
     hash.js "^1.0.0"
     tslib "^2.0.3"
 
-"@wharfkit/common@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@wharfkit/common/-/common-1.0.2.tgz#de58875064514a07f6363db4fb2f8601782debfd"
-  integrity sha512-QDZfwACio223wB7YaaqHK4xoiAOm+r/+9IdKa+vODk3QZnFIky3IARmhPB4RV6tx8vVpfR4Ff/JytsnNPicVeQ==
+"@wharfkit/common@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/common/-/common-1.1.0.tgz#1ee9dd1ba9e202002fadd20593f5f42a3e67c827"
+  integrity sha512-A1Ta8zrEXkuEQcEiEexG0BVrYOxqm75qbLYU9tGNhyw4z/vQiF6rzmCOqhmWGg6nE2J2GYPvrPZPZzDmRGtG+w==
   dependencies:
     tslib "^2.1.0"
 
