@@ -2,7 +2,7 @@ import {assert} from 'chai'
 import zlib from 'pako'
 
 import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
-import {ResolvedSigningRequest, SigningRequest} from 'eosio-signing-request'
+import {ResolvedSigningRequest, SigningRequest} from '@wharfkit/signing-request'
 
 import SessionKit, {ChainDefinition, Session, TransactContext, TransactHookTypes} from '$lib'
 

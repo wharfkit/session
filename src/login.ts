@@ -1,6 +1,6 @@
 import {APIClient, FetchProvider, NameType, PermissionLevel} from '@wharfkit/antelope'
 import type {ChainDefinition, Fetch} from '@wharfkit/common'
-import {SigningRequestEncodingOptions} from 'eosio-signing-request'
+import {SigningRequestEncodingOptions} from '@wharfkit/signing-request'
 import zlib from 'pako'
 
 import {UserInterface} from './ui'

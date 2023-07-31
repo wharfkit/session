@@ -19,7 +19,7 @@ import {
     ResolvedTransaction,
     SigningRequest,
     SigningRequestEncodingOptions,
-} from 'eosio-signing-request'
+} from '@wharfkit/signing-request'
 
 import {SessionStorage} from './storage'
 import {UserInterface} from './ui'

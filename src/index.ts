@@ -6,7 +6,7 @@ import {SessionKit} from './index-module'
 export default SessionKit
 
 // expose dependencies
-export * from 'eosio-signing-request'
 export * from '@wharfkit/antelope'
 export * from '@wharfkit/abicache'
 export * from '@wharfkit/common'
+export * from '@wharfkit/signing-request'

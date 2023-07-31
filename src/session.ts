@@ -22,7 +22,7 @@ import {
     RequestSignature,
     ResolvedSigningRequest,
     SigningRequest,
-} from 'eosio-signing-request'
+} from '@wharfkit/signing-request'
 
 import {ABICache, ABICacheInterface} from '@wharfkit/abicache'
 import {
@@ -219,7 +219,7 @@ export class Session {
     /**
      * Lifted from @wharfkit/antelope-signing-request.
      *
-     * Copy of: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
+     * Copy of: https://github.com/greymass/@wharfkit/signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L305
      *
      * TODO: Remove. This will no longer be needed once the `clone` functionality in ESR is updated
      */
@@ -231,7 +231,7 @@ export class Session {
     /**
      * Create a clone of the given SigningRequest
      *
-     * Overrides: https://github.com/greymass/eosio-signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112
+     * Overrides: https://github.com/greymass/@wharfkit/signing-request/blob/6fc84b2355577d6461676bff417c76e4f6f2f5c3/src/signing-request.ts#L1112
      *
      * @param {SigningRequest} request The SigningRequest to clone
      * @param {ABICacheInterface} abiCache The ABICacheInterface to use for the clone

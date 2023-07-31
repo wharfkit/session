@@ -1261,13 +1261,13 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/abicache@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.1.0.tgz#71f4c784da3d8fc2f301904fd133b32bf0db83ca"
-  integrity sha512-MlY4oXVfCNi3GZmxDSMMf4Une69u+pGZD9T1LNY1uA5WCyxkSdGMt7Br8uXWWqPVABzCRnFjO6TGDo9iZJaD7g==
+"@wharfkit/abicache@^1.1.0", "@wharfkit/abicache@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.1.1.tgz#03624d03d9466e7def278786aaf074d274fc5650"
+  integrity sha512-CfpHzCLxFATcfReqdJDUxEDSHIeBF3jFx0cP8RcTDyhC2jX4cd+Q/wqjw/kCni3xrBM7cIGUp9c9NZdvdTK9Cg==
   dependencies:
     "@wharfkit/antelope" "^0.7.3"
-    eosio-signing-request "^3.0.0-beta1"
+    "@wharfkit/signing-request" "^3.0.0"
     pako "^2.0.4"
     tslib "^2.1.0"
 
@@ -1319,6 +1319,14 @@
     eosio-signing-request "^3.0.0-beta1"
     pako "^2.0.4"
     tslib "^2.1.0"
+
+"@wharfkit/signing-request@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/signing-request/-/signing-request-3.0.0.tgz#3464cdc76c0690ab241d805116101e3ed63ba846"
+  integrity sha512-+9UaznhYlZSgdZGG/LF5GkH7P9dCVh+b32cR1PYHKG6KuOsPlLqfv1DuWkqsxQyi3kGT1fXG1i8sl39ItgwLzg==
+  dependencies:
+    "@wharfkit/antelope" "^0.7.3"
+    tslib "^2.0.3"
 
 "@wharfkit/transact-plugin-resource-provider@^1.0.0-beta1":
   version "1.0.0-beta1"
