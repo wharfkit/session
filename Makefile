@@ -18,7 +18,7 @@ test/watch: node_modules
 		${BIN}/mocha --watch ${MOCHA_OPTS} ${TEST_FILES} --no-timeout --grep '$(grep)'
 
 build/coverage: ${SRC_FILES} ${TEST_FILES} node_modules
-	@TS_NODE_PROJECT='./test/tsconfig.json' \
+	@TS_NODE_PROJECT='./test/tsconfig.json' MOCK_DIR='./test/data' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=html \
 		${BIN}/mocha ${MOCHA_OPTS} -R nyan ${TEST_FILES}
 
