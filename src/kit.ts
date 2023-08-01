@@ -30,7 +30,7 @@ import {UserInterface} from './ui'
 import {getFetch} from './utils'
 
 export interface LoginOptions {
-    chain?: Checksum256Type
+    chain?: ChainDefinition | Checksum256Type
     chains?: Checksum256Type[]
     loginPlugins?: LoginPlugin[]
     transactPlugins?: TransactPlugin[]
@@ -183,7 +183,11 @@ export class SessionKit {
 
             // Predetermine chain (if possible) to prevent uneeded UI interactions.
             if (options && options.chain) {
-                context.chain = this.getChainDefinition(options.chain, context.chains)
+                if (options.chain instanceof ChainDefinition) {
+                    context.chain = options.chain
+                } else {
+                    context.chain = this.getChainDefinition(options.chain, context.chains)
+                }
                 context.uiRequirements.requiresChainSelect = false
             } else if (context.chains.length === 1) {
                 context.chain = context.chains[0]
