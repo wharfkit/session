@@ -57,11 +57,16 @@ build/docs: $(SRC_FILES) node_modules
 		--includeVersion --hideGenerator --readme none \
 		src/index.ts
 
-build/pages: build/coverage build/docs build/browser.html
+# build/pages: build/coverage build/docs build/browser.html
+# 	@mkdir -p build/pages
+# 	@cp -r build/docs/* build/pages/
+# 	@cp -r build/coverage build/pages/coverage
+# 	@cp build/browser.html build/pages/tests.html
+
+build/pages: build/coverage build/docs
 	@mkdir -p build/pages
 	@cp -r build/docs/* build/pages/
 	@cp -r build/coverage build/pages/coverage
-	@cp build/browser.html build/pages/tests.html
 
 .PHONY: deploy-pages
 deploy-pages: | clean lib build/pages node_modules
