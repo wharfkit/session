@@ -1,3 +1,6 @@
+import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import type {Contract} from '@wharfkit/contract'
+
 import zlib from 'pako'
 import {
     APIClient,
@@ -14,7 +17,6 @@ import {
     TransactionType,
 } from '@wharfkit/antelope'
 import {ChainDefinition} from '@wharfkit/common'
-import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ChainId,
     RequestDataV2,
@@ -62,6 +64,7 @@ export interface SessionOptions {
     allowModify?: boolean
     appName?: NameType
     broadcast?: boolean
+    contracts?: Contract[]
     expireSeconds?: number
     fetch?: Fetch
     storage?: SessionStorage
@@ -126,6 +129,10 @@ export class Session {
         }
         if (options.abis) {
             this.abis = [...options.abis]
+        }
+        // Extract any ABIs from the Contract instances provided
+        if (options.contracts) {
+            this.abis.push(...options.contracts.map((c) => ({account: c.account, abi: c.abi})))
         }
         if (options.allowModify !== undefined) {
             this.allowModify = options.allowModify
@@ -350,6 +357,11 @@ export class Session {
             if (options?.abis) {
                 // If we have ABIs in the options, add them.
                 abiDefs.push(...options.abis)
+            }
+
+            // Extract any ABIs from the Contract instances provided
+            if (options?.contracts) {
+                abiDefs.push(...options.contracts.map((c) => ({account: c.account, abi: c.abi})))
             }
 
             // If an array of ABIs are provided, set them on the abiCache

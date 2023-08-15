@@ -1,3 +1,6 @@
+import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import type {Contract} from '@wharfkit/contract'
+
 import zlib from 'pako'
 import {
     ABIDef,
@@ -13,7 +16,6 @@ import {
     Signature,
 } from '@wharfkit/antelope'
 import {ABICacheInterface} from '@wharfkit/abicache'
-import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {
     ResolvedSigningRequest,
     ResolvedTransaction,
@@ -220,6 +222,10 @@ export interface TransactOptions {
      * Chain to use when configured with multiple chains.
      */
     chain?: Checksum256Type
+    /**
+     * An array of Contract instances to cache for this call
+     */
+    contracts?: Contract[]
     /**
      * The number of seconds in the future this transaction will expire.
      */

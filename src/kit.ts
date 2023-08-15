@@ -1,3 +1,5 @@
+import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
+import type {Contract} from '@wharfkit/contract'
 import {
     Checksum256,
     Checksum256Type,
@@ -7,7 +9,6 @@ import {
     PermissionLevelType,
 } from '@wharfkit/antelope'
 import {ChainDefinition} from '@wharfkit/common'
-import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
 
 import {
     AbstractLoginPlugin,
@@ -62,6 +63,7 @@ export interface SessionKitArgs {
 export interface SessionKitOptions {
     abis?: TransactABIDef[]
     allowModify?: boolean
+    contracts?: Contract[]
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
@@ -105,6 +107,10 @@ export class SessionKit {
         // Add any ABIs manually provided
         if (options.abis) {
             this.abis = [...options.abis]
+        }
+        // Extract any ABIs from the Contract instances provided
+        if (options.contracts) {
+            this.abis.push(...options.contracts.map((c) => ({account: c.account, abi: c.abi})))
         }
         // Establish default plugins for login flow
         if (options.loginPlugins) {
