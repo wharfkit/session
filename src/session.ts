@@ -350,26 +350,7 @@ export class Session {
                     : this.broadcast
 
             // The abi provider to use for this transaction, falling back to the session instance
-            const abiCache = options?.abiCache || this.abiCache
-
-            // Collect all the ABIs that have been passed in manually
-            const abiDefs: TransactABIDef[] = [...this.abis]
-            if (options?.abis) {
-                // If we have ABIs in the options, add them.
-                abiDefs.push(...options.abis)
-            }
-
-            // Extract any ABIs from the Contract instances provided
-            if (options?.contracts) {
-                abiDefs.push(...options.contracts.map((c) => ({account: c.account, abi: c.abi})))
-            }
-
-            // If an array of ABIs are provided, set them on the abiCache
-            if (abiCache['setAbi']) {
-                abiDefs.forEach((def: TransactABIDef) => abiCache['setAbi'](def.account, def.abi))
-            } else {
-                throw new Error('Custom `abiCache` does not support `setAbi` method.')
-            }
+            const abiCache = this.getMergedAbiCache(args, options)
 
             // The TransactPlugins to use for this transaction, falling back to the session instance
             const transactPlugins = options?.transactPlugins || this.transactPlugins
@@ -388,7 +369,7 @@ export class Session {
                 appName: this.appName,
                 chain: this.chain,
                 client: this.client,
-                createRequest: (args: TransactArgs) => this.createRequest(args, abiCache),
+                createRequest: (a: TransactArgs) => this.createRequest(a, abiCache),
                 fetch: this.fetch,
                 permissionLevel: this.permissionLevel,
                 storage: this.storage,
@@ -607,5 +588,52 @@ export class Session {
             }
         })
         return prefixed
+    }
+
+    getMergedAbiCache(args: TransactArgs, options?: TransactOptions): ABICacheInterface {
+        const abiCache = options?.abiCache || this.abiCache
+
+        // If the abiCache supports appending ABIs, merge all from args/options
+        if (!abiCache['setAbi']) {
+            throw new Error('Custom `abiCache` does not support `setAbi` method.')
+        }
+
+        // Append all ABIs that exist on the Session
+        this.abis.forEach((def: TransactABIDef) => abiCache.setAbi(def.account, def.abi))
+
+        if (options?.abis) {
+            // If we have ABIs from the TransactOptions, append
+            options.abis.forEach((def: TransactABIDef) => abiCache.setAbi(def.account, def.abi))
+        }
+
+        if (options?.contracts) {
+            // Append ABIs from any Contract instances
+            options.contracts.forEach((c) => abiCache.setAbi(c.account, c.abi))
+        }
+
+        if (args.action && args.action['abi']) {
+            // Merge any partial ABIs from the action
+            abiCache.setAbi(args.action.account, args.action['abi'], true)
+        }
+
+        if (args.actions) {
+            args.actions.forEach((action) => {
+                if (action['abi']) {
+                    // Merge any partial ABIs from the actions
+                    abiCache.setAbi(action.account, action['abi'], true)
+                }
+            })
+        }
+
+        if (args.transaction && args.transaction.actions) {
+            args.transaction.actions.forEach((action) => {
+                if (action['abi']) {
+                    // Merge any partial ABIs from the transaction
+                    abiCache.setAbi(action.account, action['abi'], true)
+                }
+            })
+        }
+
+        return abiCache
     }
 }
