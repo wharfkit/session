@@ -1,7 +1,7 @@
 import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@wharfkit/antelope'
 import {Logo} from '@wharfkit/common'
 import type {LocaleDefinitions} from '@wharfkit/common'
-import {ResolvedSigningRequest} from '@wharfkit/signing-request'
+import {IdentityProof, ResolvedSigningRequest} from '@wharfkit/signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
@@ -72,6 +72,7 @@ export class WalletPluginMetadata extends Struct {
 export interface WalletPluginLoginResponse {
     chain: Checksum256
     permissionLevel: PermissionLevel
+    identityProof?: IdentityProof
 }
 
 /**
