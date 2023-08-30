@@ -5,40 +5,28 @@
             "method": "POST"
         }
     },
-    "headers": {
-        "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
-        "access-control-allow-methods": "GET, POST, OPTIONS",
-        "access-control-allow-origin": "*",
-        "connection": "close",
-        "content-length": "964",
-        "content-type": "application/json",
-        "date": "Wed, 07 Dec 2022 22:38:13 GMT",
-        "host": "jungle4.greymass.com",
-        "server": "nginx/1.18.0 (Ubuntu)",
-        "x-cached": "EXPIRED"
-    },
     "status": 200,
     "json": {
-        "server_version": "9efc569a",
+        "server_version": "905c5cc9",
         "chain_id": "73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d",
-        "head_block_num": 49482042,
-        "last_irreversible_block_num": 49481715,
-        "last_irreversible_block_id": "02f307f36a10eed228ab7a8d06e7a98d17be6ea3985c27585c8f791a6d29effb",
-        "head_block_id": "02f3093a95ed306eec725281aab13ddb26fb38646e737e6765de6d9050c23b43",
-        "head_block_time": "2022-12-07T22:38:13.500",
-        "head_block_producer": "gorillapower",
+        "head_block_num": 95197673,
+        "last_irreversible_block_num": 95197346,
+        "last_irreversible_block_id": "05ac98a210f532f86d2ba8a4b7566535e84826f8bcdfbcddf46a085401055ea2",
+        "head_block_id": "05ac99e9acc66b4c381ce4321e9b9b57ffae75ca4d838af3dcaa4a3b1e3665fb",
+        "head_block_time": "2023-08-30T00:18:31.000",
+        "head_block_producer": "hippopotamus",
         "virtual_block_cpu_limit": 200000000,
         "virtual_block_net_limit": 1048576000,
         "block_cpu_limit": 200000,
         "block_net_limit": 1048576,
-        "server_version_string": "v3.2.0",
-        "fork_db_head_block_num": 49482042,
-        "fork_db_head_block_id": "02f3093a95ed306eec725281aab13ddb26fb38646e737e6765de6d9050c23b43",
-        "server_full_version_string": "v3.2.0-9efc569ae5eed75a6dd6c6ada67ef80eb3bbf366",
-        "total_cpu_weight": "120460592801659",
-        "total_net_weight": "117529135293359",
-        "earliest_available_block_num": 49307590,
-        "last_irreversible_block_time": "2022-12-07T22:35:29.500"
+        "server_version_string": "v3.1.3",
+        "fork_db_head_block_num": 95197673,
+        "fork_db_head_block_id": "05ac99e9acc66b4c381ce4321e9b9b57ffae75ca4d838af3dcaa4a3b1e3665fb",
+        "server_full_version_string": "v3.1.3-905c5cc900b4e88aed4ab6912009127bf9f4f140",
+        "total_cpu_weight": "120605076979422",
+        "total_net_weight": "117529273589365",
+        "earliest_available_block_num": 95018734,
+        "last_irreversible_block_time": "2023-08-30T00:15:47.500"
     },
-    "text": "{\"server_version\":\"9efc569a\",\"chain_id\":\"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d\",\"head_block_num\":49482042,\"last_irreversible_block_num\":49481715,\"last_irreversible_block_id\":\"02f307f36a10eed228ab7a8d06e7a98d17be6ea3985c27585c8f791a6d29effb\",\"head_block_id\":\"02f3093a95ed306eec725281aab13ddb26fb38646e737e6765de6d9050c23b43\",\"head_block_time\":\"2022-12-07T22:38:13.500\",\"head_block_producer\":\"gorillapower\",\"virtual_block_cpu_limit\":200000000,\"virtual_block_net_limit\":1048576000,\"block_cpu_limit\":200000,\"block_net_limit\":1048576,\"server_version_string\":\"v3.2.0\",\"fork_db_head_block_num\":49482042,\"fork_db_head_block_id\":\"02f3093a95ed306eec725281aab13ddb26fb38646e737e6765de6d9050c23b43\",\"server_full_version_string\":\"v3.2.0-9efc569ae5eed75a6dd6c6ada67ef80eb3bbf366\",\"total_cpu_weight\":\"120460592801659\",\"total_net_weight\":\"117529135293359\",\"earliest_available_block_num\":49307590,\"last_irreversible_block_time\":\"2022-12-07T22:35:29.500\"}"
+    "text": "{\"server_version\":\"905c5cc9\",\"chain_id\":\"73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d\",\"head_block_num\":95197673,\"last_irreversible_block_num\":95197346,\"last_irreversible_block_id\":\"05ac98a210f532f86d2ba8a4b7566535e84826f8bcdfbcddf46a085401055ea2\",\"head_block_id\":\"05ac99e9acc66b4c381ce4321e9b9b57ffae75ca4d838af3dcaa4a3b1e3665fb\",\"head_block_time\":\"2023-08-30T00:18:31.000\",\"head_block_producer\":\"hippopotamus\",\"virtual_block_cpu_limit\":200000000,\"virtual_block_net_limit\":1048576000,\"block_cpu_limit\":200000,\"block_net_limit\":1048576,\"server_version_string\":\"v3.1.3\",\"fork_db_head_block_num\":95197673,\"fork_db_head_block_id\":\"05ac99e9acc66b4c381ce4321e9b9b57ffae75ca4d838af3dcaa4a3b1e3665fb\",\"server_full_version_string\":\"v3.1.3-905c5cc900b4e88aed4ab6912009127bf9f4f140\",\"total_cpu_weight\":\"120605076979422\",\"total_net_weight\":\"117529273589365\",\"earliest_available_block_num\":95018734,\"last_irreversible_block_time\":\"2023-08-30T00:15:47.500\"}"
 }
