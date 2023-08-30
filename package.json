@@ -17,16 +17,15 @@
         "prepare": "make"
     },
     "dependencies": {
-        "@wharfkit/abicache": "^1.2.0-rc1",
-        "@wharfkit/antelope": "^0.9.0-rc2",
-        "@wharfkit/apiclient-leap": "^4.0.3",
-        "@wharfkit/common": "^1.2.0-rc2",
-        "@wharfkit/signing-request": "^3.1.0-rc1",
+        "@wharfkit/abicache": "^1.1.1",
+        "@wharfkit/antelope": "^0.9.0-rc3",
+        "@wharfkit/common": "^1.1.0",
+        "@wharfkit/signing-request": "^3.0.0",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
     },
     "resolutions": {
-        "@wharfkit/antelope": "^0.9.0-rc2"
+        "@wharfkit/antelope": "^0.7.3"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.20.2",
@@ -44,9 +43,9 @@
         "@typescript-eslint/eslint-plugin": "^5.20.0",
         "@typescript-eslint/parser": "^5.20.0",
         "@wharfkit/contract": "^0.3.3",
-        "@wharfkit/mock-data": "^1.0.1",
+        "@wharfkit/mock-data": "^1.0.2",
         "@wharfkit/transact-plugin-resource-provider": "^1.0.0-beta1",
-        "@wharfkit/wallet-plugin-privatekey": "^1.0.0-beta1",
+        "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
         "chai": "^4.3.4",
         "eslint": "^8.13.0",
         "eslint-config-prettier": "^8.1.0",
