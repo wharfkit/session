@@ -47,7 +47,7 @@ export interface LoginResult {
 }
 
 export interface RestoreArgs {
-    chain: Checksum256Type
+    chain: Checksum256Type | ChainDefinition
     actor?: NameType
     permission?: NameType
     walletPlugin?: Record<string, any>
@@ -353,6 +353,10 @@ export class SessionKit {
             throw new Error('Either a RestoreArgs object or a Storage instance must be provided.')
         }
 
+        const chainId = Checksum256.from(
+            args.chain instanceof ChainDefinition ? args.chain.id : args.chain
+        )
+
         let serializedSession: SerializedSession
 
         // Retrieve all sessions from storage
@@ -366,7 +370,7 @@ export class SessionKit {
                 serializedSession = sessions.find((s: SerializedSession) => {
                     return (
                         args &&
-                        s.chain === args.chain &&
+                        chainId.equals(s.chain) &&
                         s.actor === args.actor &&
                         s.permission === args.permission
                     )
@@ -374,14 +378,14 @@ export class SessionKit {
             } else {
                 // If no actor/permission defined, return based on chain
                 serializedSession = sessions.find((s: SerializedSession) => {
-                    return args && s.chain === args.chain && s.default
+                    return args && chainId.equals(s.chain) && s.default
                 })
             }
         } else {
             // If no sessions were found, but the args contains all the data for a serialized session, use args
             if (args.actor && args.permission && args.walletPlugin) {
                 serializedSession = {
-                    chain: args.chain,
+                    chain: String(chainId),
                     actor: args.actor,
                     permission: args.permission,
                     walletPlugin: {
@@ -393,6 +397,11 @@ export class SessionKit {
                 // Otherwise throw an error since we can't establish the session data
                 throw new Error('No sessions found in storage. A wallet plugin must be provided.')
             }
+        }
+
+        // If no session found, return
+        if (!serializedSession) {
+            return
         }
 
         // Ensure a WalletPlugin was found with the provided ID.
