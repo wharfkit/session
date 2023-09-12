@@ -14,4 +14,7 @@
 | wharfkit1125@test   | ❌     | ❌  | ❌  | ❌  |
 | wharfkit1131@test   | ✅     | ❌  | ❌  | ✅  |
 | wharfkit1132@test   | ❌     | ❌  | ❌  | ✅  |
+| wharfkit1133@test   | ✅     | ✅  | ✅  | ✅  |
 | wharfkitnoop@cosign | ✅     | ✅  | ✅  | ✅  |
+
+Note: wharfkit1133 is unique in that its active key is the same as the testing key
