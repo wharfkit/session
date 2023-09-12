@@ -1281,10 +1281,10 @@
     pako "^2.0.4"
     tslib "^2.1.0"
 
-"@wharfkit/antelope@^0.7.3", "@wharfkit/antelope@^0.9.0-rc3", "@wharfkit/antelope@^0.9.0-rc4":
-  version "0.9.0-rc4"
-  resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-0.9.0-rc4.tgz#59357649dd15ee718adb01820b8b96a159fa8393"
-  integrity sha512-wxFOWyGfOLTDljaUSDm1/KHspKYXSezNfZioW50cT7S6kxe8dzs/g/91EIA6O+R+LxP5u+XtdDiS3jjbwjs4Fg==
+"@wharfkit/antelope@^0.7.3", "@wharfkit/antelope@^0.9.0-rc3", "@wharfkit/antelope@^0.9.1":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-0.9.1.tgz#ff6cfbb6f3c4e373407764cfce44a539dbb521ae"
+  integrity sha512-yL3qEV0emqz/L3PX+kckYJIFOU42eLroq6kkKUi/i2NW7zNw6Dw7vqhoPTztklVRqKHf7/sfab4Fve+KRmP4SQ==
   dependencies:
     bn.js "^4.11.9"
     brorand "^1.1.0"
