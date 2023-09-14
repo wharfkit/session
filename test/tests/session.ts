@@ -1,7 +1,21 @@
 import {assert} from 'chai'
 
-import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABI, ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@wharfkit/antelope'
+import SessionKit, {
+    BaseTransactPlugin,
+    ChainDefinition,
+    Session,
+    SessionOptions,
+    SigningRequest,
+} from '$lib'
+import {
+    ABI,
+    ABIDef,
+    Authority,
+    Name,
+    PermissionLevel,
+    Signature,
+    TimePointSec,
+} from '@wharfkit/antelope'
 
 import {mockFetch} from '@wharfkit/mock-data'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
@@ -14,6 +28,7 @@ import {makeClient} from '@wharfkit/mock-data'
 import {mockSessionArgs} from '@wharfkit/mock-data'
 import {MockStorage} from '@wharfkit/mock-data'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
+import zlib from 'pako'
 
 const wallet = makeWallet()
 const action = makeMockAction()
@@ -477,6 +492,51 @@ suite('session', function () {
             // Ensure data is good
             assert.isArray(signatures)
             assert.instanceOf(signatures[0], Signature)
+        })
+        test('able to sign identity proof', async function () {
+            // Create an identity request, any wallet should be able to sign these
+            const request = SigningRequest.identity(
+                {
+                    callback: '', // No callback
+                    scope: 'test', // Scope can be any Name-type value (A-Z, 1-5, 12 characters)
+                    account: session.actor, // Account
+                    permission: session.permission, // Permission
+                },
+                {
+                    zlib,
+                }
+            )
+
+            // Get the transaction from the identity request
+            const transaction = request.getRawTransaction()
+
+            // Pass transaction to the wallet to sign
+            const result = await session.transact({transaction})
+
+            // Ensure the transaction was signed and resolved
+            if (result.resolved && result.signatures.length > 0) {
+                // Load account from the blockchain to compare on-chain auths
+                const account = await session.client.v1.chain.get_account(session.actor)
+
+                // Retrieve the auth they supposedly signed with
+                const auth = account.getPermission(session.permission).required_auth
+
+                // Recover the public key used to sign the transaction
+                const recovered = result.signatures[0].recoverDigest(
+                    result.resolved.transaction.signingDigest(session.chain.id)
+                )
+
+                // Ensure the on-chain auth has the recovered public key
+                const valid = Authority.from(auth).hasPermission(recovered)
+
+                // Values for determining if the transaction is expired
+                const now = TimePointSec.from(new Date()).toMilliseconds()
+                const expired = now < result.resolved.transaction.expiration.toMilliseconds()
+
+                // Ensure the signature is valid and not expired
+                assert.isTrue(valid)
+                assert.isFalse(expired)
+            }
         })
     })
 })
