@@ -34,6 +34,7 @@ export interface LoginOptions {
     chain?: ChainDefinition | Checksum256Type
     chains?: Checksum256Type[]
     loginPlugins?: LoginPlugin[]
+    setAsDefault?: boolean
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     permissionLevel?: PermissionLevelType | string
@@ -293,7 +294,7 @@ export class SessionKit {
             for (const hook of context.hooks.afterLogin) await hook(context)
 
             // Save the session to storage if it has a storage instance.
-            this.persistSession(session)
+            this.persistSession(session, options?.setAsDefault)
 
             // Notify the UI that the login request has completed.
             await context.ui.onLoginComplete()
@@ -442,7 +443,7 @@ export class SessionKit {
         )
 
         // Save the session to storage if it has a storage instance.
-        this.persistSession(session)
+        this.persistSession(session, options?.setAsDefault)
 
         // Return the session
         return session
@@ -477,7 +478,9 @@ export class SessionKit {
         serialized.default = setAsDefault
 
         // Set this as the current session for all chains
-        this.storage.write('session', JSON.stringify(serialized))
+        if (setAsDefault) {
+            this.storage.write('session', JSON.stringify(serialized))
+        }
 
         // Add the current session to the list of sessions, preventing duplication.
         const existing = await this.storage.read('sessions')
