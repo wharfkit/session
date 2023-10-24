@@ -29,6 +29,20 @@ import {
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
 import {getFetch} from './utils'
+import { AccountCreationPlugin } from './account-creation'
+
+export interface CreateAccountOptions {
+    chain?: ChainDefinition | Checksum256Type
+    chains?: Checksum256Type[]
+    accountCreationPlugins?: AccountCreationPlugin[]
+    transactPlugins?: TransactPlugin[]
+    transactPluginsOptions?: TransactPluginsOptions
+}
+
+export interface CreateAccountResult {
+    account: NameType
+    chain: Checksum256Type
+}
 
 export interface LoginOptions {
     chain?: ChainDefinition | Checksum256Type
@@ -89,6 +103,7 @@ export class SessionKit {
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
+    readonly accountCreationPlugins: AccountCreationPlugin[] = []
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
         // Save the appName to the SessionKit instance
@@ -154,6 +169,56 @@ export class SessionKit {
         return chain
     }
 
+    /**
+     * Request account creation.
+     * 
+     * @mermaid - Account creation sequence diagram
+     * flowchart LR
+     *  A((Create Account)) --> B{{"Hook(s): beforeCreateAccount"}}
+     * B --> C[Account Creation Plugin]
+     * C --> D[Session]
+     */
+    async createAccount(options?: CreateAccountOptions): Promise<CreateAccountResult> {
+        try {
+            if (this.accountCreationPlugins.length === 0) {
+                throw new Error('No account creation plugins available.')
+            }
+
+            let accountCreationPlugin: AccountCreationPlugin | undefined
+
+            if (this.accountCreationPlugins.length > 1) {
+                const pluginId = await this.ui.prompt({
+                    title: 'Select an account creation service',
+                    elements: this.accountCreationPlugins.map((p) => ({
+                        type: 'button',
+                        label: p.metadata.name,
+                        data: p.id,
+                    })),
+                })
+
+                accountCreationPlugin = this.accountCreationPlugins.find(plugin => plugin.id === pluginId)
+            } else {
+                accountCreationPlugin = this.accountCreationPlugins[0]
+            }
+
+            if (!accountCreationPlugin) {
+                throw new Error('No account creation plugin selected.')
+            }
+            
+            // Initialize the account creator object
+            const accountCreator = new AccountCreator({
+                supportedChains: accountCreationPlugin.config.supportedChains,
+                scope: 'wallet', 
+                returnUrl: accountCreationPlugin.config.returnUrl,
+            })
+
+            // Open a popup window prompting the user to create an account.
+            return accountCreator.createAccount()
+        } catch (error: any) {
+            await this.ui.onError(error)
+            throw new Error(error)
+        }
+    }
     /**
      * Request a session from an account.
      *
