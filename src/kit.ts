@@ -72,6 +72,7 @@ export interface SessionKitOptions {
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    accountCreationPlugins?: AccountCreationPlugin[]
 }
 
 /**
@@ -144,6 +145,11 @@ export class SessionKit {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
+
+        // Establish default plugins for account creation
+        if (options.accountCreationPlugins) {
+            this.accountCreationPlugins = options.accountCreationPlugins
+        }
     }
 
     getChainDefinition(id: Checksum256Type, override?: ChainDefinition[]): ChainDefinition {
@@ -151,7 +157,7 @@ export class SessionKit {
         const chainId = Checksum256.from(id)
         const chain = chains.find((c) => c.id.equals(chainId))
         if (!chain) {
-            throw new Error(`No chain defined with the ID of: ${chainId}`)
+            throw new Error(`No chain defined with an ID of: ${chainId}`)
         }
         return chain
     }
@@ -168,14 +174,21 @@ export class SessionKit {
             let accountCreationPlugin: AccountCreationPlugin | undefined
 
             if (this.accountCreationPlugins.length > 1) {
-                const pluginId = await this.ui.prompt({
+                let pluginId: string | undefined
+
+                await this.ui.prompt({
                     title: 'Select an account creation service',
+                    body: '',
                     elements: this.accountCreationPlugins.map((p) => ({
                         type: 'button',
-                        label: p.name,
-                        data: p.id,
+                        data: {
+                            label: p.name,
+                            onClick: () => pluginId = p.id,
+                        }
                     })),
                 })
+
+                console.log({ pluginId })
 
                 accountCreationPlugin = this.accountCreationPlugins.find(plugin => plugin.id === pluginId)
             } else {
@@ -198,18 +211,37 @@ export class SessionKit {
             } else if (chains.length === 1) {
                 chain = chains[0]
             } else if (accountCreationPlugin.config.requiresChainSelect && chains.length > 1) {
-                const chainIndex = await this.ui.prompt({
+                let chainIndex: number | undefined
+
+                const prompt = this.ui.prompt({
                     title: 'Select a chain to create an account on',
+                    body: '',
                     elements: chains.map((c, index) => ({
                         type: 'button',
-                        label: c.name,
-                        data: index,
+                        data: {
+                            label: c.name,
+                            onClick: () => {
+                                chainIndex = index
+                                prompt.cancel()
+                            },
+                        },
                     })),
                 })
 
+                await prompt
+
                 console.log({ chainIndex })
 
-                chain = chains[chainIndex as number]
+                if (!chainIndex) {
+                    const error = new Error('No chain selected.')
+
+                    this.ui.onError(error)
+                    throw error
+                }
+
+                chain = chains[chainIndex]
+
+                console.log({chain})
             }
 
             const createAccountContext = new CreateAccountContext({
