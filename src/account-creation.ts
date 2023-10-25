@@ -1,66 +1,100 @@
-import {Checksum256, Checksum256Type, NameType, PermissionLevel, PublicKey} from '@wharfkit/antelope'
-import { LocaleDefinitions } from '.'
+import {Checksum256Type, NameType, Struct, FetchProvider, APIClient} from '@wharfkit/antelope'
+import {Logo} from '@wharfkit/common'
+import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import {UserInterface} from '.'
 
 /**
  * The static configuration of an [[AccountCreationPlugin]].
  */
 export interface AccountCreationPluginConfig {
     /**
-     * Indicates if the pp requires the user to manually select the blockchain to authorize against.
+     * Indicates if the plugin requires the user to manually select the blockchain to create an account on.
      */
     requiresChainSelect: boolean
-    /**
-     * Indicates if the [[AccountCreationPlugin]] requires the user to select an account name to use from a list.
-     */
-    requiresAccountNameSelect?: boolean
     /**
      * If set, indicates which blockchains are compatible with this [[AccountCreationPlugin]].
      */
     supportedChains?: Checksum256Type[]
-    /**
-     * Indicates the return url to be used to return users to the site after the account creation service is used.
-     */
-    returnUrl?: string
 }
 
 /**
- * The metadata of an [[AccountCreationPlugin]] for display purposes.
+ * The metadata of an [[AccountCreationPlugin]].
  */
-export interface AccountCreationPluginMetadata {
+@Struct.type('account_creation_plugin_metadata')
+export class AccountCreationPluginMetadata extends Struct {
     /**
      * A display name for the account creation service that is presented to users.
      */
-    name?: string
+    @Struct.field('string', {optional: true}) declare name?: string
     /**
-     * A wallet description to further identify the account creation service for users.
+     * A description to further identify the account creation service for users.
      */
-    description?: string
+    @Struct.field('string', {optional: true}) declare description?: string
     /**
      * Account creation service branding.
      */
-    logo?: string
+    @Struct.field(Logo, {optional: true}) declare logo?: Logo
     /**
      * Link to the homepage for the account creation service.
      */
-    homepage?: string
-    /**
-     * The public key being used by the account creation plugin.
-     */
-    publicKey?: PublicKey
-}
+    @Struct.field('string', {optional: true}) declare homepage?: string
 
+    static from(data) {
+        return new AccountCreationPluginMetadata({
+            ...data,
+            logo: data.logo ? Logo.from(data.logo) : undefined,
+        })
+    }
+}
 
 /**
- * The response for a login call of a [[WalletPlugin]].
- */
-export interface AccountCreationPluginCreateResponse {
-    chain: Checksum256
-    permissionLevel: PermissionLevel
+ * Options for createAccount call.
+ **/
+export interface CreateAccountOptions {
+    chain?: ChainDefinition
+    chains?: ChainDefinition[]
+    accountName?: NameType
 }
 
-interface AccountCreationContext {
-    chain: Checksum256
+/**
+ * The response for a createAccount call.
+ */
+export interface CreateAccountResponse {
+    chain: ChainDefinition
     accountName: NameType
+}
+
+export interface CreateAccountContextOptions {
+    appName?: NameType
+    // client: APIClient
+    chain?: ChainDefinition
+    chains?: ChainDefinition[]
+    fetch: Fetch
+    accountCreationPlugins?: AccountCreationPlugin[]
+    ui: UserInterface
+}
+
+export class CreateAccountContext {
+    appName?: string
+    chain?: ChainDefinition
+    chains: ChainDefinition[] = []
+    fetch: Fetch
+    ui: UserInterface
+    constructor(options: CreateAccountContextOptions) {
+        this.appName = String(options.appName)
+        if (options.chains) {
+            this.chains = options.chains
+        }
+        if (options.chain) {
+            this.chain = options.chain
+        }
+        this.fetch = options.fetch
+        this.ui = options.ui
+    }
+
+    getClient(chain: ChainDefinition): APIClient {
+        return new APIClient({provider: new FetchProvider(chain.url, {fetch: this.fetch})})
+    }
 }
 
 /**
@@ -70,10 +104,12 @@ interface AccountCreationContext {
 export interface AccountCreationPlugin {
     /** A URL friendly (lower case, no spaces, etc) ID for this plugin - Used in serialization */
     get id(): string
+
+    /** A display name for the account creation service that is presented to users. */
+    get name(): string
+
     /** The [[SessionKit]] configuration parameters for this [[WalletPlugin]]. */
     config: AccountCreationPluginConfig
-    /** The metadata for the [[WalletPlugin]] itself. */
-    metadata: AccountCreationPluginMetadata
     /** Any translations this plugin requires */
     translations?: LocaleDefinitions
 
@@ -82,19 +118,19 @@ export interface AccountCreationPlugin {
      *
      * @param context The [[AccountCreationContext]] for the [[WalletPlugin]] to use.
      */
-    create(context: AccountCreationContext): Promise<AccountCreationPluginCreateResponse>
+    create(options: CreateAccountContext): Promise<CreateAccountResponse>
 }
 
 /**
  * Abstract class which all 3rd party [[AccountCreation]] implementations may extend.
  */
-export abstract class AbstractAccounCreationPlugin implements AccountCreationPlugin {
+export abstract class AbstractAccountCreationPlugin implements AccountCreationPlugin {
     config: AccountCreationPluginConfig = {
         requiresChainSelect: true,
-        requiresAccountNameSelect: true,
     }
-    metadata: AccountCreationPluginMetadata = {}
+    metadata: AccountCreationPluginMetadata = new AccountCreationPluginMetadata({})
     translations?: LocaleDefinitions
     abstract get id(): string
-    abstract create(context: AccountCreationContext): Promise<AccountCreationPluginCreateResponse>
+    abstract get name(): string
+    abstract create(options: CreateAccountOptions): Promise<CreateAccountResponse>
 }

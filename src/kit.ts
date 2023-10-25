@@ -1,4 +1,4 @@
-import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
+import {ChainDefinition, type ChainDefinitionType, type Fetch} from '@wharfkit/common'
 import type {Contract} from '@wharfkit/contract'
 import {
     Checksum256,
@@ -8,7 +8,6 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@wharfkit/antelope'
-import {ChainDefinition} from '@wharfkit/common'
 
 import {
     AbstractLoginPlugin,
@@ -29,20 +28,8 @@ import {
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
 import {getFetch} from './utils'
-import { AccountCreationPlugin } from './account-creation'
+import {AccountCreationPlugin, CreateAccountOptions, CreateAccountResponse, CreateAccountContext} from './account-creation'
 
-export interface CreateAccountOptions {
-    chain?: ChainDefinition | Checksum256Type
-    chains?: Checksum256Type[]
-    accountCreationPlugins?: AccountCreationPlugin[]
-    transactPlugins?: TransactPlugin[]
-    transactPluginsOptions?: TransactPluginsOptions
-}
-
-export interface CreateAccountResult {
-    account: NameType
-    chain: Checksum256Type
-}
 
 export interface LoginOptions {
     chain?: ChainDefinition | Checksum256Type
@@ -171,14 +158,8 @@ export class SessionKit {
 
     /**
      * Request account creation.
-     * 
-     * @mermaid - Account creation sequence diagram
-     * flowchart LR
-     *  A((Create Account)) --> B{{"Hook(s): beforeCreateAccount"}}
-     * B --> C[Account Creation Plugin]
-     * C --> D[Session]
      */
-    async createAccount(options?: CreateAccountOptions): Promise<CreateAccountResult> {
+    async createAccount(options?: CreateAccountOptions): Promise<CreateAccountResponse> {
         try {
             if (this.accountCreationPlugins.length === 0) {
                 throw new Error('No account creation plugins available.')
@@ -191,7 +172,7 @@ export class SessionKit {
                     title: 'Select an account creation service',
                     elements: this.accountCreationPlugins.map((p) => ({
                         type: 'button',
-                        label: p.metadata.name,
+                        label: p.name,
                         data: p.id,
                     })),
                 })
@@ -204,21 +185,49 @@ export class SessionKit {
             if (!accountCreationPlugin) {
                 throw new Error('No account creation plugin selected.')
             }
-            
-            // Initialize the account creator object
-            const accountCreator = new AccountCreator({
-                supportedChains: accountCreationPlugin.config.supportedChains,
-                scope: 'wallet', 
-                returnUrl: accountCreationPlugin.config.returnUrl,
+
+            let chain: ChainDefinition | undefined
+
+            const chains: ChainDefinition[] =
+                (options?.chains || this.chains).filter(c => {
+                    return accountCreationPlugin?.config.supportedChains?.find(supportedChainId => c.id.equals(supportedChainId))
+                })
+
+            if (options?.chain) {
+                chain = options?.chain
+            } else if (chains.length === 1) {
+                chain = chains[0]
+            } else if (accountCreationPlugin.config.requiresChainSelect && chains.length > 1) {
+                const chainIndex = await this.ui.prompt({
+                    title: 'Select a chain to create an account on',
+                    elements: chains.map((c, index) => ({
+                        type: 'button',
+                        label: c.name,
+                        data: index,
+                    })),
+                })
+
+                console.log({ chainIndex })
+
+                chain = chains[chainIndex as number]
+            }
+
+            const createAccountContext = new CreateAccountContext({
+                appName: this.appName,
+                chain,
+                chains,
+                fetch: this.fetch,
+                accountCreationPlugins: this.accountCreationPlugins,
+                ui: this.ui,
             })
 
-            // Open a popup window prompting the user to create an account.
-            return accountCreator.createAccount()
+            return accountCreationPlugin.create(createAccountContext)
         } catch (error: any) {
             await this.ui.onError(error)
             throw new Error(error)
         }
     }
+
     /**
      * Request a session from an account.
      *
