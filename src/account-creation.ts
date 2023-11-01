@@ -80,6 +80,8 @@ export class CreateAccountContext {
     chains: ChainDefinition[] = []
     fetch: Fetch
     ui: UserInterface
+    accountCreationPlugins: AccountCreationPlugin[] = []
+    
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
         if (options.chains) {
@@ -90,6 +92,9 @@ export class CreateAccountContext {
         }
         this.fetch = options.fetch
         this.ui = options.ui
+        if (options.accountCreationPlugins) {
+            this.accountCreationPlugins = options.accountCreationPlugins
+        }
     }
 
     getClient(chain: ChainDefinition): APIClient {
