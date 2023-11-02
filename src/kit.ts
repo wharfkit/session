@@ -26,7 +26,7 @@ import {
     TransactPluginsOptions,
 } from './transact'
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
-import {UserInterface} from './ui'
+import {UserInterface, UserInterfaceAccountCreationResponse} from './ui'
 import {getFetch} from './utils'
 import {AccountCreationPlugin, CreateAccountOptions, CreateAccountResponse, CreateAccountContext} from './account-creation'
 
@@ -171,89 +171,45 @@ export class SessionKit {
                 throw new Error('No account creation plugins available.')
             }
 
-            let accountCreationPlugin: AccountCreationPlugin | undefined
+            console.log({
+                optionsChains: options?.chains,
+                thisChains: this.chains,
+            })
 
-            if (this.accountCreationPlugins.length > 1) {
-                let pluginId: string | undefined
-
-                await this.ui.prompt({
-                    title: 'Select an account creation service',
-                    body: '',
-                    elements: this.accountCreationPlugins.map((p) => ({
-                        type: 'button',
-                        data: {
-                            label: p.name,
-                            onClick: () => pluginId = p.id,
-                        }
-                    })),
-                })
-
-                console.log({ pluginId })
-
-                accountCreationPlugin = this.accountCreationPlugins.find(plugin => plugin.id === pluginId)
-            } else {
-                accountCreationPlugin = this.accountCreationPlugins[0]
-            }
-
-            if (!accountCreationPlugin) {
-                throw new Error('No account creation plugin selected.')
-            }
-
-            let chain: ChainDefinition | undefined
-
-            const chains: ChainDefinition[] =
-                (options?.chains || this.chains).filter(c => {
-                    return accountCreationPlugin?.config.supportedChains?.find(supportedChainId => c.id.equals(supportedChainId))
-                })
-
-            if (options?.chain) {
-                chain = options?.chain
-            } else if (chains.length === 1) {
-                chain = chains[0]
-            } else if (accountCreationPlugin.config.requiresChainSelect && chains.length > 1) {
-                let chainIndex: number | undefined
-
-                const prompt = this.ui.prompt({
-                    title: 'Select a chain to create an account on',
-                    body: '',
-                    elements: chains.map((c, index) => ({
-                        type: 'button',
-                        data: {
-                            label: c.name,
-                            onClick: () => {
-                                chainIndex = index
-                                prompt.cancel()
-                            },
-                        },
-                    })),
-                })
-
-                await prompt
-
-                console.log({ chainIndex })
-
-                if (!chainIndex) {
-                    const error = new Error('No chain selected.')
-
-                    this.ui.onError(error)
-                    throw error
-                }
-
-                chain = chains[chainIndex]
-
-                console.log({chain})
-            }
-
-            const createAccountContext = new CreateAccountContext({
+            const context = new CreateAccountContext({
                 appName: this.appName,
-                chain,
-                chains,
+                chain: options?.chain,
+                chains: options?.chains || this.chains,
                 fetch: this.fetch,
                 accountCreationPlugins: this.accountCreationPlugins,
+                accountCreationPlugin: undefined,
                 ui: this.ui,
             })
 
-            return accountCreationPlugin.create(createAccountContext)
+            console.log({ context })
+
+            let accountCreationResponse: UserInterfaceAccountCreationResponse | undefined
+
+            if (this.accountCreationPlugins.length === 1) {
+                context.accountCreationPlugin = this.accountCreationPlugins[0]
+
+                console.log({ supportedChains: context.accountCreationPlugin?.config.supportedChains, previousChains: [...(context.chains || [])], config: context.accountCreationPlugin.config })
+
+                if (context.accountCreationPlugin.config.requiresChainSelect && !context.chain) {
+                    context.chains = context.accountCreationPlugin?.config.supportedChains?.filter(chainId => !context.chains || context.chains?.find(c => String(c.id) === String((chainId)))) || context.chains
+                    accountCreationResponse = await context.ui.onAccountCreate(context)
+                }
+            } else {
+                accountCreationResponse = await context.ui.onAccountCreate(context)
+            }
+
+            console.log({ accountCreationResponse })
+
+            if (!context.accountCreationPlugin) {
+                throw new Error('No account creation plugin selected.')
+            }
+
+            return context.accountCreationPlugin.create(context)
         } catch (error: any) {
             await this.ui.onError(error)
             throw new Error(error)

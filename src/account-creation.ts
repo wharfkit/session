@@ -14,7 +14,7 @@ export interface AccountCreationPluginConfig {
     /**
      * If set, indicates which blockchains are compatible with this [[AccountCreationPlugin]].
      */
-    supportedChains?: Checksum256Type[]
+    supportedChains?: ChainDefinition[]
 }
 
 /**
@@ -71,21 +71,25 @@ export interface CreateAccountContextOptions {
     chains?: ChainDefinition[]
     fetch: Fetch
     accountCreationPlugins?: AccountCreationPlugin[]
+    accountCreationPlugin?: AccountCreationPlugin
     ui: UserInterface
 }
 
 export class CreateAccountContext {
     appName?: string
     chain?: ChainDefinition
-    chains: ChainDefinition[] = []
+    chains?: ChainDefinition[]
     fetch: Fetch
     ui: UserInterface
+    accountCreationPlugin?: AccountCreationPlugin
     accountCreationPlugins: AccountCreationPlugin[] = []
     
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
+        console.log('CreateAccountContextOptions', options)
         if (options.chains) {
-            this.chains = options.chains
+            console.log('setting chains', options.chains)
+            this.chains = [...options.chains]
         }
         if (options.chain) {
             this.chain = options.chain
@@ -95,6 +99,7 @@ export class CreateAccountContext {
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
         }
+        this.accountCreationPlugin = options.accountCreationPlugin
     }
 
     getClient(chain: ChainDefinition): APIClient {

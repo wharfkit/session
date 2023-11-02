@@ -1,8 +1,9 @@
 import {Checksum256Type, PermissionLevelType} from '@wharfkit/antelope'
-import type {Cancelable, LocaleDefinitions} from '@wharfkit/common'
+import type {Cancelable, ChainDefinition, LocaleDefinitions} from '@wharfkit/common'
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
+import { CreateAccountContext } from './index-module'
 
 /**
  * The arguments for a [[UserInterface.prompt]] call.
@@ -37,6 +38,15 @@ export interface UserInterfaceLoginResponse {
 }
 
 /**
+ * The response for an account creation call of a [[UserInterface]].
+ */
+export type UserInterfaceAccountCreationResponse = {
+    chain?: ChainDefinition // If account creation can only be done on one chain.
+    chains?: ChainDefinition[] // Used if the user should have the option to create his account on multiple chain (wouldn't be returned if requiresChainSelect was set to true).
+    pluginId?: string // The id of the plugin that was selected (if more than one plugin was available).
+}
+
+/**
  * The options to pass to [[UserInterface.translate]].
  */
 export interface UserInterfaceTranslateOptions {
@@ -61,6 +71,8 @@ export interface UserInterface {
     login(context: LoginContext): Promise<UserInterfaceLoginResponse>
     /** Inform the UI that an error has occurred */
     onError: (error: Error) => Promise<void>
+    /** Inform the UI that an account creation process has started */
+    onAccountCreate: (context: CreateAccountContext) => Promise<UserInterfaceAccountCreationResponse>
     /** Inform the UI that a login call has started **/
     onLogin: () => Promise<void>
     /** Inform the UI that a login call has completed **/
@@ -95,6 +107,7 @@ export interface UserInterface {
 export abstract class AbstractUserInterface implements UserInterface {
     abstract login(context: LoginContext): Promise<UserInterfaceLoginResponse>
     abstract onError(error: Error): Promise<void>
+    abstract onAccountCreate(context: CreateAccountContext): Promise<UserInterfaceAccountCreationResponse>
     abstract onLogin(options?: LoginOptions): Promise<void>
     abstract onLoginComplete(): Promise<void>
     abstract onTransact(): Promise<void>
