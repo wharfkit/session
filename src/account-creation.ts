@@ -1,4 +1,4 @@
-import {Checksum256Type, NameType, Struct, FetchProvider, APIClient} from '@wharfkit/antelope'
+import {NameType, Struct, FetchProvider, APIClient} from '@wharfkit/antelope'
 import {Logo} from '@wharfkit/common'
 import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {UserInterface} from '.'
@@ -86,10 +86,8 @@ export class CreateAccountContext {
     
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
-        console.log('CreateAccountContextOptions', options)
         if (options.chains) {
-            console.log('setting chains', options.chains)
-            this.chains = [...options.chains]
+            this.chains = options.chains
         }
         if (options.chain) {
             this.chain = options.chain

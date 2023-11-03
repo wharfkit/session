@@ -73,6 +73,8 @@ export interface UserInterface {
     onError: (error: Error) => Promise<void>
     /** Inform the UI that an account creation process has started */
     onAccountCreate: (context: CreateAccountContext) => Promise<UserInterfaceAccountCreationResponse>
+    /** Inform the UI that a account creation call has completed **/
+    onAccountCreateComplete: () => Promise<void>
     /** Inform the UI that a login call has started **/
     onLogin: () => Promise<void>
     /** Inform the UI that a login call has completed **/
@@ -108,6 +110,7 @@ export abstract class AbstractUserInterface implements UserInterface {
     abstract login(context: LoginContext): Promise<UserInterfaceLoginResponse>
     abstract onError(error: Error): Promise<void>
     abstract onAccountCreate(context: CreateAccountContext): Promise<UserInterfaceAccountCreationResponse>
+    abstract onAccountCreateComplete(): Promise<void>
     abstract onLogin(options?: LoginOptions): Promise<void>
     abstract onLoginComplete(): Promise<void>
     abstract onTransact(): Promise<void>

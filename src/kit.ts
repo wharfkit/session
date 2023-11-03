@@ -171,11 +171,6 @@ export class SessionKit {
                 throw new Error('No account creation plugins available.')
             }
 
-            console.log({
-                optionsChains: options?.chains,
-                thisChains: this.chains,
-            })
-
             const context = new CreateAccountContext({
                 appName: this.appName,
                 chain: options?.chain,
@@ -186,30 +181,29 @@ export class SessionKit {
                 ui: this.ui,
             })
 
-            console.log({ context })
-
             let accountCreationResponse: UserInterfaceAccountCreationResponse | undefined
 
             if (this.accountCreationPlugins.length === 1) {
                 context.accountCreationPlugin = this.accountCreationPlugins[0]
 
-                console.log({ supportedChains: context.accountCreationPlugin?.config.supportedChains, previousChains: [...(context.chains || [])], config: context.accountCreationPlugin.config })
-
                 if (context.accountCreationPlugin.config.requiresChainSelect && !context.chain) {
-                    context.chains = context.accountCreationPlugin?.config.supportedChains?.filter(chainId => !context.chains || context.chains?.find(c => String(c.id) === String((chainId)))) || context.chains
-                    accountCreationResponse = await context.ui.onAccountCreate(context)
+                    context.chains = context.accountCreationPlugin?.config.supportedChains?.filter(
+                        chain => !context.chains || context.chains.find(c => c.equals(chain))
+                    ) || context.chains
                 }
-            } else {
-                accountCreationResponse = await context.ui.onAccountCreate(context)
             }
-
-            console.log({ accountCreationResponse })
+            
+            accountCreationResponse = await context.ui.onAccountCreate(context)
 
             if (!context.accountCreationPlugin) {
                 throw new Error('No account creation plugin selected.')
             }
 
-            return context.accountCreationPlugin.create(context)
+            const accountCreationData = await context.accountCreationPlugin.create(context)
+
+            await context.ui.onAccountCreateComplete()
+
+            return accountCreationData
         } catch (error: any) {
             await this.ui.onError(error)
             throw new Error(error)
