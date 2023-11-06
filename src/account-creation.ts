@@ -1,4 +1,4 @@
-import {NameType, Struct, FetchProvider, APIClient} from '@wharfkit/antelope'
+import {APIClient, FetchProvider, NameType, Struct} from '@wharfkit/antelope'
 import {Logo} from '@wharfkit/common'
 import type {ChainDefinition, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {UserInterface} from '.'
@@ -83,7 +83,7 @@ export class CreateAccountContext {
     ui: UserInterface
     accountCreationPlugin?: AccountCreationPlugin
     accountCreationPlugins: AccountCreationPlugin[] = []
-    
+
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
         if (options.chains) {

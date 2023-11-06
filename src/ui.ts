@@ -3,7 +3,7 @@ import type {Cancelable, ChainDefinition, LocaleDefinitions} from '@wharfkit/com
 
 import {LoginOptions} from './kit'
 import {LoginContext} from './login'
-import { CreateAccountContext } from './index-module'
+import {CreateAccountContext} from './index-module'
 
 /**
  * The arguments for a [[UserInterface.prompt]] call.
@@ -72,7 +72,9 @@ export interface UserInterface {
     /** Inform the UI that an error has occurred */
     onError: (error: Error) => Promise<void>
     /** Inform the UI that an account creation process has started */
-    onAccountCreate: (context: CreateAccountContext) => Promise<UserInterfaceAccountCreationResponse>
+    onAccountCreate: (
+        context: CreateAccountContext
+    ) => Promise<UserInterfaceAccountCreationResponse>
     /** Inform the UI that a account creation call has completed **/
     onAccountCreateComplete: () => Promise<void>
     /** Inform the UI that a login call has started **/
@@ -109,7 +111,9 @@ export interface UserInterface {
 export abstract class AbstractUserInterface implements UserInterface {
     abstract login(context: LoginContext): Promise<UserInterfaceLoginResponse>
     abstract onError(error: Error): Promise<void>
-    abstract onAccountCreate(context: CreateAccountContext): Promise<UserInterfaceAccountCreationResponse>
+    abstract onAccountCreate(
+        context: CreateAccountContext
+    ): Promise<UserInterfaceAccountCreationResponse>
     abstract onAccountCreateComplete(): Promise<void>
     abstract onLogin(options?: LoginOptions): Promise<void>
     abstract onLoginComplete(): Promise<void>

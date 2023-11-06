@@ -28,8 +28,12 @@ import {
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface, UserInterfaceAccountCreationResponse} from './ui'
 import {getFetch} from './utils'
-import {AccountCreationPlugin, CreateAccountOptions, CreateAccountResponse, CreateAccountContext} from './account-creation'
-
+import {
+    AccountCreationPlugin,
+    CreateAccountContext,
+    CreateAccountOptions,
+    CreateAccountResponse,
+} from './account-creation'
 
 export interface LoginOptions {
     chain?: ChainDefinition | Checksum256Type
@@ -187,12 +191,14 @@ export class SessionKit {
                 context.accountCreationPlugin = this.accountCreationPlugins[0]
 
                 if (context.accountCreationPlugin.config.requiresChainSelect && !context.chain) {
-                    context.chains = context.accountCreationPlugin?.config.supportedChains?.filter(
-                        chain => !context.chains || context.chains.find(c => c.equals(chain))
-                    ) || context.chains
+                    context.chains =
+                        context.accountCreationPlugin?.config.supportedChains?.filter(
+                            (chain) =>
+                                !context.chains || context.chains.find((c) => c.equals(chain))
+                        ) || context.chains
                 }
             }
-            
+
             accountCreationResponse = await context.ui.onAccountCreate(context)
 
             if (!context.accountCreationPlugin) {
