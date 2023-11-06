@@ -25,7 +25,7 @@ export class AccountCreationPluginMetadata extends Struct {
     /**
      * A display name for the account creation service that is presented to users.
      */
-    @Struct.field('string', {optional: true}) declare name?: string
+    @Struct.field('string') declare name: string
     /**
      * A description to further identify the account creation service for users.
      */
