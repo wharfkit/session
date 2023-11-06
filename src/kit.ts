@@ -26,7 +26,7 @@ import {
     TransactPluginsOptions,
 } from './transact'
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
-import {UserInterface, UserInterfaceAccountCreationResponse} from './ui'
+import {UserInterface} from './ui'
 import {getFetch} from './utils'
 import {
     AccountCreationPlugin,
@@ -185,8 +185,6 @@ export class SessionKit {
                 ui: this.ui,
             })
 
-            let accountCreationResponse: UserInterfaceAccountCreationResponse | undefined
-
             if (this.accountCreationPlugins.length === 1) {
                 context.accountCreationPlugin = this.accountCreationPlugins[0]
 
@@ -199,7 +197,7 @@ export class SessionKit {
                 }
             }
 
-            accountCreationResponse = await context.ui.onAccountCreate(context)
+            await context.ui.onAccountCreate(context)
 
             if (!context.accountCreationPlugin) {
                 throw new Error('No account creation plugin selected.')
