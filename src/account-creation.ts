@@ -51,9 +51,9 @@ export class AccountCreationPluginMetadata extends Struct {
  * Options for createAccount call.
  **/
 export interface CreateAccountOptions {
+    accountName?: NameType
     chain?: ChainDefinition
     chains?: ChainDefinition[]
-    accountName?: NameType
 }
 
 /**
@@ -65,24 +65,24 @@ export interface CreateAccountResponse {
 }
 
 export interface CreateAccountContextOptions {
+    accountCreationPlugins?: AccountCreationPlugin[]
     appName?: NameType
     // client: APIClient
     chain?: ChainDefinition
     chains?: ChainDefinition[]
     fetch: Fetch
-    accountCreationPlugins?: AccountCreationPlugin[]
     accountCreationPlugin?: AccountCreationPlugin
     ui: UserInterface
 }
 
 export class CreateAccountContext {
+    accountCreationPlugins: AccountCreationPlugin[] = []
     appName?: string
     chain?: ChainDefinition
     chains?: ChainDefinition[]
     fetch: Fetch
     ui: UserInterface
     accountCreationPlugin?: AccountCreationPlugin
-    accountCreationPlugins: AccountCreationPlugin[] = []
 
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
