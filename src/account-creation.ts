@@ -53,7 +53,6 @@ export class AccountCreationPluginMetadata extends Struct {
 export interface CreateAccountOptions {
     accountName?: NameType
     chain?: ChainDefinition
-    chains?: ChainDefinition[]
 }
 
 /**
