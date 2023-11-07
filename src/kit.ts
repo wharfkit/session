@@ -175,50 +175,110 @@ export class SessionKit {
                 throw new Error('No account creation plugins available.')
             }
 
+            // Eestablish defaults based on options
+            let chain = options?.chain
+            let requiresChainSelect = !chain
+            let requiresPluginSelect = !options?.pluginId
+
+            let accountCreationPlugin: AccountCreationPlugin | undefined
+
+            // Developer specified a plugin during createAccount call
+            if (options?.pluginId) {
+                requiresPluginSelect = false
+
+                // Find the plugin
+                accountCreationPlugin = this.accountCreationPlugins.find(
+                    (p) => p.id === options.pluginId
+                )
+
+                // Ensure the plugin exists
+                if (!accountCreationPlugin) {
+                    throw new Error('Invalid account creation plugin selected.')
+                }
+
+                // Override the chain selection requirement based on the plugin
+                if (accountCreationPlugin?.config.requiresChainSelect !== undefined) {
+                    requiresChainSelect = accountCreationPlugin?.config.requiresChainSelect
+                }
+
+                // If the plugin does not require chain select and has one supported chain, set it as the default
+                if (
+                    !accountCreationPlugin.config.requiresChainSelect &&
+                    accountCreationPlugin.config.supportedChains &&
+                    accountCreationPlugin.config.supportedChains.length === 1
+                ) {
+                    chain = accountCreationPlugin.config.supportedChains[0]
+                }
+            }
+
             const context = new CreateAccountContext({
                 accountCreationPlugins: this.accountCreationPlugins,
                 appName: this.appName,
-                chain: options?.chain,
+                chain,
                 chains: this.chains,
                 fetch: this.fetch,
                 ui: this.ui,
+                uiRequirements: {
+                    requiresChainSelect,
+                    requiresPluginSelect,
+                },
             })
 
-            const response = await context.ui.onAccountCreate(context)
+            // If UI interaction is required before triggering the plugin
+            if (requiresPluginSelect || requiresChainSelect) {
+                // Call the UI with the context
+                const response = await context.ui.onAccountCreate(context)
 
-            // Determine plugin selected based on response
-            const accountCreationPlugin = context.accountCreationPlugins.find(
-                (p) => p.id === response.pluginId
-            )
-            if (!accountCreationPlugin) {
-                throw new Error('No account creation plugin selected.')
-            }
+                // Set pluginId based on options first, then response
+                const pluginId = options?.pluginId || response.pluginId
 
-            // If the plugin does not require chain select and has one supported chain, set it as the default
-            if (
-                !accountCreationPlugin.config.requiresChainSelect &&
-                accountCreationPlugin.config.supportedChains &&
-                accountCreationPlugin.config.supportedChains.length === 1
-            ) {
-                context.chain = accountCreationPlugin.config.supportedChains[0]
-            }
+                // Ensure we have a pluginId
+                if (!pluginId) {
+                    throw new Error('No account creation plugin selected.')
+                }
 
-            // Ensure a chain was selected and is supported by the plugin
-            if (accountCreationPlugin.config.requiresChainSelect && !response.chain) {
-                throw new Error(
-                    'Account creation plugin requires chain selection, and no chain was selected.'
+                // Determine plugin selected based on response
+                accountCreationPlugin = context.accountCreationPlugins.find(
+                    (p) => p.id === pluginId
                 )
+                if (!accountCreationPlugin) {
+                    throw new Error('No account creation plugin selected.')
+                }
+
+                // If the plugin does not require chain select and has one supported chain, set it as the default
+                if (
+                    !accountCreationPlugin.config.requiresChainSelect &&
+                    accountCreationPlugin.config.supportedChains &&
+                    accountCreationPlugin.config.supportedChains.length === 1
+                ) {
+                    context.chain = accountCreationPlugin.config.supportedChains[0]
+                }
+
+                // Set chain based on response
+                if (response.chain) {
+                    context.chain = this.getChainDefinition(response.chain, context.chains)
+                }
+
+                // Ensure a chain was selected and is supported by the plugin
+                if (accountCreationPlugin.config.requiresChainSelect && !context.chain) {
+                    throw new Error(
+                        `Account creation plugin (${pluginId}) requires chain selection, and no chain was selected.`
+                    )
+                }
             }
 
-            // Set chain based on response
-            if (response.chain) {
-                context.chain = this.getChainDefinition(response.chain, context.chains)
+            // Ensure a plugin was selected
+            if (!accountCreationPlugin) {
+                throw new Error('No account creation plugin selected')
             }
 
+            // Call the account creation plugin with the context
             const accountCreationData = await accountCreationPlugin.create(context)
 
+            // Notify the UI we're done
             await context.ui.onAccountCreateComplete()
 
+            // Return the data
             return accountCreationData
         } catch (error: any) {
             await this.ui.onError(error)

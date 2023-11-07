@@ -53,6 +53,7 @@ export class AccountCreationPluginMetadata extends Struct {
 export interface CreateAccountOptions {
     accountName?: NameType
     chain?: ChainDefinition
+    pluginId?: string
 }
 
 /**
@@ -71,6 +72,12 @@ export interface CreateAccountContextOptions {
     chains?: ChainDefinition[]
     fetch: Fetch
     ui: UserInterface
+    uiRequirements?: UserInterfaceAccountCreationRequirements
+}
+
+export interface UserInterfaceAccountCreationRequirements {
+    requiresChainSelect: boolean
+    requiresPluginSelect: boolean
 }
 
 export class CreateAccountContext {
@@ -80,6 +87,10 @@ export class CreateAccountContext {
     chains?: ChainDefinition[]
     fetch: Fetch
     ui: UserInterface
+    uiRequirements: UserInterfaceAccountCreationRequirements = {
+        requiresChainSelect: true,
+        requiresPluginSelect: true,
+    }
 
     constructor(options: CreateAccountContextOptions) {
         this.appName = String(options.appName)
@@ -93,6 +104,9 @@ export class CreateAccountContext {
         this.ui = options.ui
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
+        }
+        if (options.uiRequirements) {
+            this.uiRequirements = options.uiRequirements
         }
     }
 
