@@ -41,7 +41,6 @@ export interface UserInterfaceLoginResponse {
  * The response for an account creation call of a [[UserInterface]].
  */
 export type UserInterfaceAccountCreationResponse = {
-    chains?: ChainDefinition[] // Used if the user should have the option to create his account on multiple chain (wouldn't be returned if requiresChainSelect was set to true).
     chain?: Checksum256Type // If account creation can only be done on one chain.
     pluginId?: string // The id of the plugin that was selected (if more than one plugin was available).
 }
