@@ -65,6 +65,7 @@ export interface CreateAccountResponse {
 }
 
 export interface CreateAccountContextOptions {
+    accountCreationPlugin?: AccountCreationPlugin
     accountCreationPlugins?: AccountCreationPlugin[]
     appName?: NameType
     // client: APIClient
@@ -81,6 +82,7 @@ export interface UserInterfaceAccountCreationRequirements {
 }
 
 export class CreateAccountContext {
+    accountCreationPlugin?: AccountCreationPlugin
     accountCreationPlugins: AccountCreationPlugin[] = []
     appName?: string
     chain?: ChainDefinition
@@ -104,6 +106,9 @@ export class CreateAccountContext {
         this.ui = options.ui
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
+        }
+        if (options.accountCreationPlugin) {
+            this.accountCreationPlugin = options.accountCreationPlugin
         }
         if (options.uiRequirements) {
             this.uiRequirements = options.uiRequirements

@@ -175,7 +175,7 @@ export class SessionKit {
                 throw new Error('No account creation plugins available.')
             }
 
-            // Eestablish defaults based on options
+            // Establish defaults based on options
             let chain = options?.chain
             let requiresChainSelect = !chain
             let requiresPluginSelect = !options?.pluginId
@@ -212,6 +212,7 @@ export class SessionKit {
             }
 
             const context = new CreateAccountContext({
+                accountCreationPlugin,
                 accountCreationPlugins: this.accountCreationPlugins,
                 appName: this.appName,
                 chain,
