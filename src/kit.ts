@@ -196,8 +196,8 @@ export class SessionKit {
                     throw new Error('Invalid account creation plugin selected.')
                 }
 
-                // Override the chain selection requirement based on the plugin
-                if (accountCreationPlugin?.config.requiresChainSelect !== undefined) {
+                // Override the chain selection requirement based on the plugin except in cases where a chain was specified in the options
+                if (!chain && accountCreationPlugin?.config.requiresChainSelect !== undefined) {
                     requiresChainSelect = accountCreationPlugin?.config.requiresChainSelect
                 }
 
