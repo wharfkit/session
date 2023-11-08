@@ -211,11 +211,23 @@ export class SessionKit {
                 }
             }
 
+            // The chains available to select from, based on the Session Kit
+            let chains = this.chains
+
+            // If a plugin is selected, filter the chains available down to only the ones supported by the plugin
+            if (accountCreationPlugin && accountCreationPlugin?.config.supportedChains?.length) {
+                chains = chains.filter((availableChain) => {
+                    return accountCreationPlugin?.config.supportedChains?.find((c) => {
+                        return c.id.equals(availableChain.id)
+                    })
+                })
+            }
+
             const context = new CreateAccountContext({
                 accountCreationPlugins: this.accountCreationPlugins,
                 appName: this.appName,
                 chain,
-                chains: this.chains,
+                chains,
                 fetch: this.fetch,
                 ui: this.ui,
                 uiRequirements: {
