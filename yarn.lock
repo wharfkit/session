@@ -1307,22 +1307,22 @@
   dependencies:
     tslib "^2.1.0"
 
-"@wharfkit/contract@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-0.4.2.tgz#cec2ca9585bf1c63b9458089cbd0388b727b800f"
-  integrity sha512-jSnxaaIy8ZyXljfO2DrR7ytG7VFZX6ml8b6tncZE7GvkPpEt3zEfR3YJmUfYCvbwJTn5Zk6/EWtIl5YTrEaxOA==
+"@wharfkit/contract@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-1.0.0.tgz#dd1da288ad1eddb439053b9289646199a7c14a43"
+  integrity sha512-l9EefsV6SNQnqcQjjRE2PCWEG70I/PHRifIdyvupjiMRKkbzOuE/efBlM9ch9tWXn3p8N5ydKw7frJa1mk1DtA==
   dependencies:
-    "@wharfkit/abicache" "^1.1.1"
-    "@wharfkit/antelope" "^0.7.3"
-    "@wharfkit/signing-request" "^3.0.0"
+    "@wharfkit/abicache" "^1.2.0"
+    "@wharfkit/antelope" "^1.0.0"
+    "@wharfkit/signing-request" "^3.1.0"
     tslib "^2.1.0"
 
-"@wharfkit/mock-data@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.0.2.tgz#81d6327c76032b40e5acf209d507cf6ca2a3ae9f"
-  integrity sha512-Mbf/rZX2dqj5r+h+6NcRsDfRdHZ5OWEk0oIZ6iarXEBV65jmODoLdZlS906m9ndC1bi1ewCm/276JDimIqtLkQ==
+"@wharfkit/mock-data@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.1.0.tgz#5fb18cd71a880a24510c6b2db52d104c618cf732"
+  integrity sha512-lDNb+gUz79xO0KRPSd8ldnp2u4EUc+arGXOSVAO7vFtUrUnrnnGd7tkUMQyr+JEx6BeOKqUgO4SvGV/xJAF/Dg==
   dependencies:
-    "@wharfkit/antelope" "^0.7.3"
+    "@wharfkit/antelope" "^1.0.0"
     "@wharfkit/session" "^1.0.0"
     "@wharfkit/wallet-plugin-privatekey" "^1.0.0"
     node-fetch "^2.6.1"
@@ -1356,10 +1356,10 @@
     "@wharfkit/antelope" "^1.0.0"
     tslib "^2.0.3"
 
-"@wharfkit/transact-plugin-resource-provider@^1.0.0-beta1":
-  version "1.0.0-beta1"
-  resolved "https://registry.yarnpkg.com/@wharfkit/transact-plugin-resource-provider/-/transact-plugin-resource-provider-1.0.0-beta1.tgz#63e998d8e2ce00b44885bfc81cfc8326e9294720"
-  integrity sha512-RhJUzf1q4+q5DgA3j+h82Mm5iTM/Ubglru7v+X/Icq3d0j+JgAbDUG/ARs09TwlT5hXQzRuDR8UIgLkxHkzlEQ==
+"@wharfkit/transact-plugin-resource-provider@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@wharfkit/transact-plugin-resource-provider/-/transact-plugin-resource-provider-1.0.2.tgz#8367e2b294ba9f62b740033eb286706fba694fbb"
+  integrity sha512-2csPRTZPvVdBK9hdJwezPBtdLGGAlEyWjDdoA5VvoCswJp1ECdkmgaAD5d7rYZJc6y3SgNLSkH0FzYTithdiqQ==
   dependencies:
     tslib "^2.1.0"
 
