@@ -10,6 +10,7 @@ import {
     Logo,
     Session,
     SessionKit,
+    UserInterfaceAccountCreationResponse,
     UserInterfaceLoginResponse,
 } from '$lib'
 
@@ -593,6 +594,12 @@ suite('kit', function () {
                             permissionLevel: PermissionLevel.from(mockPermissionLevel),
                             walletPluginIndex: 999999,
                         }
+                    }
+                    onAccountCreate(): Promise<UserInterfaceAccountCreationResponse> {
+                        throw new Error('Not implemented in mock UI')
+                    }
+                    onAccountCreateComplete(): Promise<void> {
+                        throw new Error('Not implemented in mock UI')
                     }
                 }
                 const sessionKit = new SessionKit(
