@@ -129,6 +129,13 @@ const accounts: AccountDefinition[] = [
         ramBytes: 10000,
     },
     {
+        name: 'wharfkit1133',
+        balance: '5.0000 EOS',
+        cpuStake: '1.0000 EOS',
+        netStake: '1.0000 EOS',
+        ramBytes: 10000,
+    },
+    {
         name: 'wharfkit1151',
         balance: '5.0000 EOS',
         cpuStake: undefined,
@@ -183,7 +190,11 @@ async function createAccount(
                     threshold: 1,
                     keys: [
                         {
-                            key: controlKey,
+                            // Override active key for wharfkit1133
+                            // this will be used in auth tests
+                            key: Name.from(account.name).equals('wharfkit1133')
+                                ? testKey
+                                : controlKey,
                             weight: 1,
                         },
                     ],

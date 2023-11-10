@@ -1,7 +1,7 @@
 {
     "name": "@wharfkit/session",
     "description": "Create account-based sessions, perform transactions, and allow users to login using Antelope-based blockchains.",
-    "version": "1.0.0",
+    "version": "1.1.0-rc4",
     "homepage": "https://github.com/wharfkit/session",
     "license": "BSD-3-Clause",
     "main": "lib/session.js",
@@ -17,15 +17,15 @@
         "prepare": "make"
     },
     "dependencies": {
-        "@wharfkit/abicache": "^1.1.1",
-        "@wharfkit/antelope": "^0.7.3",
-        "@wharfkit/common": "^1.1.0",
-        "@wharfkit/signing-request": "^3.0.0",
+        "@wharfkit/abicache": "^1.2.0",
+        "@wharfkit/antelope": "^1.0.0",
+        "@wharfkit/common": "^1.2.0",
+        "@wharfkit/signing-request": "^3.1.0",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
     },
     "resolutions": {
-        "@wharfkit/antelope": "^0.7.3"
+        "@wharfkit/antelope": "^1.0.0"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.20.2",
@@ -42,10 +42,10 @@
         "@types/node": "^18.7.18",
         "@typescript-eslint/eslint-plugin": "^5.20.0",
         "@typescript-eslint/parser": "^5.20.0",
-        "@wharfkit/contract": "^0.3.3",
-        "@wharfkit/mock-data": "^1.0.1",
+        "@wharfkit/contract": "^0.4.2",
+        "@wharfkit/mock-data": "^1.0.2",
         "@wharfkit/transact-plugin-resource-provider": "^1.0.0-beta1",
-        "@wharfkit/wallet-plugin-privatekey": "^1.0.0-beta1",
+        "@wharfkit/wallet-plugin-privatekey": "^1.0.0",
         "chai": "^4.3.4",
         "eslint": "^8.13.0",
         "eslint-config-prettier": "^8.1.0",

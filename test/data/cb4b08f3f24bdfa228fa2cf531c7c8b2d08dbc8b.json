@@ -1,0 +1,16 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/resource_provider/request_transaction",
+        "params": {
+            "method": "POST",
+            "body": "{\"ref\":\"unittest\",\"request\":\"esr://gmNgZPLvfpeyaEau9oolDEDACCIYXhmENlw2jYl96ePCGODCcfNgqe9jsMSEjac4GjZOjItV6z0FUgsA\",\"signer\":{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}}"
+        }
+    },
+    "status": 400,
+    "json": {
+        "code": 400,
+        "message": "A fee would be required to pay for this transaction and the account has insufficient balance.",
+        "data": {}
+    },
+    "text": "{\"code\":400,\"message\":\"A fee would be required to pay for this transaction and the account has insufficient balance.\",\"data\":{}}"
+}

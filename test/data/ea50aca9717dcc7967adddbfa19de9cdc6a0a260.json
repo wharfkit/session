@@ -1,0 +1,28 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/chain/send_transaction",
+        "params": {
+            "method": "POST",
+            "body": "{\"signatures\":[\"SIG_K1_KAfPB24wkbqNpJbLxZg6gagtsCUAZzcZpXLYMQDrdanzNWf9LisnTz2PS79DDQ9EkuxFFE6uMmN1XcH6soafctfW2tLL3i\"],\"compression\":1,\"packed_context_free_data\":\"789c63000000010001\",\"packed_trx\":\"789cf3139b98fc995d6375552f031030322c6b32617e65100a6487ebda9c3dcb28e0c471f360a9ef63902cc3848da72c60020d1b27c6c5aaf59eb264054b31b0b8fa078368f1f28cc4a2b4eccc1285cc6285928c5485a4d4e212051b630600ddca2020\"}"
+        }
+    },
+    "status": 500,
+    "json": {
+        "code": 500,
+        "message": "Internal Service Error",
+        "error": {
+            "code": 3040005,
+            "name": "expired_tx_exception",
+            "what": "Expired Transaction",
+            "details": [
+                {
+                    "message": "expired transaction 9f9f40ae7609c4ab0530ea6121c1ae0970c0c5b8491dd10f0dea2d8398e5de9f, expiration 2022-12-07T22:40:14.000, block time 2023-08-30T00:17:24.000",
+                    "file": "producer_plugin.cpp",
+                    "line_number": 658,
+                    "method": "process_incoming_transaction_async"
+                }
+            ]
+        }
+    },
+    "text": "{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":3040005,\"name\":\"expired_tx_exception\",\"what\":\"Expired Transaction\",\"details\":[{\"message\":\"expired transaction 9f9f40ae7609c4ab0530ea6121c1ae0970c0c5b8491dd10f0dea2d8398e5de9f, expiration 2022-12-07T22:40:14.000, block time 2023-08-30T00:17:24.000\",\"file\":\"producer_plugin.cpp\",\"line_number\":658,\"method\":\"process_incoming_transaction_async\"}]}}"
+}

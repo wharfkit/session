@@ -10,6 +10,7 @@ import {
     Logo,
     Session,
     SessionKit,
+    UserInterfaceAccountCreationResponse,
     UserInterfaceLoginResponse,
 } from '$lib'
 
@@ -363,6 +364,104 @@ suite('kit', function () {
             }
             assertSessionMatchesMockSession(restored)
         })
+        test('session by chain id (checksum256)', async function () {
+            // New kit w/ empty storage
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            // Login 3 times
+            await sessionKit.login({
+                chain: Chains.WAX.id,
+                permissionLevel: PermissionLevel.from('mock1@interface'),
+            })
+            await sessionKit.login({
+                chain: Chains.Jungle4.id,
+                permissionLevel: PermissionLevel.from('mock2@interface'),
+            })
+            await sessionKit.login({
+                chain: Chains.EOS.id,
+                permissionLevel: PermissionLevel.from('mock3@interface'),
+            })
+            // Restore all sessions
+            const sessions = await sessionKit.restoreAll()
+            // Assert 3 sessions restored
+            assert.lengthOf(sessions, 3)
+            assert.instanceOf(sessions[0], Session)
+            assert.isTrue(sessions[0].actor.equals('mock1'))
+            assert.isTrue(sessions[0].chain.id.equals(Chains.WAX.id))
+            assert.instanceOf(sessions[1], Session)
+            assert.isTrue(sessions[1].actor.equals('mock2'))
+            assert.isTrue(sessions[1].chain.id.equals(Chains.Jungle4.id))
+            assert.instanceOf(sessions[2], Session)
+            assert.isTrue(sessions[2].actor.equals('mock3'))
+            assert.isTrue(sessions[2].chain.id.equals(Chains.EOS.id))
+
+            const restoredEOS = await sessionKit.restore({chain: Chains.EOS.id})
+            assert.isDefined(restoredEOS)
+            if (restoredEOS) {
+                assert.instanceOf(restoredEOS, Session)
+                assert.isTrue(restoredEOS.actor.equals('mock3'))
+                assert.isTrue(restoredEOS.chain.id.equals(Chains.EOS.id))
+            }
+
+            const restoredJUNGLE = await sessionKit.restore({chain: Chains.Jungle4.id})
+            assert.isDefined(restoredJUNGLE)
+            if (restoredJUNGLE) {
+                assert.instanceOf(restoredJUNGLE, Session)
+                assert.isTrue(restoredJUNGLE.actor.equals('mock2'))
+                assert.isTrue(restoredJUNGLE.chain.id.equals(Chains.Jungle4.id))
+            }
+        })
+        test('session by chain id (ChainDefinition)', async function () {
+            // New kit w/ empty storage
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            // Login 3 times
+            await sessionKit.login({
+                chain: Chains.WAX.id,
+                permissionLevel: PermissionLevel.from('mock1@interface'),
+            })
+            await sessionKit.login({
+                chain: Chains.Jungle4.id,
+                permissionLevel: PermissionLevel.from('mock2@interface'),
+            })
+            await sessionKit.login({
+                chain: Chains.EOS.id,
+                permissionLevel: PermissionLevel.from('mock3@interface'),
+            })
+            // Restore all sessions
+            const sessions = await sessionKit.restoreAll()
+            // Assert 3 sessions restored
+            assert.lengthOf(sessions, 3)
+            assert.instanceOf(sessions[0], Session)
+            assert.isTrue(sessions[0].actor.equals('mock1'))
+            assert.isTrue(sessions[0].chain.id.equals(Chains.WAX.id))
+            assert.instanceOf(sessions[1], Session)
+            assert.isTrue(sessions[1].actor.equals('mock2'))
+            assert.isTrue(sessions[1].chain.id.equals(Chains.Jungle4.id))
+            assert.instanceOf(sessions[2], Session)
+            assert.isTrue(sessions[2].actor.equals('mock3'))
+            assert.isTrue(sessions[2].chain.id.equals(Chains.EOS.id))
+
+            const restoredEOS = await sessionKit.restore({chain: Chains.EOS})
+            assert.isDefined(restoredEOS)
+            if (restoredEOS) {
+                assert.instanceOf(restoredEOS, Session)
+                assert.isTrue(restoredEOS.actor.equals('mock3'))
+                assert.isTrue(restoredEOS.chain.id.equals(Chains.EOS.id))
+            }
+
+            const restoredJUNGLE = await sessionKit.restore({chain: Chains.Jungle4})
+            assert.isDefined(restoredJUNGLE)
+            if (restoredJUNGLE) {
+                assert.instanceOf(restoredJUNGLE, Session)
+                assert.isTrue(restoredJUNGLE.actor.equals('mock2'))
+                assert.isTrue(restoredJUNGLE.chain.id.equals(Chains.Jungle4.id))
+            }
+        })
         test('no session returns undefined', async function () {
             const sessionKit = new SessionKit(mockSessionKitArgs, {
                 ...mockSessionKitOptions,
@@ -495,6 +594,12 @@ suite('kit', function () {
                             permissionLevel: PermissionLevel.from(mockPermissionLevel),
                             walletPluginIndex: 999999,
                         }
+                    }
+                    onAccountCreate(): Promise<UserInterfaceAccountCreationResponse> {
+                        throw new Error('Not implemented in mock UI')
+                    }
+                    onAccountCreateComplete(): Promise<void> {
+                        throw new Error('Not implemented in mock UI')
                     }
                 }
                 const sessionKit = new SessionKit(

@@ -3,7 +3,11 @@ import {assert} from 'chai'
 import type {LocaleDefinitions} from '@wharfkit/common'
 import {MockUserInterface} from '@wharfkit/mock-data'
 
-import {UserInterface, UserInterfaceTranslateOptions} from 'src/ui'
+import {
+    UserInterface,
+    UserInterfaceAccountCreationResponse,
+    UserInterfaceTranslateOptions,
+} from 'src/ui'
 
 const mockLocaleDefinitions: LocaleDefinitions = {
     en: {
@@ -33,6 +37,14 @@ class ImplementedUI extends MockUserInterface {
             return this.localeDefinitions.en[namespace][key]
         }
         return this.localeDefinitions.en[key] || options?.default || `[[${key} not localized]]`
+    }
+
+    onAccountCreate(): Promise<UserInterfaceAccountCreationResponse> {
+        throw new Error('Not implemented in mock UI')
+    }
+
+    onAccountCreateComplete(): Promise<void> {
+        throw new Error('Not implemented in mock UI')
     }
 }
 

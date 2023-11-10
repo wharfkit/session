@@ -18,7 +18,7 @@ test/watch: node_modules
 		${BIN}/mocha --watch ${MOCHA_OPTS} ${TEST_FILES} --no-timeout --grep '$(grep)'
 
 build/coverage: ${SRC_FILES} ${TEST_FILES} node_modules
-	@TS_NODE_PROJECT='./test/tsconfig.json' \
+	@TS_NODE_PROJECT='./test/tsconfig.json' MOCK_DIR='./test/data' \
 		${BIN}/nyc ${NYC_OPTS} --reporter=html \
 		${BIN}/mocha ${MOCHA_OPTS} -R nyan ${TEST_FILES}
 
@@ -57,11 +57,16 @@ build/docs: $(SRC_FILES) node_modules
 		--includeVersion --hideGenerator --readme none \
 		src/index.ts
 
-build/pages: build/coverage build/docs build/browser.html
+# build/pages: build/coverage build/docs build/browser.html
+# 	@mkdir -p build/pages
+# 	@cp -r build/docs/* build/pages/
+# 	@cp -r build/coverage build/pages/coverage
+# 	@cp build/browser.html build/pages/tests.html
+
+build/pages: build/coverage build/docs
 	@mkdir -p build/pages
 	@cp -r build/docs/* build/pages/
 	@cp -r build/coverage build/pages/coverage
-	@cp build/browser.html build/pages/tests.html
 
 .PHONY: deploy-pages
 deploy-pages: | clean lib build/pages node_modules

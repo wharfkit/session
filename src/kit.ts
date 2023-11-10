@@ -1,3 +1,5 @@
+import {ChainDefinition, type ChainDefinitionType, type Fetch} from '@wharfkit/common'
+import type {Contract} from '@wharfkit/contract'
 import {
     Checksum256,
     Checksum256Type,
@@ -6,8 +8,6 @@ import {
     PermissionLevel,
     PermissionLevelType,
 } from '@wharfkit/antelope'
-import {ChainDefinition} from '@wharfkit/common'
-import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
 
 import {
     AbstractLoginPlugin,
@@ -28,11 +28,18 @@ import {
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
 import {getFetch} from './utils'
+import {
+    AccountCreationPlugin,
+    CreateAccountContext,
+    CreateAccountOptions,
+    CreateAccountResponse,
+} from './account-creation'
 
 export interface LoginOptions {
-    chain?: Checksum256Type
+    chain?: ChainDefinition | Checksum256Type
     chains?: Checksum256Type[]
     loginPlugins?: LoginPlugin[]
+    setAsDefault?: boolean
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     permissionLevel?: PermissionLevelType | string
@@ -46,7 +53,7 @@ export interface LoginResult {
 }
 
 export interface RestoreArgs {
-    chain: Checksum256Type
+    chain: Checksum256Type | ChainDefinition
     actor?: NameType
     permission?: NameType
     walletPlugin?: Record<string, any>
@@ -62,12 +69,14 @@ export interface SessionKitArgs {
 export interface SessionKitOptions {
     abis?: TransactABIDef[]
     allowModify?: boolean
+    contracts?: Contract[]
     expireSeconds?: number
     fetch?: Fetch
     loginPlugins?: LoginPlugin[]
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    accountCreationPlugins?: AccountCreationPlugin[]
 }
 
 /**
@@ -86,6 +95,7 @@ export class SessionKit {
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
+    readonly accountCreationPlugins: AccountCreationPlugin[] = []
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
         // Save the appName to the SessionKit instance
@@ -105,6 +115,10 @@ export class SessionKit {
         // Add any ABIs manually provided
         if (options.abis) {
             this.abis = [...options.abis]
+        }
+        // Extract any ABIs from the Contract instances provided
+        if (options.contracts) {
+            this.abis.push(...options.contracts.map((c) => ({account: c.account, abi: c.abi})))
         }
         // Establish default plugins for login flow
         if (options.loginPlugins) {
@@ -135,6 +149,11 @@ export class SessionKit {
         if (options.transactPluginsOptions) {
             this.transactPluginsOptions = options.transactPluginsOptions
         }
+
+        // Establish default plugins for account creation
+        if (options.accountCreationPlugins) {
+            this.accountCreationPlugins = options.accountCreationPlugins
+        }
     }
 
     getChainDefinition(id: Checksum256Type, override?: ChainDefinition[]): ChainDefinition {
@@ -142,9 +161,141 @@ export class SessionKit {
         const chainId = Checksum256.from(id)
         const chain = chains.find((c) => c.id.equals(chainId))
         if (!chain) {
-            throw new Error(`No chain defined with the ID of: ${chainId}`)
+            throw new Error(`No chain defined with an ID of: ${chainId}`)
         }
         return chain
+    }
+
+    /**
+     * Request account creation.
+     */
+    async createAccount(options?: CreateAccountOptions): Promise<CreateAccountResponse> {
+        try {
+            if (this.accountCreationPlugins.length === 0) {
+                throw new Error('No account creation plugins available.')
+            }
+
+            // Eestablish defaults based on options
+            let chain = options?.chain
+            let requiresChainSelect = !chain
+            let requiresPluginSelect = !options?.pluginId
+
+            let accountCreationPlugin: AccountCreationPlugin | undefined
+
+            // Developer specified a plugin during createAccount call
+            if (options?.pluginId) {
+                requiresPluginSelect = false
+
+                // Find the plugin
+                accountCreationPlugin = this.accountCreationPlugins.find(
+                    (p) => p.id === options.pluginId
+                )
+
+                // Ensure the plugin exists
+                if (!accountCreationPlugin) {
+                    throw new Error('Invalid account creation plugin selected.')
+                }
+
+                // Override the chain selection requirement based on the plugin
+                if (accountCreationPlugin?.config.requiresChainSelect !== undefined) {
+                    requiresChainSelect = accountCreationPlugin?.config.requiresChainSelect
+                }
+
+                // If the plugin does not require chain select and has one supported chain, set it as the default
+                if (
+                    !accountCreationPlugin.config.requiresChainSelect &&
+                    accountCreationPlugin.config.supportedChains &&
+                    accountCreationPlugin.config.supportedChains.length === 1
+                ) {
+                    chain = accountCreationPlugin.config.supportedChains[0]
+                }
+            }
+
+            // The chains available to select from, based on the Session Kit
+            let chains = this.chains
+
+            // If a plugin is selected, filter the chains available down to only the ones supported by the plugin
+            if (accountCreationPlugin && accountCreationPlugin?.config.supportedChains?.length) {
+                chains = chains.filter((availableChain) => {
+                    return accountCreationPlugin?.config.supportedChains?.find((c) => {
+                        return c.id.equals(availableChain.id)
+                    })
+                })
+            }
+
+            const context = new CreateAccountContext({
+                accountCreationPlugins: this.accountCreationPlugins,
+                appName: this.appName,
+                chain,
+                chains,
+                fetch: this.fetch,
+                ui: this.ui,
+                uiRequirements: {
+                    requiresChainSelect,
+                    requiresPluginSelect,
+                },
+            })
+
+            // If UI interaction is required before triggering the plugin
+            if (requiresPluginSelect || requiresChainSelect) {
+                // Call the UI with the context
+                const response = await context.ui.onAccountCreate(context)
+
+                // Set pluginId based on options first, then response
+                const pluginId = options?.pluginId || response.pluginId
+
+                // Ensure we have a pluginId
+                if (!pluginId) {
+                    throw new Error('No account creation plugin selected.')
+                }
+
+                // Determine plugin selected based on response
+                accountCreationPlugin = context.accountCreationPlugins.find(
+                    (p) => p.id === pluginId
+                )
+                if (!accountCreationPlugin) {
+                    throw new Error('No account creation plugin selected.')
+                }
+
+                // If the plugin does not require chain select and has one supported chain, set it as the default
+                if (
+                    !accountCreationPlugin.config.requiresChainSelect &&
+                    accountCreationPlugin.config.supportedChains &&
+                    accountCreationPlugin.config.supportedChains.length === 1
+                ) {
+                    context.chain = accountCreationPlugin.config.supportedChains[0]
+                }
+
+                // Set chain based on response
+                if (response.chain) {
+                    context.chain = this.getChainDefinition(response.chain, context.chains)
+                }
+
+                // Ensure a chain was selected and is supported by the plugin
+                if (accountCreationPlugin.config.requiresChainSelect && !context.chain) {
+                    throw new Error(
+                        `Account creation plugin (${pluginId}) requires chain selection, and no chain was selected.`
+                    )
+                }
+            }
+
+            // Ensure a plugin was selected
+            if (!accountCreationPlugin) {
+                throw new Error('No account creation plugin selected')
+            }
+
+            // Call the account creation plugin with the context
+            const accountCreationData = await accountCreationPlugin.create(context)
+
+            // Notify the UI we're done
+            await context.ui.onAccountCreateComplete()
+
+            // Return the data
+            return accountCreationData
+        } catch (error: any) {
+            await this.ui.onError(error)
+            throw new Error(error)
+        }
     }
 
     /**
@@ -183,7 +334,11 @@ export class SessionKit {
 
             // Predetermine chain (if possible) to prevent uneeded UI interactions.
             if (options && options.chain) {
-                context.chain = this.getChainDefinition(options.chain, context.chains)
+                if (options.chain instanceof ChainDefinition) {
+                    context.chain = options.chain
+                } else {
+                    context.chain = this.getChainDefinition(options.chain, context.chains)
+                }
                 context.uiRequirements.requiresChainSelect = false
             } else if (context.chains.length === 1) {
                 context.chain = context.chains[0]
@@ -283,7 +438,7 @@ export class SessionKit {
             for (const hook of context.hooks.afterLogin) await hook(context)
 
             // Save the session to storage if it has a storage instance.
-            this.persistSession(session)
+            this.persistSession(session, options?.setAsDefault)
 
             // Notify the UI that the login request has completed.
             await context.ui.onLoginComplete()
@@ -343,6 +498,10 @@ export class SessionKit {
             throw new Error('Either a RestoreArgs object or a Storage instance must be provided.')
         }
 
+        const chainId = Checksum256.from(
+            args.chain instanceof ChainDefinition ? args.chain.id : args.chain
+        )
+
         let serializedSession: SerializedSession
 
         // Retrieve all sessions from storage
@@ -356,7 +515,7 @@ export class SessionKit {
                 serializedSession = sessions.find((s: SerializedSession) => {
                     return (
                         args &&
-                        s.chain === args.chain &&
+                        chainId.equals(s.chain) &&
                         s.actor === args.actor &&
                         s.permission === args.permission
                     )
@@ -364,14 +523,14 @@ export class SessionKit {
             } else {
                 // If no actor/permission defined, return based on chain
                 serializedSession = sessions.find((s: SerializedSession) => {
-                    return args && s.chain === args.chain && s.default
+                    return args && chainId.equals(s.chain) && s.default
                 })
             }
         } else {
             // If no sessions were found, but the args contains all the data for a serialized session, use args
             if (args.actor && args.permission && args.walletPlugin) {
                 serializedSession = {
-                    chain: args.chain,
+                    chain: String(chainId),
                     actor: args.actor,
                     permission: args.permission,
                     walletPlugin: {
@@ -383,6 +542,11 @@ export class SessionKit {
                 // Otherwise throw an error since we can't establish the session data
                 throw new Error('No sessions found in storage. A wallet plugin must be provided.')
             }
+        }
+
+        // If no session found, return
+        if (!serializedSession) {
+            return
         }
 
         // Ensure a WalletPlugin was found with the provided ID.
@@ -423,7 +587,7 @@ export class SessionKit {
         )
 
         // Save the session to storage if it has a storage instance.
-        this.persistSession(session)
+        this.persistSession(session, options?.setAsDefault)
 
         // Return the session
         return session
@@ -458,7 +622,9 @@ export class SessionKit {
         serialized.default = setAsDefault
 
         // Set this as the current session for all chains
-        this.storage.write('session', JSON.stringify(serialized))
+        if (setAsDefault) {
+            this.storage.write('session', JSON.stringify(serialized))
+        }
 
         // Add the current session to the list of sessions, preventing duplication.
         const existing = await this.storage.read('sessions')
