@@ -18,14 +18,11 @@
     },
     "dependencies": {
         "@wharfkit/abicache": "^1.2.0",
-        "@wharfkit/antelope": "^1.0.0",
+        "@wharfkit/antelope": "^1.0.1",
         "@wharfkit/common": "^1.2.0",
         "@wharfkit/signing-request": "^3.1.0",
         "pako": "^2.0.4",
         "tslib": "^2.1.0"
-    },
-    "resolutions": {
-        "@wharfkit/antelope": "^1.0.0"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.20.2",
