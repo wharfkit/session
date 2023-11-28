@@ -1,0 +1,17 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/chain/get_raw_abi",
+        "params": {
+            "method": "POST",
+            "body": "{\"account_name\":\"todoapp12345\"}"
+        }
+    },
+    "status": 200,
+    "json": {
+        "account_name": "todoapp12345",
+        "code_hash": "ee5ce70c3b7377b4575173b6ea3c3aed4d40c9bf2a50be816d3e39347df537ae",
+        "abi_hash": "ca12366daaf630ea4023f6cad3576c2e8ee7ca4653f3329055ab8ca0a7cbac81",
+        "abi": "DmVvc2lvOjphYmkvMS4yAAUDYWRkAAIGYXV0aG9yBG5hbWULZGVzY3JpcHRpb24Gc3RyaW5nBWVyYXNlAAIGYXV0aG9yBG5hbWUCaWQGdWludDY0CGVyYXNlYWxsAAEGYXV0aG9yBG5hbWULc2V0Y29tcGxldGUAAwZhdXRob3IEbmFtZQJpZAZ1aW50NjQIY29tcGxldGUEYm9vbAh0b2RvX3JvdwAFAmlkBnVpbnQ2NAZhdXRob3IEbmFtZQl0aW1lc3RhbXAKdGltZV9wb2ludAtkZXNjcmlwdGlvbgZzdHJpbmcJY29tcGxldGVkBnVpbnQ2NAQAAAAAAABSMgNhZGQAAAAAAACFzVUFZXJhc2UAAAAAMRqFzVUIZXJhc2VhbGwAAFRWsUqKssILc2V0Y29tcGxldGUAAQAAAAAATBPNA2k2NAAACHRvZG9fcm93AAAAAAEAAAAAAABSMgh0b2RvX3JvdwA=="
+    },
+    "text": "{\"account_name\":\"todoapp12345\",\"code_hash\":\"ee5ce70c3b7377b4575173b6ea3c3aed4d40c9bf2a50be816d3e39347df537ae\",\"abi_hash\":\"ca12366daaf630ea4023f6cad3576c2e8ee7ca4653f3329055ab8ca0a7cbac81\",\"abi\":\"DmVvc2lvOjphYmkvMS4yAAUDYWRkAAIGYXV0aG9yBG5hbWULZGVzY3JpcHRpb24Gc3RyaW5nBWVyYXNlAAIGYXV0aG9yBG5hbWUCaWQGdWludDY0CGVyYXNlYWxsAAEGYXV0aG9yBG5hbWULc2V0Y29tcGxldGUAAwZhdXRob3IEbmFtZQJpZAZ1aW50NjQIY29tcGxldGUEYm9vbAh0b2RvX3JvdwAFAmlkBnVpbnQ2NAZhdXRob3IEbmFtZQl0aW1lc3RhbXAKdGltZV9wb2ludAtkZXNjcmlwdGlvbgZzdHJpbmcJY29tcGxldGVkBnVpbnQ2NAQAAAAAAABSMgNhZGQAAAAAAACFzVUFZXJhc2UAAAAAMRqFzVUIZXJhc2VhbGwAAFRWsUqKssILc2V0Y29tcGxldGUAAQAAAAAATBPNA2k2NAAACHRvZG9fcm93AAAAAAEAAAAAAABSMgh0b2RvX3JvdwA==\"}"
+}
