@@ -1,7 +1,14 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
+import {
+    Name,
+    PermissionLevel,
+    Serializer,
+    Signature,
+    TimePointSec,
+    Transaction,
+} from '@wharfkit/antelope'
 import {ResolvedSigningRequest, SigningRequest} from '@wharfkit/signing-request'
 
 import SessionKit, {ChainDefinition, Session, TransactContext, TransactHookTypes} from '$lib'
@@ -720,6 +727,25 @@ suite('transact', function () {
             } else {
                 assert.fail('Transaction was not resolved from request.')
             }
+        })
+        test('return values', async function () {
+            const {session} = await mockData()
+            const action = {
+                account: 'todoapp12345',
+                name: 'add',
+                authorization: [session.permissionLevel],
+                data: {
+                    author: session.actor,
+                    description: 'mock test',
+                },
+            }
+            const result = await session.transact({action}, {broadcast: true})
+            assert.exists(result.returns)
+            assert.equal(result.returns.length, 1)
+            const [returned] = result.returns
+            assert.isTrue(returned.contract.equals('todoapp12345'))
+            assert.isTrue(returned.action.equals('add'))
+            assert.instanceOf(returned.data.author, Name)
         })
     })
 })
