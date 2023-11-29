@@ -69,6 +69,7 @@ export class LoginContext {
         requiresPermissionEntry: false,
         requiresWalletSelect: true,
     }
+    walletPluginIndex?: number
     walletPlugins: UserInterfaceWalletPlugin[] = []
     constructor(options: LoginContextOptions) {
         this.appName = String(options.appName)
