@@ -3,7 +3,7 @@
         "path": "https://jungle4.greymass.com/v1/resource_provider/request_transaction",
         "params": {
             "method": "POST",
-            "body": "{\"ref\":\"unittest\",\"request\":\"esr://gmNgZPLvfpeyaEau9oolDEDACCIYXhmENlw2jYl96ePCGODCcfNgqe9jsMSEjac4GjZOjItV6z0FUgsA\",\"signer\":{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}}"
+            "body": "{\"ref\":\"unittest\",\"request\":\"esr://gmNgZJrjkJZa-y0i5d4EBiBgBBEMrwxCGy6bxsS-9HFhDHDhuHmw1PcxWGLCxlMcDRsnxsWq9Z4CqQUA\",\"signer\":{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}}"
         }
     },
     "status": 400,

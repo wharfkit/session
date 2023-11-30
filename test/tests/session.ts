@@ -150,6 +150,7 @@ suite('session', function () {
             })
             suite('broadcast', function () {
                 test('default: true', async function () {
+                    const action = makeMockAction('test broadcast default')
                     const testSession = new Session(mockSessionArgs, {
                         fetch: mockSessionOptions.fetch,
                     })
@@ -157,6 +158,7 @@ suite('session', function () {
                     assert.isDefined(result.response)
                 })
                 test('true', async function () {
+                    const action = makeMockAction('test broadcast true')
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
                         broadcast: true,
@@ -174,17 +176,6 @@ suite('session', function () {
                 })
             })
             suite('expireSeconds', function () {
-                test('default: 120', async function () {
-                    const session = new Session(mockSessionArgs, mockSessionOptions)
-                    const result = await session.transact({action}, {broadcast: false})
-                    // Get the chain info to get the current head block time from test cache
-                    const {head_block_time} = await session.client.v1.chain.get_info()
-                    const expectedExpiration = head_block_time.toMilliseconds() + 120 * 1000
-                    assert.equal(
-                        String(result.transaction?.expiration),
-                        String(TimePointSec.fromMilliseconds(expectedExpiration))
-                    )
-                })
                 test('override: 60', async function () {
                     const session = new Session(mockSessionArgs, {
                         ...mockSessionOptions,

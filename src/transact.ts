@@ -297,6 +297,25 @@ export class TransactRevisions {
 }
 
 /**
+ * An interface to define a return type
+ */
+export interface TransactResultReturnType {
+    name: NameType
+    result_type: string
+}
+
+/**
+ * The return values from a [[Session.transact]] call that have been processed and decoded.
+ */
+export interface TransactResultReturnValue {
+    contract: Name
+    action: Name
+    hex: string
+    data: any
+    returnType: TransactResultReturnType
+}
+
+/**
  * The response from a [[Session.transact]] call.
  */
 export interface TransactResult {
@@ -308,6 +327,8 @@ export interface TransactResult {
     resolved: ResolvedSigningRequest | undefined
     /** The response from the API after sending the transaction, only present if transaction was broadcast. */
     response?: {[key: string]: any}
+    /** The return values provided by the transaction */
+    returns: TransactResultReturnValue[]
     /** An array containing revisions of the transaction as modified by plugins as ESR payloads */
     revisions: TransactRevisions
     /** The transaction signatures. */

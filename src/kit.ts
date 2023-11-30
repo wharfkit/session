@@ -357,8 +357,10 @@ export class SessionKit {
                 walletPlugin = this.walletPlugins[0] // Default to first when only one.
                 context.uiRequirements.requiresWalletSelect = false
             } else if (options?.walletPlugin) {
-                walletPlugin = this.walletPlugins.find((p) => p.id === options.walletPlugin)
-                if (walletPlugin) {
+                const index = this.walletPlugins.findIndex((p) => p.id === options.walletPlugin)
+                if (index >= 0) {
+                    walletPlugin = this.walletPlugins[index]
+                    context.walletPluginIndex = index
                     context.uiRequirements.requiresWalletSelect = false
                 }
             }
