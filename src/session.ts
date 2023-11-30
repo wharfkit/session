@@ -37,7 +37,7 @@ import {
     TransactPlugin,
     TransactPluginsOptions,
     TransactResult,
-    TransactResultReturnValues,
+    TransactResultReturnValue,
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
@@ -648,8 +648,8 @@ export class Session {
 async function processReturnValues(
     response: any,
     abiCache: ABICacheInterface
-): Promise<TransactResultReturnValues[]> {
-    const returns: TransactResultReturnValues[] = []
+): Promise<TransactResultReturnValue[]> {
+    const returns: TransactResultReturnValue[] = []
     for (const actionTrace of response.processed.action_traces) {
         if (actionTrace.return_value_hex_data) {
             const contract = Name.from(actionTrace.act.account)

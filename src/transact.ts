@@ -307,7 +307,7 @@ export interface TransactResultReturnType {
 /**
  * The return values from a [[Session.transact]] call that have been processed and decoded.
  */
-export interface TransactResultReturnValues {
+export interface TransactResultReturnValue {
     contract: Name
     action: Name
     hex: string
@@ -328,7 +328,7 @@ export interface TransactResult {
     /** The response from the API after sending the transaction, only present if transaction was broadcast. */
     response?: {[key: string]: any}
     /** The return values provided by the transaction */
-    returns: TransactResultReturnValues[]
+    returns: TransactResultReturnValue[]
     /** An array containing revisions of the transaction as modified by plugins as ESR payloads */
     revisions: TransactRevisions
     /** The transaction signatures. */
