@@ -1261,20 +1261,20 @@
     "@typescript-eslint/types" "5.45.0"
     eslint-visitor-keys "^3.3.0"
 
-"@wharfkit/abicache@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.2.0.tgz#f67f7bbd854adc443c3e363d5fbe3d27ac4f8383"
-  integrity sha512-1+564ODM1KhUs7chE8KpYhnxShuPLC1MvqYcXVuLosxXXwcYC4IiJ1V3VuikLG+xfBDp1GZivGjHQwv1awE2Zw==
+"@wharfkit/abicache@^1.2.0", "@wharfkit/abicache@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/abicache/-/abicache-1.2.1.tgz#f2ce1f0d01a105b633a68b7a8eacaaff12218c05"
+  integrity sha512-LPlD8U/+QUkXDqYrr2DRUa+VFUCR+muNOLUN1Uh3+TU2pbr4uKSt9EOBf3VkEAVov5BA96exysWCD1sp+K7orw==
   dependencies:
-    "@wharfkit/antelope" "^1.0.0"
+    "@wharfkit/antelope" "^1.0.2"
     "@wharfkit/signing-request" "^3.1.0"
     pako "^2.0.4"
     tslib "^2.1.0"
 
-"@wharfkit/antelope@^1.0.0", "@wharfkit/antelope@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-1.0.1.tgz#38c2966573b6d26be2a0c54d46b4db73993259fe"
-  integrity sha512-Mos1KiJ8Rqf5y+bO3ctbzYsiClVoAhRNWdAQXyXu4Pjj7mtvqLziPcqeg+w6JMMoPeF+D+RUTaxvYgbAOvWkqg==
+"@wharfkit/antelope@^1.0.0", "@wharfkit/antelope@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-1.0.2.tgz#99947c03bd709af712a2fab0a4d8237d81b52f9e"
+  integrity sha512-Oad6w0xg+3DyKqOhXcpEiyhZXizcoqdKX0UO6+YsjMZ4+qs16++Uq2YcxUeOHTpSeh2RM4EtX8qijyF5JzUg4w==
   dependencies:
     bn.js "^4.11.9"
     brorand "^1.1.0"
@@ -1291,9 +1291,9 @@
     tslib "^2.1.0"
 
 "@wharfkit/contract@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-1.0.0.tgz#dd1da288ad1eddb439053b9289646199a7c14a43"
-  integrity sha512-l9EefsV6SNQnqcQjjRE2PCWEG70I/PHRifIdyvupjiMRKkbzOuE/efBlM9ch9tWXn3p8N5ydKw7frJa1mk1DtA==
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/contract/-/contract-1.1.1.tgz#2e96476fac45d06684f90b2a54b3cac39e71c760"
+  integrity sha512-WN6tzVuuacpzD8yo4uZZPdniXk9Q+ZGkBtUQ+mbeOQaEzrsnncOrHJlck20nmSb/EC8ij1EG0xlhnyhKjnvSYQ==
   dependencies:
     "@wharfkit/abicache" "^1.2.0"
     "@wharfkit/antelope" "^1.0.0"
@@ -3448,9 +3448,9 @@ tslib@^1.8.1:
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
 tslib@^2.0.3, tslib@^2.1.0, tslib@^2.5.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.0.tgz#b295854684dbda164e181d259a22cd779dcd7bc3"
-  integrity sha512-7At1WUettjcSRHXCyYtTselblcHl9PJFFVKiCAy/bY97+BPZXSQ2wbq0P9s8tK2G7dFQfNnlJnPAiArVBVBsfA==
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.2.tgz#703ac29425e7b37cd6fd456e92404d46d1f3e4ae"
+  integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==
 
 tsutils@^3.21.0:
   version "3.21.0"
