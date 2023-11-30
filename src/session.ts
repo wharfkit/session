@@ -37,6 +37,7 @@ import {
     TransactPlugin,
     TransactPluginsOptions,
     TransactResult,
+    TransactResultReturnValue,
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
@@ -397,6 +398,7 @@ export class Session {
                 chain: this.chain,
                 request,
                 resolved: undefined,
+                returns: [],
                 revisions: new TransactRevisions(request),
                 signatures: [],
                 signer: this.permissionLevel,
@@ -485,6 +487,11 @@ export class Session {
 
                 // Broadcast the SignedTransaction and save the API response to the TransactResult
                 result.response = await context.client.v1.chain.send_transaction(signed)
+
+                // Find and process any return values from the transaction
+                if (result.response.processed && result.response.processed.action_traces) {
+                    result.returns = await processReturnValues(result.response, abiCache)
+                }
 
                 // Run the `afterBroadcast` hooks that were registered by the TransactPlugins
                 for (const hook of context.hooks.afterBroadcast) await hook(result, context)
@@ -636,4 +643,42 @@ export class Session {
 
         return abiCache
     }
+}
+
+async function processReturnValues(
+    response: any,
+    abiCache: ABICacheInterface
+): Promise<TransactResultReturnValue[]> {
+    const returns: TransactResultReturnValue[] = []
+    for (const actionTrace of response.processed.action_traces) {
+        if (actionTrace.return_value_hex_data) {
+            const contract = Name.from(actionTrace.act.account)
+            const action = Name.from(actionTrace.act.name)
+            const abi = await abiCache.getAbi(contract)
+            const returnType = abi.action_results.find((a) => Name.from(a.name).equals(action))
+            if (returnType) {
+                try {
+                    const data = Serializer.decode({
+                        data: actionTrace.return_value_hex_data,
+                        type: returnType.result_type,
+                        abi,
+                    })
+                    returns.push({
+                        contract,
+                        action,
+                        hex: actionTrace.return_value_hex_data,
+                        data,
+                        returnType,
+                    })
+                } catch (error) {
+                    // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
+                    console.warn(`Error decoding return value for ${contract}::${action}:`, error)
+                }
+            } else {
+                // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
+                console.warn(`No return type found for ${contract}::${action}`)
+            }
+        }
+    }
+    return returns
 }

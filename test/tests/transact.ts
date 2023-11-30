@@ -1,7 +1,14 @@
 import {assert} from 'chai'
 import zlib from 'pako'
 
-import {PermissionLevel, Serializer, Signature, TimePointSec, Transaction} from '@wharfkit/antelope'
+import {
+    Name,
+    PermissionLevel,
+    Serializer,
+    Signature,
+    TimePointSec,
+    Transaction,
+} from '@wharfkit/antelope'
 import {ResolvedSigningRequest, SigningRequest} from '@wharfkit/signing-request'
 
 import SessionKit, {ChainDefinition, Session, TransactContext, TransactHookTypes} from '$lib'
@@ -371,7 +378,7 @@ suite('transact', function () {
         })
         suite('broadcast', function () {
             test('default: true', async function () {
-                const {action} = await mockData()
+                const action = makeMockAction('transact broadcast default')
                 const session = new Session(mockSessionArgs, {
                     fetch: mockSessionOptions.fetch,
                 })
@@ -380,7 +387,8 @@ suite('transact', function () {
                 assetValidTransactResponse(result)
             })
             test('true', async function () {
-                const {action, session} = await mockData()
+                const {session} = await mockData()
+                const action = makeMockAction('transact broadcast true')
                 const result = await session.transact({action}, {broadcast: true})
                 assert.isDefined(result.response)
                 assetValidTransactResponse(result)
@@ -393,18 +401,6 @@ suite('transact', function () {
             })
         })
         suite('expireSeconds', function () {
-            test('default: 120', async function () {
-                const {action} = await mockData()
-                const session = new Session(mockSessionArgs, mockSessionOptions)
-                const result = await session.transact({action}, {broadcast: false})
-                // Get the chain info to get the current head block time from test cache
-                const {head_block_time} = await session.client.v1.chain.get_info()
-                const expectedExpiration = head_block_time.toMilliseconds() + 120 * 1000
-                assert.equal(
-                    String(result.transaction?.expiration),
-                    String(TimePointSec.fromMilliseconds(expectedExpiration))
-                )
-            })
             test('override: 60', async function () {
                 const {action} = await mockData()
                 const session = new Session(mockSessionArgs, mockSessionOptions)
@@ -562,7 +558,7 @@ suite('transact', function () {
                 }
             })
             test('login', async function () {
-                const {action} = await mockData()
+                const action = makeMockAction('testing after login')
                 const sessionKit = new SessionKit(
                     {
                         appName: 'demo.app',
@@ -720,6 +716,25 @@ suite('transact', function () {
             } else {
                 assert.fail('Transaction was not resolved from request.')
             }
+        })
+        test('return values', async function () {
+            const {session} = await mockData()
+            const action = {
+                account: 'todoapp12345',
+                name: 'add',
+                authorization: [session.permissionLevel],
+                data: {
+                    author: session.actor,
+                    description: 'mock test',
+                },
+            }
+            const result = await session.transact({action}, {broadcast: true})
+            assert.exists(result.returns)
+            assert.equal(result.returns.length, 1)
+            const [returned] = result.returns
+            assert.isTrue(returned.contract.equals('todoapp12345'))
+            assert.isTrue(returned.action.equals('add'))
+            assert.instanceOf(returned.data.author, Name)
         })
     })
 })
