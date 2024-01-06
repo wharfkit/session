@@ -649,7 +649,7 @@ async function processReturnValues(
     response: any,
     abiCache: ABICacheInterface
 ): Promise<TransactResultReturnValue[]> {
-    const returns: TransactResultReturnValue[] = []
+    const decoded: TransactResultReturnValue[] = []
     for (const actionTrace of response.processed.action_traces) {
         if (actionTrace.return_value_hex_data) {
             const contract = Name.from(actionTrace.act.account)
@@ -663,7 +663,7 @@ async function processReturnValues(
                         type: returnType.result_type,
                         abi,
                     })
-                    returns.push({
+                    decoded.push({
                         contract,
                         action,
                         hex: actionTrace.return_value_hex_data,
@@ -673,12 +673,29 @@ async function processReturnValues(
                 } catch (error) {
                     // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
                     console.warn(`Error decoding return value for ${contract}::${action}:`, error)
+                    decoded.push({
+                        contract,
+                        action,
+                        hex: actionTrace.return_value_hex_data,
+                        data: '',
+                        returnType,
+                    })
                 }
             } else {
                 // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
                 console.warn(`No return type found for ${contract}::${action}`)
+                decoded.push({
+                    contract,
+                    action,
+                    hex: actionTrace.return_value_hex_data,
+                    data: '',
+                    returnType: {
+                        name: action,
+                        result_type: '',
+                    },
+                })
             }
         }
     }
-    return returns
+    return decoded
 }
