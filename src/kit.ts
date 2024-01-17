@@ -86,7 +86,6 @@ export class SessionKit {
     readonly abis: TransactABIDef[] = []
     readonly allowModify: boolean = true
     readonly appName: string
-    readonly chains: ChainDefinition[]
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
@@ -96,6 +95,7 @@ export class SessionKit {
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
     readonly accountCreationPlugins: AccountCreationPlugin[] = []
+    public chains: ChainDefinition[]
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
         // Save the appName to the SessionKit instance
@@ -154,6 +154,17 @@ export class SessionKit {
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
         }
+    }
+
+    /**
+     * Alters the session kit config for a specific chain to change the API endpoint in use
+     */
+    setEndpoint(id: Checksum256Type, url: string) {
+        const modifiedChains = {...this.chains}
+        const chainId = Checksum256.from(id)
+        const chainIndex = this.chains.findIndex((c) => c.id.equals(chainId))
+        modifiedChains[chainIndex].url = url
+        this.chains = modifiedChains
     }
 
     getChainDefinition(id: Checksum256Type, override?: ChainDefinition[]): ChainDefinition {

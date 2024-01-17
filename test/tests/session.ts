@@ -478,7 +478,7 @@ suite('session', function () {
             assert.instanceOf(signatures[0], Signature)
         })
     })
-    suite('change api', function () {
+    suite('setEndpoint', function () {
         test('able to change api endpoint', async function () {
             // Start with a Session
             const testSession = new Session(

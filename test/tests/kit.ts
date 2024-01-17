@@ -544,6 +544,32 @@ suite('kit', function () {
             assert.isTrue(sessions[2].actor.equals('mock3'))
         })
     })
+    suite('setEndpoint', function () {
+        test('able to change api endpoint', async function () {
+            // Start with a Session
+            const testSessionKit = new SessionKit({
+                ...mockSessionKitArgs,
+                chains: [
+                    {
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    },
+                ],
+            })
+
+            // Check for the default API endpoint
+            assert.equal(testSessionKit.chains[0].url, 'https://jungle4.greymass.com')
+
+            // Change the API endpoint
+            testSessionKit.setEndpoint(
+                '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                'https://wax.greymass.com'
+            )
+
+            // Check for that the API endpoint has changed
+            assert.equal(testSessionKit.chains[0].url, 'https://wax.greymass.com')
+        })
+    })
     suite('ui', function () {
         test('default', async function () {
             assert.instanceOf(sessionKit.ui, MockUserInterface)
