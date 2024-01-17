@@ -192,6 +192,13 @@ export class Session {
     }
 
     /**
+     * Alters the session config to change the API endpoint in use
+     */
+    setEndpoint(url: string) {
+        this.chain.url = url
+    }
+
+    /**
      * Templates in any missing fields from partial transactions.
      *
      * @param args TransactArgs

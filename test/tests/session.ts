@@ -1,7 +1,15 @@
 import {assert} from 'chai'
 
 import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
-import {ABI, ABIDef, Name, PermissionLevel, Signature, TimePointSec} from '@wharfkit/antelope'
+import {
+    ABI,
+    ABIDef,
+    FetchProvider,
+    Name,
+    PermissionLevel,
+    Signature,
+    TimePointSec,
+} from '@wharfkit/antelope'
 
 import {mockFetch} from '@wharfkit/mock-data'
 import {MockTransactPlugin, MockTransactResourceProviderPlugin} from '@wharfkit/mock-data'
@@ -468,6 +476,37 @@ suite('session', function () {
             // Ensure data is good
             assert.isArray(signatures)
             assert.instanceOf(signatures[0], Signature)
+        })
+    })
+    suite('change api', function () {
+        test('able to change api endpoint', async function () {
+            // Start with a Session
+            const testSession = new Session(
+                {
+                    chain: {
+                        id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                        url: 'https://jungle4.greymass.com',
+                    },
+                    permissionLevel: 'account@permission',
+                    walletPlugin: new WalletPluginPrivateKey(
+                        '5Jtoxgny5tT7NiNFp1MLogviuPJ9NniWjnU4wKzaX4t7pL4kJ8s'
+                    ),
+                },
+                {
+                    fetch: mockFetch,
+                }
+            )
+
+            // Check for the default API endpoint
+            const provider = testSession.client.provider as FetchProvider
+            assert.equal(provider.url, 'https://jungle4.greymass.com')
+
+            // Change the API endpoint
+            testSession.setEndpoint('https://wax.greymass.com')
+
+            // Check for that the API endpoint has changed
+            const provider2 = testSession.client.provider as FetchProvider
+            assert.equal(provider2.url, 'https://wax.greymass.com')
         })
     })
 })
