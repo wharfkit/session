@@ -160,9 +160,12 @@ export class SessionKit {
      * Alters the session kit config for a specific chain to change the API endpoint in use
      */
     setEndpoint(id: Checksum256Type, url: string) {
-        const modifiedChains = {...this.chains}
+        const modifiedChains = [...this.chains]
         const chainId = Checksum256.from(id)
         const chainIndex = this.chains.findIndex((c) => c.id.equals(chainId))
+        if (chainIndex < 0) {
+            throw new Error('Chain with specified ID not found.')
+        }
         modifiedChains[chainIndex].url = url
         this.chains = modifiedChains
     }

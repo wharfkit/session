@@ -571,6 +571,15 @@ suite('kit', function () {
 
             // Check for that the API endpoint has changed
             assert.equal(testSessionKit.chains[0].url, 'https://wax.greymass.com')
+
+            // Change the API endpoint
+            testSessionKit.setEndpoint(
+                '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                'https://telos.greymass.com'
+            )
+
+            // Check for that the API endpoint has changed
+            assert.equal(testSessionKit.chains[0].url, 'https://telos.greymass.com')
         })
     })
     suite('ui', function () {
