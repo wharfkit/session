@@ -509,4 +509,9 @@ suite('session', function () {
             assert.equal(provider2.url, 'https://wax.greymass.com')
         })
     })
+
+    test('account', async function () {
+        const account = await session.account()
+        assert.equal(String(account.accountName), 'wharfkit1111')
+    })
 })
