@@ -1,5 +1,6 @@
 import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
 import type {Contract} from '@wharfkit/contract'
+import {type Account, AccountKit} from '@wharfkit/account'
 
 import zlib from 'pako'
 import {
@@ -649,6 +650,12 @@ export class Session {
         }
 
         return abiCache
+    }
+
+    async account(): Promise<Account> {
+        const accountKit = new AccountKit(this.chain, {client: this.client})
+
+        return accountKit.load(this.permissionLevel.actor)
     }
 }
 
