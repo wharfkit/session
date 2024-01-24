@@ -2,12 +2,14 @@ import {assert} from 'chai'
 
 import SessionKit, {
     ChainDefinition,
+    LoginContext,
     Logo,
+    PermissionLevel,
     SessionKitArgs,
     SessionKitOptions,
     WalletPluginMetadata,
 } from '$lib'
-import {MockUserInterface} from '@wharfkit/mock-data'
+import {mockChainDefinition, mockPermissionLevel, MockUserInterface} from '@wharfkit/mock-data'
 import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
 import {mockFetch} from '@wharfkit/mock-data'
 import {makeMockAction} from '@wharfkit/mock-data'
@@ -445,6 +447,34 @@ suite('walletPlugin', function () {
                 assert.equal(metadata.logo?.light, 'foo')
                 assert.equal(metadata.logo?.getVariant('dark'), 'bar')
                 assert.equal(metadata.logo?.dark, 'bar')
+            })
+        })
+    })
+    suite('arbitrary', function () {
+        test('nonce', async function () {
+            const walletPlugin = new MockWalletPluginConfigs()
+            walletPlugin.login = async function login(context: LoginContext) {
+                // Ensure the context.arbitrary field contains the values passed in from sessionKit.login
+                assert.equal(context.arbitrary.nonce, 'foo')
+                return {
+                    chain: context.chain
+                        ? context.chain.id
+                        : ChainDefinition.from(mockChainDefinition).id,
+                    permissionLevel:
+                        context.permissionLevel || PermissionLevel.from(mockPermissionLevel),
+                }
+            }
+            const kit = new SessionKit(
+                {
+                    ...defaultSessionKitArgs,
+                    walletPlugins: [walletPlugin],
+                },
+                defaultSessionKitOptions
+            )
+            await kit.login({
+                arbitrary: {
+                    nonce: 'foo',
+                },
             })
         })
     })

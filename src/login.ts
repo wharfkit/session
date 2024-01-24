@@ -23,6 +23,7 @@ export interface LoginHooks {
  */
 export interface LoginContextOptions {
     appName?: NameType
+    arbitrary?: Record<string, any>
     // client: APIClient
     chain?: ChainDefinition
     chains?: ChainDefinition[]
@@ -53,6 +54,7 @@ export interface UserInterfaceWalletPlugin {
  */
 export class LoginContext {
     appName?: string
+    arbitrary: Record<string, any> = {}
     // client: APIClient
     chain?: ChainDefinition
     chains: ChainDefinition[] = []
@@ -73,6 +75,9 @@ export class LoginContext {
     walletPlugins: UserInterfaceWalletPlugin[] = []
     constructor(options: LoginContextOptions) {
         this.appName = String(options.appName)
+        if (options.arbitrary) {
+            this.arbitrary = options.arbitrary
+        }
         // this.client = options.client
         if (options.chains) {
             this.chains = options.chains

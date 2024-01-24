@@ -36,6 +36,7 @@ import {
 } from './account-creation'
 
 export interface LoginOptions {
+    arbitrary?: Record<string, any> // Arbitrary data that will be passed via context to wallet plugin
     chain?: ChainDefinition | Checksum256Type
     chains?: Checksum256Type[]
     loginPlugins?: LoginPlugin[]
@@ -327,6 +328,7 @@ export class SessionKit {
             // Create LoginContext for this login request.
             const context = new LoginContext({
                 appName: this.appName,
+                arbitrary: options?.arbitrary || {},
                 chain: undefined,
                 chains:
                     options && options?.chains
