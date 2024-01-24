@@ -3,15 +3,13 @@ import {assert} from 'chai'
 import SessionKit, {
     ChainDefinition,
     LoginContext,
-    LoginOptions,
-    LoginResult,
     Logo,
     PermissionLevel,
     SessionKitArgs,
     SessionKitOptions,
     WalletPluginMetadata,
 } from '$lib'
-import {MockUserInterface, mockChainDefinition, mockPermissionLevel} from '@wharfkit/mock-data'
+import {mockChainDefinition, mockPermissionLevel, MockUserInterface} from '@wharfkit/mock-data'
 import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
 import {mockFetch} from '@wharfkit/mock-data'
 import {makeMockAction} from '@wharfkit/mock-data'
