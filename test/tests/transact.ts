@@ -737,4 +737,50 @@ suite('transact', function () {
             assert.instanceOf(returned.data.author, Name)
         })
     })
+    suite('context_free_actions', function () {
+        test('transact w/ action', async function () {
+            const {session, action} = await mockData()
+            const result = await session.transact(
+                {
+                    action,
+                    context_free_actions: [
+                        {
+                            account: 'greymassfuel',
+                            name: 'noop',
+                            authorization: [],
+                            data: '',
+                        },
+                    ],
+                },
+                {
+                    broadcast: true,
+                }
+            )
+            if (result.resolved) {
+                assert.lengthOf(result.resolved?.transaction.context_free_actions, 1)
+            }
+        })
+        test('transact w/ actions', async function () {
+            const {session, action} = await mockData()
+            const result = await session.transact(
+                {
+                    actions: [action],
+                    context_free_actions: [
+                        {
+                            account: 'greymassfuel',
+                            name: 'noop',
+                            authorization: [],
+                            data: '',
+                        },
+                    ],
+                },
+                {
+                    broadcast: true,
+                }
+            )
+            if (result.resolved) {
+                assert.lengthOf(result.resolved?.transaction.context_free_actions, 1)
+            }
+        })
+    })
 })

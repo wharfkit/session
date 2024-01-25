@@ -229,6 +229,25 @@ export class Session {
                 },
             })
         }
+        // if any context free data is provided, upgrade to a transaction and include them
+        if (args.context_free_actions || args.context_free_data) {
+            const actions = args.actions || [args.action]
+            delete args.action
+            return {
+                transaction: {
+                    expiration: '1970-01-01T00:00:00',
+                    ref_block_num: 0,
+                    ref_block_prefix: 0,
+                    max_net_usage_words: 0,
+                    max_cpu_usage_ms: 0,
+                    delay_sec: 0,
+                    context_free_actions: [],
+                    context_free_data: [],
+                    actions,
+                    ...anyArgs,
+                },
+            }
+        }
         return args
     }
 

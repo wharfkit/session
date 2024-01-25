@@ -6,16 +6,24 @@
             "body": "{\"ref\":\"unittest\",\"request\":\"esr://gmMsfmIRpc7x7DpLh8nvg-zz9VdvrLYRihbJ-mIxXW5CYY4vA8OyJhPmVwahDAwM4bo2Z88yCrhx3DxY6vuYAQQmbDxlARMAssE0IwMEsLj6B4No8fKMxKK07MwShcxihZKMVIWk1OISBRtjoBQA\",\"signer\":{\"actor\":\"wharfkit1131\",\"permission\":\"test\"}}"
         }
     },
-    "status": 200,
+    "status": 402,
     "json": {
-        "code": 200,
+        "code": 402,
+        "message": "Fee required to complete transaction.",
         "data": {
+            "costs": {
+                "cpu": "0.0009 EOS",
+                "net": "0.0001 EOS",
+                "ram": "0.0000 EOS"
+            },
+            "fee": "0.0010 EOS",
+            "ref": "unittest",
             "request": [
                 "transaction",
                 {
-                    "expiration": "2023-11-28T19:36:49",
-                    "ref_block_num": 63113,
-                    "ref_block_prefix": 3639763257,
+                    "expiration": "2024-01-25T21:37:50",
+                    "ref_block_num": 680,
+                    "ref_block_prefix": 3068883408,
                     "max_net_usage_words": 0,
                     "max_cpu_usage_ms": 5,
                     "delay_sec": 0,
@@ -41,6 +49,17 @@
                                     "permission": "test"
                                 }
                             ],
+                            "data": "104608d9c1754de3000000403210955e0a0000000000000004454f5300000000234675656c205472616e73616374696f6e20466565207c207265663d756e697474657374"
+                        },
+                        {
+                            "account": "eosio.token",
+                            "name": "transfer",
+                            "authorization": [
+                                {
+                                    "actor": "wharfkit1131",
+                                    "permission": "test"
+                                }
+                            ],
                             "data": "104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33"
                         }
                     ],
@@ -48,10 +67,10 @@
                 }
             ],
             "signatures": [
-                "SIG_K1_K8WfCzdzCPzjSPPB2jWKQvqdLf1PbQNjwwSGfsABcWBuCuL9NJJtxaDB7xLdp5r6fU9KoGePquonEgRTXqgN55JVi6n91X"
+                "SIG_K1_Kk8ojKWQUQMqpVyH1VUk57NAS1jWTcXUFJgvRGP4ty7SpwM6Ddh8mYCUdvZzyTso3fZPT5z2BqLR9BKc3iSNYVJASn7gXo"
             ],
             "version": null
         }
     },
-    "text": "{\"code\":200,\"data\":{\"request\":[\"transaction\",{\"expiration\":\"2023-11-28T19:36:49\",\"ref_block_num\":63113,\"ref_block_prefix\":3639763257,\"max_net_usage_words\":0,\"max_cpu_usage_ms\":5,\"delay_sec\":0,\"context_free_actions\":[],\"actions\":[{\"account\":\"greymassnoop\",\"name\":\"noop\",\"authorization\":[{\"actor\":\"greymassfuel\",\"permission\":\"cosign\"}],\"data\":\"\"},{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1131\",\"permission\":\"test\"}],\"data\":\"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33\"}],\"transaction_extensions\":[]}],\"signatures\":[\"SIG_K1_K8WfCzdzCPzjSPPB2jWKQvqdLf1PbQNjwwSGfsABcWBuCuL9NJJtxaDB7xLdp5r6fU9KoGePquonEgRTXqgN55JVi6n91X\"],\"version\":null}}"
+    "text": "{\"code\":402,\"message\":\"Fee required to complete transaction.\",\"data\":{\"costs\":{\"cpu\":\"0.0009 EOS\",\"net\":\"0.0001 EOS\",\"ram\":\"0.0000 EOS\"},\"fee\":\"0.0010 EOS\",\"ref\":\"unittest\",\"request\":[\"transaction\",{\"expiration\":\"2024-01-25T21:37:50\",\"ref_block_num\":680,\"ref_block_prefix\":3068883408,\"max_net_usage_words\":0,\"max_cpu_usage_ms\":5,\"delay_sec\":0,\"context_free_actions\":[],\"actions\":[{\"account\":\"greymassnoop\",\"name\":\"noop\",\"authorization\":[{\"actor\":\"greymassfuel\",\"permission\":\"cosign\"}],\"data\":\"\"},{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1131\",\"permission\":\"test\"}],\"data\":\"104608d9c1754de3000000403210955e0a0000000000000004454f5300000000234675656c205472616e73616374696f6e20466565207c207265663d756e697474657374\"},{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1131\",\"permission\":\"test\"}],\"data\":\"104608d9c1754de390b1cad9c1754de3010000000000000004454f53000000001777686172666b6974206973207468652062657374203c33\"}],\"transaction_extensions\":[]}],\"signatures\":[\"SIG_K1_Kk8ojKWQUQMqpVyH1VUk57NAS1jWTcXUFJgvRGP4ty7SpwM6Ddh8mYCUdvZzyTso3fZPT5z2BqLR9BKc3iSNYVJASn7gXo\"],\"version\":null}}"
 }

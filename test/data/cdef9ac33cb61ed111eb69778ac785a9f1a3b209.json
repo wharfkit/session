@@ -1,0 +1,52 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/resource_provider/request_transaction",
+        "params": {
+            "method": "POST",
+            "body": "{\"ref\":\"unittest\",\"request\":\"esr://gmNgZPp2eVPqHCbn2te-DEDACCIYXhmENlw2jYl96ePCGODCcfNgqe9jsMSEjac4GjZOjItV6z0FUgsA\",\"signer\":{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}}"
+        }
+    },
+    "status": 400,
+    "json": {
+        "code": 400,
+        "message": "Unable to process and sample transaction",
+        "data": {
+            "request": "esr://gmNgZPp2eVPqHCbn2te-DEDACCIYXhmENlw2jYl96ePCGODCcfNgqe9jsMSEjac4GjZOjItV6z0FUgsA",
+            "error": {
+                "path": "/v1/chain/compute_transaction",
+                "response": {
+                    "headers": {
+                        "access-control-allow-headers": "X-Requested-With,Accept,Content-Type,Origin",
+                        "access-control-allow-methods": "GET, POST, OPTIONS",
+                        "access-control-allow-origin": "*",
+                        "connection": "close",
+                        "content-length": "425",
+                        "content-type": "application/json",
+                        "date": "Thu, 25 Jan 2024 21:32:54 GMT",
+                        "server": "nginx/1.18.0 (Ubuntu)"
+                    },
+                    "status": 500,
+                    "json": {
+                        "code": 500,
+                        "message": "Internal Service Error",
+                        "error": {
+                            "code": 3090005,
+                            "name": "irrelevant_auth_exception",
+                            "what": "Irrelevant authority included",
+                            "details": [
+                                {
+                                    "message": "action declares irrelevant authority '{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}'; minimum authority is {\"actor\":\"wharfkit1125\",\"permission\":\"active\"}",
+                                    "file": "authorization_manager.cpp",
+                                    "line_number": 522,
+                                    "method": "check_authorization"
+                                }
+                            ]
+                        }
+                    },
+                    "text": "{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":3090005,\"name\":\"irrelevant_auth_exception\",\"what\":\"Irrelevant authority included\",\"details\":[{\"message\":\"action declares irrelevant authority '{\\\"actor\\\":\\\"wharfkit1125\\\",\\\"permission\\\":\\\"test\\\"}'; minimum authority is {\\\"actor\\\":\\\"wharfkit1125\\\",\\\"permission\\\":\\\"active\\\"}\",\"file\":\"authorization_manager.cpp\",\"line_number\":522,\"method\":\"check_authorization\"}]}}"
+                }
+            }
+        }
+    },
+    "text": "{\"code\":400,\"message\":\"Unable to process and sample transaction\",\"data\":{\"request\":\"esr://gmNgZPp2eVPqHCbn2te-DEDACCIYXhmENlw2jYl96ePCGODCcfNgqe9jsMSEjac4GjZOjItV6z0FUgsA\",\"error\":{\"path\":\"/v1/chain/compute_transaction\",\"response\":{\"headers\":{\"access-control-allow-headers\":\"X-Requested-With,Accept,Content-Type,Origin\",\"access-control-allow-methods\":\"GET, POST, OPTIONS\",\"access-control-allow-origin\":\"*\",\"connection\":\"close\",\"content-length\":\"425\",\"content-type\":\"application/json\",\"date\":\"Thu, 25 Jan 2024 21:32:54 GMT\",\"server\":\"nginx/1.18.0 (Ubuntu)\"},\"status\":500,\"json\":{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":3090005,\"name\":\"irrelevant_auth_exception\",\"what\":\"Irrelevant authority included\",\"details\":[{\"message\":\"action declares irrelevant authority '{\\\"actor\\\":\\\"wharfkit1125\\\",\\\"permission\\\":\\\"test\\\"}'; minimum authority is {\\\"actor\\\":\\\"wharfkit1125\\\",\\\"permission\\\":\\\"active\\\"}\",\"file\":\"authorization_manager.cpp\",\"line_number\":522,\"method\":\"check_authorization\"}]}},\"text\":\"{\\\"code\\\":500,\\\"message\\\":\\\"Internal Service Error\\\",\\\"error\\\":{\\\"code\\\":3090005,\\\"name\\\":\\\"irrelevant_auth_exception\\\",\\\"what\\\":\\\"Irrelevant authority included\\\",\\\"details\\\":[{\\\"message\\\":\\\"action declares irrelevant authority '{\\\\\\\"actor\\\\\\\":\\\\\\\"wharfkit1125\\\\\\\",\\\\\\\"permission\\\\\\\":\\\\\\\"test\\\\\\\"}'; minimum authority is {\\\\\\\"actor\\\\\\\":\\\\\\\"wharfkit1125\\\\\\\",\\\\\\\"permission\\\\\\\":\\\\\\\"active\\\\\\\"}\\\",\\\"file\\\":\\\"authorization_manager.cpp\\\",\\\"line_number\\\":522,\\\"method\\\":\\\"check_authorization\\\"}]}}\"}}}}"
+}

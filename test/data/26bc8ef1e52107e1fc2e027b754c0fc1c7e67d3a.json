@@ -6,23 +6,23 @@
             "body": "{\"account_name\":\"\"}"
         }
     },
-    "status": 500,
+    "status": 400,
     "json": {
-        "code": 500,
-        "message": "Internal Service Error",
+        "code": 400,
+        "message": "Account lookup",
         "error": {
-            "code": 0,
-            "name": "exception",
-            "what": "unspecified",
+            "code": 3060002,
+            "name": "account_query_exception",
+            "what": "Account Query Exception",
             "details": [
                 {
-                    "message": "unknown key (eosio::chain::name): ",
-                    "file": "http_plugin.cpp",
-                    "line_number": 954,
-                    "method": "handle_exception"
+                    "message": "unable to retrieve account abi (unknown key (eosio::chain::name): )",
+                    "file": "chain_plugin.cpp",
+                    "line_number": 2375,
+                    "method": "get_raw_abi"
                 }
             ]
         }
     },
-    "text": "{\"code\":500,\"message\":\"Internal Service Error\",\"error\":{\"code\":0,\"name\":\"exception\",\"what\":\"unspecified\",\"details\":[{\"message\":\"unknown key (eosio::chain::name): \",\"file\":\"http_plugin.cpp\",\"line_number\":954,\"method\":\"handle_exception\"}]}}"
+    "text": "{\"code\":400,\"message\":\"Account lookup\",\"error\":{\"code\":3060002,\"name\":\"account_query_exception\",\"what\":\"Account Query Exception\",\"details\":[{\"message\":\"unable to retrieve account abi (unknown key (eosio::chain::name): )\",\"file\":\"chain_plugin.cpp\",\"line_number\":2375,\"method\":\"get_raw_abi\"}]}}"
 }

@@ -239,7 +239,7 @@ export const resourceProviderPlugin = () => {
                 action,
             })
             if (response.resolved && response.transaction) {
-                assert.lengthOf(response.transaction?.actions, 2)
+                assert.lengthOf(response.transaction?.actions, 3)
                 // Ensure the noop action was properly prepended
                 assert.equal(String(response.transaction?.actions[0].account), 'greymassnoop')
                 assert.equal(
@@ -253,7 +253,7 @@ export const resourceProviderPlugin = () => {
                 // Ensure the original transaction is still identical to the original
                 assert.isTrue(
                     Action.from({...action, data: Transfer.from(action.data)}).data.equals(
-                        response.resolved?.transaction.actions[1].data
+                        response.resolved?.transaction.actions[2].data
                     )
                 )
             } else {

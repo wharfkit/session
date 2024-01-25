@@ -4,6 +4,7 @@ import type {Contract} from '@wharfkit/contract'
 import zlib from 'pako'
 import {
     ABIDef,
+    ActionType,
     AnyAction,
     AnyTransaction,
     API,
@@ -192,6 +193,10 @@ export interface TransactArgs {
     actions?: AnyAction[]
     /** An ESR payload */
     request?: SigningRequest | string
+    /** Context free actions to include in the transaction */
+    context_free_actions?: ActionType[]
+    /** Context free data to include in the transaction */
+    context_free_data?: string[]
 }
 
 /**
