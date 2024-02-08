@@ -151,8 +151,8 @@ suite('walletPlugin', function () {
                 chain: chains[0].id,
             })
             assert.isTrue(result.response.chain.equals(chains[0].id))
-            assert.isTrue(result.response.permissionLevel.actor.equals('mock'))
-            assert.isTrue(result.response.permissionLevel.permission.equals('interface'))
+            assert.isTrue(result.response.permissionLevel.actor.equals('wharfkit1111'))
+            assert.isTrue(result.response.permissionLevel.permission.equals('test'))
         })
     })
     suite('supportedChains', function () {
