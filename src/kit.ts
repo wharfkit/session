@@ -361,12 +361,6 @@ export class SessionKit {
                 context.uiRequirements.requiresChainSelect = false
             }
 
-            // Predetermine permission (if possible) to prevent uneeded UI interactions.
-            if (options?.permissionLevel) {
-                context.permissionLevel = PermissionLevel.from(options.permissionLevel)
-                context.uiRequirements.requiresPermissionSelect = false
-            }
-
             // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
             let walletPlugin: WalletPlugin | undefined = undefined
             if (this.walletPlugins.length === 1) {
@@ -379,6 +373,15 @@ export class SessionKit {
                     context.walletPluginIndex = index
                     context.uiRequirements.requiresWalletSelect = false
                 }
+            }
+
+            // Predetermine permission (if possible) to prevent uneeded UI interactions.
+            if (walletPlugin && walletPlugin.config.requiresPermissionSelect === false) {
+                context.uiRequirements.requiresPermissionSelect = false
+            }
+            if (options?.permissionLevel) {
+                context.permissionLevel = PermissionLevel.from(options.permissionLevel)
+                context.uiRequirements.requiresPermissionSelect = false
             }
 
             // Determine if the login process requires any user interaction.
