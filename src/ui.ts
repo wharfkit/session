@@ -11,6 +11,7 @@ import {CreateAccountContext} from './index-module'
 export interface PromptArgs {
     title: string
     body?: string
+    optional?: boolean
     elements: PromptElement[]
 }
 
