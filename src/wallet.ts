@@ -5,6 +5,7 @@ import {IdentityProof, ResolvedSigningRequest} from '@wharfkit/signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
+import {SerializedSession, Session} from './session'
 
 /**
  * The static configuration of a [[WalletPlugin]].
@@ -127,6 +128,15 @@ export interface WalletPlugin {
         transaction: ResolvedSigningRequest,
         context: TransactContext
     ): Promise<WalletPluginSignResponse>
+    /**
+     * Optional method that is used to signal to the wallet plugin to logout the user.
+     *
+     * @param session The [[Session]] instance that is being logged out.
+     * @returns A promise that resolves when the wallet plugin logout process is complete.
+     * @throws An error if the logout could not happen.
+     */
+    logout?(session: Session | SerializedSession): Promise<void>
+
     /**
      * Serialize the [[WalletPlugin]] ID and data into a plain object.
      */

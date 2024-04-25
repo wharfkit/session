@@ -482,6 +482,14 @@ export class SessionKit {
         }
         await this.storage.remove('session')
         if (session) {
+            const walletPlugin = this.walletPlugins.find(
+                (wPlugin) => session?.walletPlugin.id === wPlugin.id
+            )
+
+            if (walletPlugin?.logout) {
+                await walletPlugin.logout(session)
+            }
+
             const sessions = await this.getSessions()
             if (sessions) {
                 let serialized = session
@@ -501,6 +509,24 @@ export class SessionKit {
             }
         } else {
             await this.storage.remove('sessions')
+
+            const sessions = await this.getSessions()
+
+            if (sessions) {
+                Promise.all(
+                    sessions.map((s) => {
+                        const walletPlugin = this.walletPlugins.find(
+                            (wPlugin) => s.walletPlugin.id === wPlugin.id
+                        )
+
+                        if (walletPlugin?.logout) {
+                            return walletPlugin.logout(s)
+                        } else {
+                            return Promise.resolve()
+                        }
+                    })
+                )
+            }
         }
     }
 
