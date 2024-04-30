@@ -5,7 +5,7 @@ import {IdentityProof, ResolvedSigningRequest} from '@wharfkit/signing-request'
 
 import {LoginContext} from './login'
 import {TransactContext} from './transact'
-import {SerializedSession, Session} from './session'
+import {LogoutContext} from './kit'
 
 /**
  * The static configuration of a [[WalletPlugin]].
@@ -135,7 +135,7 @@ export interface WalletPlugin {
      * @returns A promise that resolves when the wallet plugin logout process is complete.
      * @throws An error if the logout could not happen.
      */
-    logout?(session: Session | SerializedSession): Promise<void>
+    logout?(context: LogoutContext): Promise<void>
 
     /**
      * Serialize the [[WalletPlugin]] ID and data into a plain object.
