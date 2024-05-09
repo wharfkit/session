@@ -53,6 +53,11 @@ export interface LoginResult {
     session: Session
 }
 
+export interface LogoutContext {
+    session: Session
+    appName: string
+}
+
 export interface RestoreArgs {
     chain: Checksum256Type | ChainDefinition
     actor?: NameType
@@ -476,6 +481,27 @@ export class SessionKit {
         }
     }
 
+    logoutParams(session: Session | SerializedSession, walletPlugin: WalletPlugin): LogoutContext {
+        if (session instanceof Session) {
+            return {
+                session,
+                appName: this.appName,
+            }
+        } else {
+            return {
+                session: new Session({
+                    chain: this.getChainDefinition(session.chain),
+                    permissionLevel: PermissionLevel.from({
+                        actor: session.actor,
+                        permission: session.permission,
+                    }),
+                    walletPlugin,
+                }),
+                appName: this.appName,
+            }
+        }
+    }
+
     async logout(session?: Session | SerializedSession) {
         if (!this.storage) {
             throw new Error('An instance of Storage must be provided to utilize the logout method.')
@@ -487,7 +513,7 @@ export class SessionKit {
             )
 
             if (walletPlugin?.logout) {
-                await walletPlugin.logout(session)
+                await walletPlugin.logout(this.logoutParams(session, walletPlugin))
             }
 
             const sessions = await this.getSessions()
@@ -508,9 +534,9 @@ export class SessionKit {
                 await this.storage.write('sessions', JSON.stringify(other))
             }
         } else {
-            await this.storage.remove('sessions')
-
             const sessions = await this.getSessions()
+
+            await this.storage.remove('sessions')
 
             if (sessions) {
                 Promise.all(
@@ -520,7 +546,7 @@ export class SessionKit {
                         )
 
                         if (walletPlugin?.logout) {
-                            return walletPlugin.logout(s)
+                            return walletPlugin.logout(this.logoutParams(s, walletPlugin))
                         } else {
                             return Promise.resolve()
                         }
