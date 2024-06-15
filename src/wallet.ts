@@ -152,7 +152,7 @@ export interface WalletPlugin {
     /**
      * Requests a public key from the wallet plugin.
      */
-    retrievePublicKey?(): Promise<PublicKey>
+    retrievePublicKey?(chainId: Checksum256Type): Promise<PublicKey>
 }
 
 /**

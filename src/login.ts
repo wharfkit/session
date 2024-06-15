@@ -1,4 +1,11 @@
-import {APIClient, FetchProvider, NameType, PermissionLevel, PublicKey} from '@wharfkit/antelope'
+import {
+    APIClient,
+    Checksum256Type,
+    FetchProvider,
+    NameType,
+    PermissionLevel,
+    PublicKey,
+} from '@wharfkit/antelope'
 import type {ChainDefinition, Fetch} from '@wharfkit/common'
 import {SigningRequestEncodingOptions} from '@wharfkit/signing-request'
 import zlib from 'pako'
@@ -44,7 +51,7 @@ export interface UserInterfaceRequirements {
 export interface UserInterfaceWalletPlugin {
     config: WalletPluginConfig
     metadata: WalletPluginMetadata
-    retrievePublicKey: (() => Promise<PublicKey>) | undefined
+    retrievePublicKey: ((chainId: Checksum256Type) => Promise<PublicKey>) | undefined
 }
 
 /**
