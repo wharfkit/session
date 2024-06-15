@@ -346,6 +346,7 @@ export class SessionKit {
                     return {
                         config: plugin.config,
                         metadata: WalletPluginMetadata.from(plugin.metadata),
+                        retrievePublicKey: plugin.retrievePublicKey,
                     }
                 }),
             })

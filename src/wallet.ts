@@ -1,4 +1,11 @@
-import {Checksum256, Checksum256Type, PermissionLevel, Signature, Struct} from '@wharfkit/antelope'
+import {
+    Checksum256,
+    Checksum256Type,
+    PermissionLevel,
+    PublicKey,
+    Signature,
+    Struct,
+} from '@wharfkit/antelope'
 import {Logo} from '@wharfkit/common'
 import type {LocaleDefinitions} from '@wharfkit/common'
 import {IdentityProof, ResolvedSigningRequest} from '@wharfkit/signing-request'
@@ -141,6 +148,11 @@ export interface WalletPlugin {
      * Serialize the [[WalletPlugin]] ID and data into a plain object.
      */
     serialize(): WalletPluginData
+
+    /**
+     * Requests a public key from the wallet plugin.
+     */
+    retrievePublicKey?(): Promise<PublicKey>
 }
 
 /**
