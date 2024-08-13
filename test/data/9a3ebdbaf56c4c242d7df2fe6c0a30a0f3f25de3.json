@@ -3,7 +3,8 @@
         "path": "https://jungle4.greymass.com/v1/chain/get_raw_abi",
         "params": {
             "method": "POST",
-            "body": "{\"account_name\":\"todoapp12345\"}"
+            "body": "{\"account_name\":\"todoapp12345\"}",
+            "headers": {}
         }
     },
     "status": 200,
