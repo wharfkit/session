@@ -354,6 +354,29 @@ export class SessionKit {
             // Tell the UI a login request is beginning.
             await context.ui.onLogin()
 
+            // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
+            let walletPlugin: WalletPlugin | undefined = undefined
+            if (this.walletPlugins.length === 1) {
+                walletPlugin = this.walletPlugins[0] // Default to first when only one.
+                context.walletPluginIndex = 0
+                context.uiRequirements.requiresWalletSelect = false
+            } else if (options?.walletPlugin) {
+                const index = this.walletPlugins.findIndex((p) => p.id === options.walletPlugin)
+                if (index >= 0) {
+                    walletPlugin = this.walletPlugins[index]
+                    context.walletPluginIndex = index
+                    context.uiRequirements.requiresWalletSelect = false
+                }
+            }
+
+            // Set any uiRequirement overrides from the wallet plugin
+            if (walletPlugin) {
+                context.uiRequirements = {
+                    ...context.uiRequirements,
+                    ...walletPlugin.config,
+                }
+            }
+
             // Predetermine chain (if possible) to prevent uneeded UI interactions.
             if (options && options.chain) {
                 if (options.chain instanceof ChainDefinition) {
@@ -367,24 +390,7 @@ export class SessionKit {
                 context.uiRequirements.requiresChainSelect = false
             }
 
-            // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
-            let walletPlugin: WalletPlugin | undefined = undefined
-            if (this.walletPlugins.length === 1) {
-                walletPlugin = this.walletPlugins[0] // Default to first when only one.
-                context.uiRequirements.requiresWalletSelect = false
-            } else if (options?.walletPlugin) {
-                const index = this.walletPlugins.findIndex((p) => p.id === options.walletPlugin)
-                if (index >= 0) {
-                    walletPlugin = this.walletPlugins[index]
-                    context.walletPluginIndex = index
-                    context.uiRequirements.requiresWalletSelect = false
-                }
-            }
-
             // Predetermine permission (if possible) to prevent uneeded UI interactions.
-            if (walletPlugin && walletPlugin.config.requiresPermissionSelect === false) {
-                context.uiRequirements.requiresPermissionSelect = false
-            }
             if (options?.permissionLevel) {
                 context.permissionLevel = PermissionLevel.from(options.permissionLevel)
                 context.uiRequirements.requiresPermissionSelect = false
