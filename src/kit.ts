@@ -388,6 +388,8 @@ export class SessionKit {
             } else if (context.chains.length === 1) {
                 context.chain = context.chains[0]
                 context.uiRequirements.requiresChainSelect = false
+            } else {
+                context.uiRequirements.requiresChainSelect = true
             }
 
             // Predetermine permission (if possible) to prevent uneeded UI interactions.
