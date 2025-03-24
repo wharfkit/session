@@ -81,6 +81,7 @@ export interface SerializedSession {
     default?: boolean
     permission: NameType
     walletPlugin: SerializedWalletPlugin
+    data?: Record<string, any>
 }
 
 /**
@@ -101,6 +102,21 @@ export class Session {
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui?: UserInterface
     readonly walletPlugin: WalletPlugin
+    private _data: Record<string, any> = {}
+
+    /**
+     * Get the data stored in this session instance.
+     */
+    get data(): Record<string, any> {
+        return this._data
+    }
+
+    /**
+     * Set the data stored in this session instance.
+     */
+    set data(data: Record<string, any>) {
+        this._data = data
+    }
 
     /**
      * The constructor of the `Session` class.
@@ -602,13 +618,24 @@ export class Session {
         return walletResponse.signatures
     }
 
-    serialize = (): SerializedSession =>
-        Serializer.objectify({
+    serialize = (): SerializedSession => {
+        const serializableData: Record<string, any> = {
             chain: this.chain.id,
             actor: this.permissionLevel.actor,
             permission: this.permissionLevel.permission,
-            walletPlugin: this.walletPlugin.serialize(),
-        })
+            walletPlugin: {
+                id: this.walletPlugin.id,
+                data: this.walletPlugin.data,
+            },
+        }
+
+        // Only include data if it's not empty
+        if (Object.keys(this._data).length > 0) {
+            serializableData.data = this.data
+        }
+
+        return Serializer.objectify(serializableData)
+    }
 
     getPluginTranslations(transactPlugin: TransactPlugin | WalletPlugin): LocaleDefinitions {
         if (!transactPlugin.translations) {

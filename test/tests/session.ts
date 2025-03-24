@@ -426,6 +426,32 @@ suite('session', function () {
             assert.doesNotThrow(() => {
                 JSON.stringify(serialized)
             })
+            // Ensure data field is not present when it's empty
+            assert.isUndefined(serialized.data)
+        })
+
+        test('serializes with custom data field', function () {
+            const original = new Session(mockSessionArgs, mockSessionOptions)
+            original.data.randomField = 'randomData'
+            original.data.testNumber = 123
+            original.data.testBoolean = true
+            original.data.testObject = {key: 'value'}
+
+            const serialized = original.serialize()
+
+            // Check if data exists before accessing properties
+            assert.isDefined(serialized.data)
+            if (serialized.data) {
+                assert.equal(serialized.data.randomField, 'randomData')
+                assert.equal(serialized.data.testNumber, 123)
+                assert.equal(serialized.data.testBoolean, true)
+                assert.deepEqual(serialized.data.testObject, {key: 'value'})
+            }
+
+            // Make sure we can still stringify the serialized result
+            assert.doesNotThrow(() => {
+                JSON.stringify(serialized)
+            })
         })
     })
     suite('sign transaction', function () {

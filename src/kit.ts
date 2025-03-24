@@ -63,6 +63,7 @@ export interface RestoreArgs {
     actor?: NameType
     permission?: NameType
     walletPlugin?: Record<string, any>
+    data?: Record<string, any>
 }
 
 export interface SessionKitArgs {
@@ -611,6 +612,7 @@ export class SessionKit {
                         id: args.walletPlugin.id,
                         data: args.walletPlugin.data,
                     },
+                    data: args.data,
                 }
             } else {
                 // Otherwise throw an error since we can't establish the session data
@@ -659,6 +661,10 @@ export class SessionKit {
             },
             this.getSessionOptions(options)
         )
+
+        if (serializedSession.data) {
+            session.data = serializedSession.data
+        }
 
         // Save the session to storage if it has a storage instance.
         this.persistSession(session, options?.setAsDefault)

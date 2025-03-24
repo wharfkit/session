@@ -364,6 +364,20 @@ suite('kit', function () {
             }
             assertSessionMatchesMockSession(restored)
         })
+        test('session data', async function () {
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const {session} = await sessionKit.login()
+            session.data.customField = 'data value'
+            sessionKit.persistSession(session)
+            const restored = await sessionKit.restore()
+            if (!restored) {
+                throw new Error('Failed to restore session')
+            }
+            assert.equal(restored.data.customField, 'data value')
+        })
         test('session by chain id (checksum256)', async function () {
             // New kit w/ empty storage
             const sessionKit = new SessionKit(mockSessionKitArgs, {
