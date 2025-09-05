@@ -1,6 +1,8 @@
 import {Action, AnyAction, FetchProviderOptions, Transaction} from '@wharfkit/antelope'
-import type {Fetch} from '@wharfkit/common'
+import type {Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {SigningRequest} from '@wharfkit/signing-request'
+import {TransactPlugin} from './transact'
+import {WalletPlugin} from './wallet'
 
 /**
  * Return an instance of fetch.
@@ -90,4 +92,20 @@ export function prependAction(request: SigningRequest, action: AnyAction): Signi
         }
     }
     return cloned
+}
+
+export function getPluginTranslations(
+    transactPlugin: TransactPlugin | WalletPlugin
+): LocaleDefinitions {
+    if (!transactPlugin.translations) {
+        return {}
+    }
+    const prefixed = {}
+    const languages = Object.keys(transactPlugin.translations)
+    languages.forEach((lang) => {
+        if (transactPlugin.translations) {
+            prefixed[lang] = {[transactPlugin.id]: transactPlugin.translations[lang]}
+        }
+    })
+    return prefixed
 }

@@ -41,7 +41,7 @@ import {
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
-import {getFetch} from './utils'
+import {getFetch, getPluginTranslations} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
 
@@ -426,7 +426,7 @@ export class Session {
                 await context.ui.onTransact()
                 // Merge in any new localization strings from the plugins
                 for (const translation of transactPlugins.map((transactPlugin) =>
-                    this.getPluginTranslations(transactPlugin)
+                    getPluginTranslations(transactPlugin)
                 )) {
                     context.ui.addTranslations(translation)
                 }
@@ -478,7 +478,7 @@ export class Session {
             // Merge in any new localization strings from the wallet plugin
             if (context.ui) {
                 await context.ui.onSign()
-                context.ui.addTranslations(this.getPluginTranslations(this.walletPlugin))
+                context.ui.addTranslations(getPluginTranslations(this.walletPlugin))
             }
 
             // Retrieve the signature(s) and request modifications for this request from the WalletPlugin
@@ -634,20 +634,6 @@ export class Session {
         }
 
         return Serializer.objectify(serializableData)
-    }
-
-    getPluginTranslations(transactPlugin: TransactPlugin | WalletPlugin): LocaleDefinitions {
-        if (!transactPlugin.translations) {
-            return {}
-        }
-        const prefixed = {}
-        const languages = Object.keys(transactPlugin.translations)
-        languages.forEach((lang) => {
-            if (transactPlugin.translations) {
-                prefixed[lang] = {[transactPlugin.id]: transactPlugin.translations[lang]}
-            }
-        })
-        return prefixed
     }
 
     getMergedAbiCache(args: TransactArgs, options?: TransactOptions): ABICacheInterface {
