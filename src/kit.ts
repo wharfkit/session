@@ -27,7 +27,7 @@ import {
 } from './transact'
 import {WalletPlugin, WalletPluginLoginResponse, WalletPluginMetadata} from './wallet'
 import {UserInterface} from './ui'
-import {getFetch} from './utils'
+import {getFetch, getPluginTranslations} from './utils'
 import {
     AccountCreationPlugin,
     CreateAccountContext,
@@ -369,13 +369,13 @@ export class SessionKit {
                     context.uiRequirements.requiresWalletSelect = false
                 }
             }
-
             // Set any uiRequirement overrides from the wallet plugin
             if (walletPlugin) {
                 context.uiRequirements = {
                     ...context.uiRequirements,
                     ...walletPlugin.config,
                 }
+                context.ui.addTranslations(getPluginTranslations(walletPlugin))
             }
 
             // Predetermine chain (if possible) to prevent uneeded UI interactions.
