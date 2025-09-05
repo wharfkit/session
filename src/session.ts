@@ -1,4 +1,4 @@
-import type {ChainDefinitionType, Fetch, LocaleDefinitions} from '@wharfkit/common'
+import type {ChainDefinitionType, Fetch} from '@wharfkit/common'
 import type {Contract} from '@wharfkit/contract'
 
 import zlib from 'pako'
