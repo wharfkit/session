@@ -1,12 +1,20 @@
 import {assert} from 'chai'
 
-import SessionKit, {BaseTransactPlugin, ChainDefinition, Session, SessionOptions} from '$lib'
+import SessionKit, {
+    BaseTransactPlugin,
+    ChainDefinition,
+    Session,
+    SessionOptions,
+    URLEncodedSession,
+} from '$lib'
 import {
     ABI,
     ABIDef,
+    Bytes,
     FetchProvider,
     Name,
     PermissionLevel,
+    Serializer,
     Signature,
     TimePointSec,
 } from '@wharfkit/antelope'
@@ -37,9 +45,18 @@ const mockTransactOptions = {
 
 suite('session', function () {
     let session: Session
+    let kit: SessionKit
     setup(function () {
         // Establish new session before each test
-        session = new Session(mockSessionArgs, mockSessionOptions)
+        session = new Session(
+            {
+                ...mockSessionArgs,
+                data: {
+                    field: 'foo',
+                },
+            },
+            mockSessionOptions
+        )
     })
     nodejsUsage()
     suite('construct', function () {
@@ -533,6 +550,77 @@ suite('session', function () {
             // Check for that the API endpoint has changed
             const provider2 = testSession.client.provider as FetchProvider
             assert.equal(provider2.url, 'https://wax.greymass.com')
+        })
+    })
+    suite('encoded', function () {
+        setup(function () {
+            // Establish new session kit before each test
+            kit = new SessionKit(
+                {
+                    appName: 'demo.app',
+                    chains: [
+                        {
+                            id: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+                            url: 'https://jungle4.greymass.com',
+                        },
+                    ],
+                    ui: new MockUserInterface(),
+                    walletPlugins: [makeWallet()],
+                },
+                {
+                    fetch: mockFetch, // Required for unit tests
+                    storage: new MockStorage(),
+                }
+            )
+        })
+        test('serialized', async function () {
+            const serialized = session.encode('serialized')
+            const fromSerialized = await kit.restore(serialized)
+            if (!fromSerialized) {
+                throw new Error('Failed to restore session from serialized')
+            }
+            assert.equal(
+                JSON.stringify(serialized),
+                JSON.stringify(fromSerialized.encode('serialized'))
+            )
+            assert.deepEqual(serialized, fromSerialized.encode('serialized'))
+        })
+        test('json', async function () {
+            const serialized = session.encode('serialized')
+            const json = session.encode('json')
+            const fromJson = await kit.restore(JSON.parse(json))
+            if (!fromJson) {
+                throw new Error('Failed to restore session from json')
+            }
+            assert.equal(JSON.stringify(serialized), JSON.stringify(fromJson.encode('serialized')))
+            assert.deepEqual(serialized, fromJson.encode('serialized'))
+        })
+        test('encoded', async function () {
+            const serialized = session.encode('serialized')
+            const encoded = session.encode('encoded')
+            const fromEncoded = await kit.restore(encoded.args)
+            if (!fromEncoded) {
+                throw new Error('Failed to restore session from encoded')
+            }
+            assert.equal(
+                JSON.stringify(serialized),
+                JSON.stringify(fromEncoded.encode('serialized'))
+            )
+            assert.deepEqual(serialized, fromEncoded.encode('serialized'))
+        })
+        test('url', async function () {
+            const serialized = session.encode('serialized')
+            const url = session.encode('url')
+            const reconstructed = Serializer.decode({
+                data: Bytes.from(url, 'hex'),
+                type: URLEncodedSession,
+            })
+            const fromUrl = await kit.restore(reconstructed.args)
+            if (!fromUrl) {
+                throw new Error('Failed to restore session from url')
+            }
+            assert.equal(JSON.stringify(serialized), JSON.stringify(fromUrl.encode('serialized')))
+            assert.deepEqual(serialized, fromUrl.encode('serialized'))
         })
     })
 })

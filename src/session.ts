@@ -44,6 +44,7 @@ import {SessionStorage} from './storage'
 import {getFetch, getPluginTranslations} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
+import {URLEncodedSession} from './encoded'
 
 /**
  * Arguments required to create a new [[Session]].
@@ -51,6 +52,7 @@ import {UserInterface} from './ui'
 export interface SessionArgs {
     actor?: NameType
     chain: ChainDefinitionType
+    data?: Record<string, any>
     permission?: NameType
     permissionLevel?: PermissionLevelType | string
     walletPlugin: WalletPlugin
@@ -82,6 +84,8 @@ export interface SerializedSession {
     walletPlugin: SerializedWalletPlugin
     data?: Record<string, any>
 }
+
+export type SessionEncodingTypes = 'encoded' | 'json' | 'serialized' | 'url'
 
 /**
  * A representation of a session to interact with a specific blockchain account.
@@ -139,6 +143,11 @@ export class Session {
 
         // Set the WalletPlugin for this session
         this.walletPlugin = args.walletPlugin
+
+        // Initialize any arbitrary data provided to the constructor
+        if (args.data) {
+            this.data = args.data
+        }
 
         // Handle all the optional values provided
         if (options.appName) {
@@ -681,6 +690,30 @@ export class Session {
         }
 
         return abiCache
+    }
+
+    encode(encoding: 'encoded'): URLEncodedSession
+    encode(encoding: 'json'): string
+    encode(encoding: 'serialized'): SerializedSession
+    encode(encoding: 'url'): string
+    encode(
+        encoding: SessionEncodingTypes = 'serialized'
+    ): string | SerializedSession | URLEncodedSession {
+        const serialized = this.serialize()
+        switch (encoding) {
+            case 'encoded':
+                return URLEncodedSession.fromSession(serialized)
+            case 'json':
+                return JSON.stringify(serialized)
+            case 'serialized':
+                return serialized
+            case 'url':
+                return Serializer.encode({
+                    object: URLEncodedSession.fromSession(serialized),
+                }).toString('hex')
+            default:
+                throw new Error(`Unsupported encoding: ${encoding}`)
+        }
     }
 }
 

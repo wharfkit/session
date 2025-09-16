@@ -1,12 +1,14 @@
 import {ChainDefinition, type ChainDefinitionType, type Fetch} from '@wharfkit/common'
 import type {Contract} from '@wharfkit/contract'
 import {
+    Bytes,
     Checksum256,
     Checksum256Type,
     Name,
     NameType,
     PermissionLevel,
     PermissionLevelType,
+    Serializer,
 } from '@wharfkit/antelope'
 
 import {
@@ -34,6 +36,7 @@ import {
     CreateAccountOptions,
     CreateAccountResponse,
 } from './account-creation'
+import {URLEncodedSession} from './encoded'
 
 export interface LoginOptions {
     arbitrary?: Record<string, any> // Arbitrary data that will be passed via context to wallet plugin
@@ -75,6 +78,9 @@ export interface SessionKitArgs {
 
 export interface SessionKitOptions {
     abis?: TransactABIDef[]
+    acceptUrlSession?: boolean
+    acceptUrlSessionParam?: string
+    accountCreationPlugins?: AccountCreationPlugin[]
     allowModify?: boolean
     contracts?: Contract[]
     expireSeconds?: number
@@ -83,7 +89,6 @@ export interface SessionKitOptions {
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
-    accountCreationPlugins?: AccountCreationPlugin[]
 }
 
 /**
@@ -91,6 +96,9 @@ export interface SessionKitOptions {
  */
 export class SessionKit {
     readonly abis: TransactABIDef[] = []
+    readonly acceptUrlSession: boolean = false
+    readonly acceptUrlSessionParam: string = 'incomingWharfSession'
+    readonly accountCreationPlugins: AccountCreationPlugin[] = []
     readonly allowModify: boolean = true
     readonly appName: string
     readonly expireSeconds: number = 120
@@ -101,7 +109,6 @@ export class SessionKit {
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
-    readonly accountCreationPlugins: AccountCreationPlugin[] = []
     public chains: ChainDefinition[]
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
@@ -122,6 +129,14 @@ export class SessionKit {
         // Add any ABIs manually provided
         if (options.abis) {
             this.abis = [...options.abis]
+        }
+        // Determine if URL sessions should be accepted
+        if (options.acceptUrlSession) {
+            this.acceptUrlSession = options.acceptUrlSession
+        }
+        // Determine if URL session param name was overridden
+        if (options.acceptUrlSessionParam) {
+            this.acceptUrlSessionParam = options.acceptUrlSessionParam
         }
         // Extract any ABIs from the Contract instances provided
         if (options.contracts) {
@@ -567,13 +582,36 @@ export class SessionKit {
     }
 
     async restore(args?: RestoreArgs, options?: LoginOptions): Promise<Session | undefined> {
-        // If no args were provided, attempt to default restore the session from storage.
         if (!args) {
-            const data = await this.storage.read('session')
-            if (data) {
-                args = JSON.parse(data)
-            } else {
-                return
+            if (this.acceptUrlSession && typeof window !== 'undefined') {
+                // Attempt to retrieve session from current URL params
+                const url = new URL(window.location.href)
+                const incoming = url.searchParams.get(this.acceptUrlSessionParam)
+                if (incoming) {
+                    try {
+                        const encodedSession = Serializer.decode({
+                            data: Bytes.from(incoming, 'hex'),
+                            type: URLEncodedSession,
+                        })
+                        args = encodedSession.args
+                        // Remove the session from the URL to prevent reuse
+                        url.searchParams.delete(this.acceptUrlSessionParam)
+                        window.history.replaceState(null, '', url)
+                    } catch (e) {
+                        // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
+                        console.warn('Failed to decode session from URL: ' + incoming)
+                    }
+                }
+            }
+
+            // If no args were provided or retrieved from the URL, attempt to default restore the session from storage.
+            if (!args) {
+                const data = await this.storage.read('session')
+                if (!args && data) {
+                    args = JSON.parse(data)
+                } else {
+                    return
+                }
             }
         }
 
@@ -585,14 +623,13 @@ export class SessionKit {
             args.chain instanceof ChainDefinition ? args.chain.id : args.chain
         )
 
-        let serializedSession: SerializedSession
+        let serializedSession: SerializedSession | undefined
 
         // Retrieve all sessions from storage
         const data = await this.storage.read('sessions')
-
         if (data) {
             // If sessions exist, restore the session that matches the provided args
-            const sessions = JSON.parse(data)
+            const sessions = JSON.parse(data) as SerializedSession[]
             if (args.actor && args.permission) {
                 // If all args are provided, return exact match
                 serializedSession = sessions.find((s: SerializedSession) => {
@@ -609,8 +646,10 @@ export class SessionKit {
                     return args && chainId.equals(s.chain) && s.default
                 })
             }
-        } else {
-            // If no sessions were found, but the args contains all the data for a serialized session, use args
+        }
+
+        // If no sessions were found, but the args contains all the data for a serialized session, use args
+        if (!serializedSession) {
             if (args.actor && args.permission && args.walletPlugin) {
                 serializedSession = {
                     chain: String(chainId),
@@ -638,7 +677,7 @@ export class SessionKit {
             if (!args) {
                 return false
             }
-            return p.id === serializedSession.walletPlugin.id
+            return p.id === serializedSession?.walletPlugin.id
         })
 
         if (!walletPlugin) {
