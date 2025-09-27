@@ -616,6 +616,80 @@ suite('kit', function () {
             assert.isTrue(sessions[2].actor.equals('mock3'))
         })
     })
+    suite('persistSession', function () {
+        test('persists session data', async function () {
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const {session} = await sessionKit.login()
+            await sessionKit.persistSession(session)
+            const restored = await sessionKit.restore()
+            if (!restored) {
+                throw new Error('Failed to restore session')
+            }
+            assert.deepEqual(restored.serialize(), session.serialize())
+        })
+        test('prevent duplicates', async function () {
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const {session} = await sessionKit.login()
+            await sessionKit.persistSession(session)
+            await sessionKit.persistSession(session)
+            const sessions = await sessionKit.getSessions()
+            assert.lengthOf(sessions, 1)
+        })
+        test('sets default on new session', async function () {
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+            const session2 = new Session({
+                actor: 'session2',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2)
+            const sessions = await sessionKit.getSessions()
+            assert.lengthOf(sessions, 2)
+            assert.equal(sessions[0].default, false)
+            assert.equal(sessions[1].default, true)
+        })
+        test('prevent default on new session', async function () {
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+            const session2 = new Session({
+                actor: 'session2',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2, false)
+            const sessions = await sessionKit.getSessions()
+            assert.lengthOf(sessions, 2)
+            assert.equal(sessions[0].default, true)
+            assert.equal(sessions[1].default, false)
+        })
+    })
     suite('setEndpoint', function () {
         test('able to change api endpoint', async function () {
             // Start with a Session

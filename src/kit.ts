@@ -768,7 +768,7 @@ export class SessionKit {
                 })
                 // Remove the default status from all other sessions for this chain
                 .map((s: SerializedSession): SerializedSession => {
-                    if (session.chain.id.equals(s.chain)) {
+                    if (setAsDefault && session.chain.id.equals(s.chain)) {
                         s.default = false
                     }
                     return s
