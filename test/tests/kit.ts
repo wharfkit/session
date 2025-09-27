@@ -15,7 +15,7 @@ import {
     UserInterfaceLoginResponse,
 } from '$lib'
 
-import {makeWallet, MockWalletPluginConfigs} from '@wharfkit/mock-data'
+import {makeWallet, mockSessionOptions, MockWalletPluginConfigs} from '@wharfkit/mock-data'
 import {MockTransactPlugin} from '@wharfkit/mock-data'
 import {makeMockAction} from '@wharfkit/mock-data'
 import {
@@ -337,28 +337,37 @@ suite('kit', function () {
             assert.lengthOf(sessionsAfterLogout, 0)
         })
         test('session param', async function () {
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
 
-            const session2 = new Session({
-                actor: 'session2',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session2 = new Session(
+                {
+                    actor: 'session2',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2)
 
-            const session3 = new Session({
-                actor: 'session3',
-                permission: 'test',
-                chain: Chains.EOS,
-                walletPlugin: makeWallet(),
-            })
+            const session3 = new Session(
+                {
+                    actor: 'session3',
+                    permission: 'test',
+                    chain: Chains.EOS,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session3)
 
             const sessionsBeforeLogout = await sessionKit.getSessions()
@@ -682,19 +691,25 @@ suite('kit', function () {
                 ...mockSessionKitOptions,
                 storage: new MockStorage(),
             })
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
-            const session2 = new Session({
-                actor: 'session2',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session2 = new Session(
+                {
+                    actor: 'session2',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2)
             const sessions = await sessionKit.getSessions()
             assert.lengthOf(sessions, 2)
@@ -706,19 +721,25 @@ suite('kit', function () {
                 ...mockSessionKitOptions,
                 storage: new MockStorage(),
             })
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
-            const session2 = new Session({
-                actor: 'session2',
-                permission: 'test',
-                chain: mockChainDefinition,
-                walletPlugin: makeWallet(),
-            })
+            const session2 = new Session(
+                {
+                    actor: 'session2',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    walletPlugin: makeWallet(),
+                },
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2, {setAsDefault: false})
             const sessions = await sessionKit.getSessions()
             assert.lengthOf(sessions, 2)
@@ -734,25 +755,31 @@ suite('kit', function () {
                 storage: new MockStorage(),
             })
             // Create two sessions for the same chain, actor, and permission but different appIds
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app1',
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app1',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
-            const session2 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app2',
+            const session2 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app2',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2)
             const sessions = await sessionKit.getSessions()
             // The base rules prevent duplicate sessions based on chain, actor, and permission only
@@ -780,25 +807,31 @@ suite('kit', function () {
                 storage: new MockStorage(),
             })
             // Create two sessions for the same user with different appIds
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app1',
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app1',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
-            const session2 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app2',
+            const session2 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app2',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2)
             const sessions = await sessionKit.getSessions()
             // Ensure the uniqueness rule was applied and both sessions exist
@@ -815,25 +848,31 @@ suite('kit', function () {
                 storage: new MockStorage(),
             })
             // Create two sessions for the same user with different appIds
-            const session1 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app1',
+            const session1 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app1',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session1)
-            const session2 = new Session({
-                actor: 'session1',
-                permission: 'test',
-                chain: mockChainDefinition,
-                data: {
-                    appId: 'app2',
+            const session2 = new Session(
+                {
+                    actor: 'session1',
+                    permission: 'test',
+                    chain: mockChainDefinition,
+                    data: {
+                        appId: 'app2',
+                    },
+                    walletPlugin: makeWallet(),
                 },
-                walletPlugin: makeWallet(),
-            })
+                mockSessionOptions
+            )
             await sessionKit.persistSession(session2)
             const sessions = await sessionKit.getSessions()
             // Ensure the uniqueness rule was applied and both sessions exist
