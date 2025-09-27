@@ -549,11 +549,9 @@ export class SessionKit {
                 }
                 const other = sessions.filter((s: Record<string, any>) => {
                     return (
-                        !Checksum256.from(s.chain).equals(
-                            Checksum256.from(String(serialized.chain))
-                        ) ||
-                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
-                        !Name.from(s.permission).equals(Name.from(serialized.permission))
+                        !Checksum256.from(s.chain).equals(String(serialized.chain)) ||
+                        !Name.from(s.actor).equals(serialized.actor) ||
+                        !Name.from(s.permission).equals(serialized.permission)
                     )
                 })
                 await this.storage.write('sessions', JSON.stringify(other))
@@ -761,9 +759,9 @@ export class SessionKit {
                 // Filter out any matching session to ensure no duplicates
                 .filter((s: SerializedSession): boolean => {
                     return (
-                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
-                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
-                        !Name.from(s.permission).equals(Name.from(serialized.permission))
+                        !Checksum256.from(s.chain).equals(serialized.chain) ||
+                        !Name.from(s.actor).equals(serialized.actor) ||
+                        !Name.from(s.permission).equals(serialized.permission)
                     )
                 })
                 // Remove the default status from all other sessions for this chain
