@@ -800,12 +800,7 @@ export class SessionKit {
         try {
             const parsed = JSON.parse(data)
             // Only return sessions that have a wallet plugin that is currently registered.
-            const filtered = parsed.filter((s: SerializedSession) =>
-                this.walletPlugins.some((p) => {
-                    return p.id === s.walletPlugin.id
-                })
-            )
-            return filtered
+            return getSessionsMatchingWalletPlugins(parsed, this.walletPlugins)
         } catch (e) {
             throw new Error(`Failed to parse sessions from storage (${e})`)
         }
@@ -824,4 +819,11 @@ export class SessionKit {
             ui: this.ui,
         }
     }
+}
+
+export function getSessionsMatchingWalletPlugins(
+    sessions: SerializedSession[],
+    walletPlugins: WalletPlugin[]
+) {
+    return sessions.filter((s) => walletPlugins.some((p) => p.id === s.walletPlugin.id))
 }
