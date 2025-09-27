@@ -1,5 +1,5 @@
 import {Checksum256, Name, Struct} from '@wharfkit/antelope'
-import {RestoreArgs, SerializedSession, Session} from './index-module'
+import {SerializedSession, Session} from './index-module'
 
 /**
  * The metadata of an [[AccountCreationPlugin]].
@@ -23,7 +23,7 @@ export class URLEncodedSession extends Struct {
         })
     }
 
-    get args(): RestoreArgs {
+    get serialized(): SerializedSession {
         return {
             chain: this.chain,
             actor: this.actor,

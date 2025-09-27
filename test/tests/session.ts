@@ -598,7 +598,7 @@ suite('session', function () {
         test('encoded', async function () {
             const serialized = session.encode('serialized')
             const encoded = session.encode('encoded')
-            const fromEncoded = await kit.restore(encoded.args)
+            const fromEncoded = await kit.restore(encoded.serialized)
             if (!fromEncoded) {
                 throw new Error('Failed to restore session from encoded')
             }
@@ -615,7 +615,7 @@ suite('session', function () {
                 data: Bytes.from(url, 'hex'),
                 type: URLEncodedSession,
             })
-            const fromUrl = await kit.restore(reconstructed.args)
+            const fromUrl = await kit.restore(reconstructed.serialized)
             if (!fromUrl) {
                 throw new Error('Failed to restore session from url')
             }

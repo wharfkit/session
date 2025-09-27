@@ -1,5 +1,5 @@
 import {assert} from 'chai'
-import {Checksum256, PermissionLevel, TimePointSec} from '@wharfkit/antelope'
+import {Checksum256, Name, PermissionLevel, TimePointSec} from '@wharfkit/antelope'
 import {WalletPluginPrivateKey} from '@wharfkit/wallet-plugin-privatekey'
 
 import {
@@ -10,6 +10,7 @@ import {
     Logo,
     Session,
     SessionKit,
+    SessionType,
     UserInterfaceAccountCreationResponse,
     UserInterfaceLoginResponse,
 } from '$lib'
@@ -336,13 +337,41 @@ suite('kit', function () {
             assert.lengthOf(sessionsAfterLogout, 0)
         })
         test('session param', async function () {
-            const {session} = await sessionKit.login()
-            assertSessionMatchesMockSession(session)
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+
+            const session2 = new Session({
+                actor: 'session2',
+                permission: 'test',
+                chain: mockChainDefinition,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2)
+
+            const session3 = new Session({
+                actor: 'session3',
+                permission: 'test',
+                chain: Chains.EOS,
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session3)
+
             const sessionsBeforeLogout = await sessionKit.getSessions()
-            assert.lengthOf(sessionsBeforeLogout, 1)
-            await sessionKit.logout(session)
+            assert.lengthOf(sessionsBeforeLogout, 3)
+            assert.equal(sessionsBeforeLogout[0].actor, session1.actor)
+            assert.equal(sessionsBeforeLogout[1].actor, session2.actor)
+            assert.equal(sessionsBeforeLogout[2].actor, session3.actor)
+
+            await sessionKit.logout(session2)
             const sessionsAfterLogout = await sessionKit.getSessions()
-            assert.lengthOf(sessionsAfterLogout, 0)
+            assert.lengthOf(sessionsAfterLogout, 2)
+            assert.equal(sessionsAfterLogout[0].actor, session1.actor)
+            assert.equal(sessionsAfterLogout[1].actor, session3.actor)
         })
         test('serialized session param', async function () {
             const {session} = await sessionKit.login()
@@ -371,7 +400,7 @@ suite('kit', function () {
             })
             const {session} = await sessionKit.login()
             session.data.customField = 'data value'
-            sessionKit.persistSession(session)
+            await sessionKit.persistSession(session)
             const restored = await sessionKit.restore()
             if (!restored) {
                 throw new Error('Failed to restore session')
@@ -460,7 +489,7 @@ suite('kit', function () {
             assert.isTrue(sessions[2].actor.equals('mock3'))
             assert.isTrue(sessions[2].chain.id.equals(Chains.EOS.id))
 
-            const restoredEOS = await sessionKit.restore({chain: Chains.EOS})
+            const restoredEOS = await sessionKit.restore({chain: Chains.EOS.id})
             assert.isDefined(restoredEOS)
             if (restoredEOS) {
                 assert.instanceOf(restoredEOS, Session)
@@ -468,7 +497,7 @@ suite('kit', function () {
                 assert.isTrue(restoredEOS.chain.id.equals(Chains.EOS.id))
             }
 
-            const restoredJUNGLE = await sessionKit.restore({chain: Chains.Jungle4})
+            const restoredJUNGLE = await sessionKit.restore({chain: Chains.Jungle4.id})
             assert.isDefined(restoredJUNGLE)
             if (restoredJUNGLE) {
                 assert.instanceOf(restoredJUNGLE, Session)
@@ -483,13 +512,17 @@ suite('kit', function () {
                 storage: new MockStorage(),
             })
 
-            // Ensure no sessions
-            const sessions = await sessionKit.restoreAll()
-            assert.lengthOf(sessions, 0)
-
             // Mock window object for Node.js environment
             if (typeof globalThis.window === 'undefined') {
                 ;(globalThis as any).window = {}
+            }
+
+            // Mock window.history for Node.js environment
+            if (typeof (globalThis as any).window.history === 'undefined') {
+                ;(globalThis as any).window.history = {
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    replaceState: () => {},
+                }
             }
 
             // Mock window.location with a writable href property
@@ -503,6 +536,10 @@ suite('kit', function () {
                     ;(globalThis as any).window.location = {href: ''}
                 }
             }
+
+            // Ensure no sessions
+            const sessions = await sessionKit.restoreAll()
+            assert.lengthOf(sessions, 0)
 
             // Set the href to include an incomingWharfSession parameter
             window.location.href =
@@ -623,7 +660,6 @@ suite('kit', function () {
                 storage: new MockStorage(),
             })
             const {session} = await sessionKit.login()
-            await sessionKit.persistSession(session)
             const restored = await sessionKit.restore()
             if (!restored) {
                 throw new Error('Failed to restore session')
@@ -683,11 +719,127 @@ suite('kit', function () {
                 chain: mockChainDefinition,
                 walletPlugin: makeWallet(),
             })
-            await sessionKit.persistSession(session2, false)
+            await sessionKit.persistSession(session2, {setAsDefault: false})
             const sessions = await sessionKit.getSessions()
             assert.lengthOf(sessions, 2)
             assert.equal(sessions[0].default, true)
             assert.equal(sessions[1].default, false)
+        })
+    })
+    suite('equalityFn', function () {
+        test('base equality check', async function () {
+            // The base equality uses a combination of chain, actor, and permission
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                storage: new MockStorage(),
+            })
+            // Create two sessions for the same chain, actor, and permission but different appIds
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app1',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+            const session2 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app2',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2)
+            const sessions = await sessionKit.getSessions()
+            // The base rules prevent duplicate sessions based on chain, actor, and permission only
+            // it ignores additional data like appId
+            assert.lengthOf(sessions, 1)
+            // The second session should have overwritten the first
+            assert.equal(sessions[0].data?.appId, 'app2')
+        })
+        test('custom equalityFn', async function () {
+            // This custom rule enforces custom uniqueness based on persisted appId
+            const equalityFn = (a: SessionType, b: SessionType) => {
+                const first = a instanceof Session ? a.serialize() : a
+                const second = b instanceof Session ? b.serialize() : b
+                const idsEqual = first.data?.appId === second.data?.appId
+                return (
+                    Checksum256.from(first.chain).equals(second.chain) &&
+                    Name.from(first.actor).equals(second.actor) &&
+                    Name.from(first.permission).equals(second.permission) &&
+                    idsEqual
+                )
+            }
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                equalityFn, // Initialize with custom equality function
+                storage: new MockStorage(),
+            })
+            // Create two sessions for the same user with different appIds
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app1',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+            const session2 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app2',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2)
+            const sessions = await sessionKit.getSessions()
+            // Ensure the uniqueness rule was applied and both sessions exist
+            assert.lengthOf(sessions, 2)
+            assert.equal(sessions[0].data?.appId, 'app1')
+            assert.equal(sessions[1].data?.appId, 'app2')
+        })
+        test('disable equality', async function () {
+            // This custom rule disables uniqueness entirely
+            const equalityFn = () => false
+            const sessionKit = new SessionKit(mockSessionKitArgs, {
+                ...mockSessionKitOptions,
+                equalityFn, // Initialize with custom equality function
+                storage: new MockStorage(),
+            })
+            // Create two sessions for the same user with different appIds
+            const session1 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app1',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session1)
+            const session2 = new Session({
+                actor: 'session1',
+                permission: 'test',
+                chain: mockChainDefinition,
+                data: {
+                    appId: 'app2',
+                },
+                walletPlugin: makeWallet(),
+            })
+            await sessionKit.persistSession(session2)
+            const sessions = await sessionKit.getSessions()
+            // Ensure the uniqueness rule was applied and both sessions exist
+            assert.lengthOf(sessions, 2)
+            assert.equal(sessions[0].data?.appId, 'app1')
+            assert.equal(sessions[1].data?.appId, 'app2')
         })
     })
     suite('setEndpoint', function () {

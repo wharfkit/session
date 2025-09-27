@@ -85,6 +85,15 @@ export interface SerializedSession {
     data?: Record<string, any>
 }
 
+export interface PartialSerializedSession extends Partial<SerializedSession> {
+    actor?: NameType
+    chain: Checksum256Type
+    default?: boolean
+    permission?: NameType
+    walletPlugin?: SerializedWalletPlugin
+    data?: Record<string, any>
+}
+
 export type SessionEncodingTypes = 'encoded' | 'json' | 'serialized' | 'url'
 
 /**
