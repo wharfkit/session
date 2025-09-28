@@ -2,6 +2,7 @@ import {ChainDefinition, type ChainDefinitionType, type Fetch} from '@wharfkit/c
 import type {Contract} from '@wharfkit/contract'
 import {
     Bytes,
+    BytesEncoding,
     Checksum256,
     Checksum256Type,
     Name,
@@ -9,6 +10,7 @@ import {
     PermissionLevel,
     PermissionLevelType,
     Serializer,
+    Struct,
 } from '@wharfkit/antelope'
 
 import {
@@ -98,11 +100,27 @@ export interface SessionKitOptions {
     transactPluginsOptions?: TransactPluginsOptions
 }
 
+@Struct.type('session_kit_event_message')
+export class SessionKitMessageEvent extends Struct {
+    @Struct.field(Name) declare type: Name
+    @Struct.field('string', {optional: true}) declare plugin_id?: string
+    @Struct.field('string', {optional: true}) declare data?: string
+
+    toString(encoding: BytesEncoding = 'hex') {
+        return Serializer.encode({
+            object: this,
+        }).toString(encoding)
+    }
+}
+
 /**
  * Request a session from an account.
  */
 export class SessionKit {
     readonly abis: TransactABIDef[] = []
+
+    readonly allowEventListeners: boolean = true
+
     readonly acceptUrlSession: boolean = false
     readonly acceptUrlSessionParam: string = 'incomingWharfSession'
     readonly accountCreationPlugins: AccountCreationPlugin[] = []
@@ -138,6 +156,11 @@ export class SessionKit {
         if (options.abis) {
             this.abis = [...options.abis]
         }
+
+        if (this.allowEventListeners) {
+            this.setupEventListeners()
+        }
+
         // Determine if URL sessions should be accepted
         if (options.acceptUrlSession) {
             this.acceptUrlSession = options.acceptUrlSession
@@ -187,6 +210,59 @@ export class SessionKit {
         // Establish default plugins for account creation
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
+        }
+    }
+
+    setupEventListeners() {
+        const PUBLIC_WEB_AUTHENTICATOR = 'https://localhost:5173'
+        window.addEventListener('message', this.handleIncomingEvent.bind(this))
+        console.log('[SK] Listener ready')
+        window.parent.postMessage(
+            SessionKitMessageEvent.from({
+                type: 'ready',
+            }).toString(),
+            PUBLIC_WEB_AUTHENTICATOR
+        )
+    }
+
+    handleIncomingEvent(event: MessageEvent) {
+        const PUBLIC_WEB_AUTHENTICATOR = 'https://localhost:5173'
+        if (event.origin === PUBLIC_WEB_AUTHENTICATOR && event.data) {
+            try {
+                const message = Serializer.decode({
+                    data: Bytes.from(event.data, 'hex'),
+                    type: SessionKitMessageEvent,
+                })
+                console.log('[SK] Payload received', Serializer.objectify(message))
+                switch (String(message.type)) {
+                    case 'session': {
+                        this.incomingSessionEvent(message)
+                        break
+                    }
+                    default: {
+                        console.log('[SK] Unhandled message type: ' + message.type)
+                        break
+                    }
+                }
+                // window.removeEventListener('message', this.handleIncomingEvent.bind(this))
+            } catch (e) {
+                // console.error('Failed to decode event message', e)
+            }
+        }
+    }
+
+    async incomingSessionEvent(message: SessionKitMessageEvent) {
+        try {
+            if (!message.data) throw new Error('No session data provided')
+            const encodedSession = Serializer.decode({
+                data: Bytes.from(message.data, 'hex'),
+                type: URLEncodedSession,
+            })
+            console.log('[SK] Session received', encodedSession.serialized)
+            this.restore(encodedSession.serialized)
+        } catch (e) {
+            // eslint-disable-next-line no-console -- warn the developer since this may be unintentional
+            console.warn('Failed to decode incoming session event data: ' + message.data)
         }
     }
 
