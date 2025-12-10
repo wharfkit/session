@@ -1,6 +1,6 @@
 {
     "root": true,
-    "ignorePatterns": ["lib/*", "tests/*", "node_modules/**"],
+    "ignorePatterns": ["lib/*", "tests/*", "node_modules/**", "src/sessionkey/systemcontract.ts"],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",

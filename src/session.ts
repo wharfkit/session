@@ -4,6 +4,7 @@ import type {Contract} from '@wharfkit/contract'
 import zlib from 'pako'
 import {
     APIClient,
+    Checksum256,
     Checksum256Type,
     FetchProvider,
     Name,
@@ -41,9 +42,23 @@ import {
     TransactRevisions,
 } from './transact'
 import {SessionStorage} from './storage'
-import {getFetch, getPluginTranslations} from './utils'
+import {
+    actionMatchesPermission,
+    extractActions,
+    getFetch,
+    getPluginTranslations,
+    rewriteAuthorizations,
+} from './utils'
 import {SerializedWalletPlugin, WalletPlugin, WalletPluginSignResponse} from './wallet'
 import {UserInterface} from './ui'
+import {SessionKeyManager} from './sessionkey/manager'
+import {
+    isSessionKeyWallet,
+    SessionKeyMismatch,
+    SessionKeySetupResult,
+    SessionKeyStatus,
+    SessionKeyWalletInterface,
+} from './sessionkey/types'
 
 /**
  * Arguments required to create a new [[Session]].
@@ -72,6 +87,8 @@ export interface SessionOptions {
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
+    sessionKeyManager?: SessionKeyManager
+    onPersist?: (session: Session) => Promise<void>
 }
 
 export interface SerializedSession {
@@ -100,8 +117,35 @@ export class Session {
     readonly transactPlugins: TransactPlugin[]
     readonly transactPluginsOptions: TransactPluginsOptions = {}
     readonly ui?: UserInterface
-    readonly walletPlugin: WalletPlugin
+    readonly sessionKeyManager?: SessionKeyManager
+    readonly onPersist?: (session: Session) => Promise<void>
+    private _walletPlugin: WalletPlugin
     private _data: Record<string, any> = {}
+
+    /**
+     * Get the wallet plugin for this session.
+     */
+    get walletPlugin(): WalletPlugin {
+        return this._walletPlugin
+    }
+
+    /**
+     * Check if two sessions match by comparing chain, actor, and permission.
+     *
+     * @param s1 Session or SerializedSession
+     * @param s2 Session or SerializedSession
+     * @returns boolean indicating if the sessions match
+     */
+    static matches(s1: SerializedSession | Session, s2: SerializedSession | Session): boolean {
+        const ser1 = s1 instanceof Session ? s1.serialize() : s1
+        const ser2 = s2 instanceof Session ? s2.serialize() : s2
+
+        return (
+            Checksum256.from(ser1.chain).equals(Checksum256.from(ser2.chain)) &&
+            Name.from(ser1.actor).equals(Name.from(ser2.actor)) &&
+            Name.from(ser1.permission).equals(Name.from(ser2.permission))
+        )
+    }
 
     /**
      * Get the data stored in this session instance.
@@ -138,7 +182,7 @@ export class Session {
         }
 
         // Set the WalletPlugin for this session
-        this.walletPlugin = args.walletPlugin
+        this._walletPlugin = args.walletPlugin
 
         // Handle all the optional values provided
         if (options.appName) {
@@ -183,6 +227,12 @@ export class Session {
         }
         if (options.ui) {
             this.ui = options.ui
+        }
+        if (options.sessionKeyManager) {
+            this.sessionKeyManager = options.sessionKeyManager
+        }
+        if (options.onPersist) {
+            this.onPersist = options.onPersist
         }
     }
 
@@ -381,6 +431,12 @@ export class Session {
      *   F --> G[TransactResult]
      */
     async transact(args: TransactArgs, options?: TransactOptions): Promise<TransactResult> {
+        // Check if this transaction will be signed by session key (declared outside try for finally block)
+        const willUseSessionKey = this.willUseSessionKey(args)
+
+        // Save original minimal state to restore later
+        let originalMinimalState: boolean | undefined
+
         try {
             // The number of seconds before this transaction expires
             const expireSeconds =
@@ -406,6 +462,11 @@ export class Session {
                     ? options.allowModify
                     : this.allowModify
 
+            // Rewrite authorizations for session key if applicable
+            if (willUseSessionKey) {
+                args = this.rewriteAuthorizationsForSessionKey(args)
+            }
+
             // The context object for this transaction
             const context = new TransactContext({
                 abiCache,
@@ -422,6 +483,14 @@ export class Session {
             })
 
             if (context.ui) {
+                // Enable minimal mode for session key transactions
+                if (willUseSessionKey && context.ui.setMinimal) {
+                    // Save current minimal state to restore later
+                    if (context.ui.getMinimal) {
+                        originalMinimalState = context.ui.getMinimal()
+                    }
+                    context.ui.setMinimal(true)
+                }
                 // Notify the UI that a transaction is about to begin
                 await context.ui.onTransact()
                 // Merge in any new localization strings from the plugins
@@ -569,6 +638,10 @@ export class Session {
                 }
             }
             throw new Error(error)
+        } finally {
+            if (willUseSessionKey && this.ui?.setMinimal) {
+                this.ui.setMinimal(originalMinimalState ?? false)
+            }
         }
     }
 
@@ -617,6 +690,11 @@ export class Session {
         return walletResponse.signatures
     }
 
+    /**
+     * Serialize the session to a plain object for storage.
+     *
+     * @returns SerializedSession object containing chain, actor, permission, and wallet plugin data
+     */
     serialize = (): SerializedSession => {
         const serializableData: Record<string, any> = {
             chain: this.chain.id,
@@ -634,6 +712,78 @@ export class Session {
         }
 
         return Serializer.objectify(serializableData)
+    }
+
+    /**
+     * Check if this session has a session key wallet.
+     * Type guard that narrows walletPlugin to SessionKeyWalletInterface.
+     *
+     * @returns True if the wallet plugin is a session key wallet
+     */
+    hasSessionKey(): this is Session & {walletPlugin: SessionKeyWalletInterface} {
+        return isSessionKeyWallet(this.walletPlugin)
+    }
+
+    /**
+     * Determine if the given transaction will be signed using the session key.
+     * Checks if session has a session key and all relevant actions are whitelisted.
+     *
+     * @param args The transaction arguments to check
+     * @returns True if the session key will be used for signing
+     */
+    willUseSessionKey(args: TransactArgs): boolean {
+        if (!this.hasSessionKey()) {
+            return false
+        }
+
+        const actions = extractActions(args)
+        if (actions.length === 0) {
+            return false
+        }
+
+        const actionsMatchingSession = actions.filter((action) =>
+            actionMatchesPermission(action, this.permissionLevel)
+        )
+
+        if (actionsMatchingSession.length === 0) {
+            return false
+        }
+
+        return this.walletPlugin.allActionsWhitelisted(actionsMatchingSession)
+    }
+
+    /**
+     * Rewrite action authorizations to use the session key permission instead of the primary permission.
+     * Only rewrites actions that match the session permission and are whitelisted.
+     *
+     * @param args The transaction arguments to rewrite
+     * @returns Modified TransactArgs with session key permissions, or original args if not applicable
+     */
+    rewriteAuthorizationsForSessionKey(args: TransactArgs): TransactArgs {
+        if (!isSessionKeyWallet(this.walletPlugin)) {
+            return args
+        }
+
+        const sessionKeyPermission = this.walletPlugin.getPermission()
+        const actions = extractActions(args)
+
+        if (actions.length === 0) {
+            return args
+        }
+
+        const actionsMatchingSession = actions.filter((action) =>
+            actionMatchesPermission(action, this.permissionLevel)
+        )
+
+        if (actionsMatchingSession.length === 0) {
+            return args
+        }
+
+        if (!this.walletPlugin.allActionsWhitelisted(actionsMatchingSession)) {
+            return args
+        }
+
+        return rewriteAuthorizations(args, this.permissionLevel, sessionKeyPermission)
     }
 
     getMergedAbiCache(args: TransactArgs, options?: TransactOptions): ABICacheInterface {
@@ -681,6 +831,134 @@ export class Session {
         }
 
         return abiCache
+    }
+
+    /**
+     * Get the current status of the session key for this session.
+     *
+     * @returns SessionKeyStatus indicating whether a session key is active, inactive, has a mismatch, or is not set up
+     */
+    async getSessionKeyStatus(): Promise<SessionKeyStatus> {
+        const status: SessionKeyStatus = {active: false, exists: false, state: 'not-setup'}
+
+        if (!this.sessionKeyManager) {
+            return status
+        }
+
+        if (this.sessionKeyManager.hasSessionKey(this)) {
+            status.active = true
+            status.exists = true
+            status.state = 'active'
+            if (isSessionKeyWallet(this.walletPlugin)) {
+                status.permission = this.walletPlugin.getPermission()
+                status.publicKey = this.walletPlugin.getPublicKey()
+            }
+            return status
+        }
+
+        const result = await this.sessionKeyManager.checkExistingSessionKey(this)
+
+        if (result.exists) {
+            status.exists = true
+            status.state = result.mismatch ? 'mismatch' : 'inactive'
+            status.permission = result.permission
+            status.mismatch = result.mismatch
+        }
+
+        return status
+    }
+
+    /**
+     * Set up a session key for this session, creating a new permission with a generated key.
+     * Shows consent UI if configured, handles conflicts with existing keys, and persists the session.
+     *
+     * @returns SessionKeySetupResult containing the public key and permission name
+     * @throws Error if session keys are not configured or if setup is cancelled by user
+     */
+    async setupSessionKey(): Promise<SessionKeySetupResult> {
+        if (!this.sessionKeyManager) {
+            throw new Error('Session keys are not configured. Add sessionKey to SessionKitOptions.')
+        }
+
+        if (!this.sessionKeyManager.config.skipConsent && this.ui?.onSessionKeyConsent) {
+            const consent = await this.ui.onSessionKeyConsent({
+                appName: String(this.appName || 'this app'),
+                whitelist: this.sessionKeyManager.whitelist.map((e) => ({
+                    contract: String(e.contract),
+                    actions: e.actions?.map((a) => String(a)),
+                })),
+            })
+
+            if (!consent) {
+                throw new Error('Session key setup cancelled by user')
+            }
+        }
+
+        const result = await this.sessionKeyManager.setup(this, async (existingKeys) => {
+            if (!this.ui?.onSessionKeyConflict) {
+                return 'replace'
+            }
+            return this.ui.onSessionKeyConflict({
+                appName: String(this.appName || 'this app'),
+                existingKeyCount: existingKeys.length,
+            })
+        })
+
+        if (this.onPersist) {
+            await this.onPersist(this)
+        }
+
+        return result
+    }
+
+    /**
+     * Remove the session key from this session, reverting to the primary wallet.
+     * Removes the key from the blockchain permission and persists the session.
+     *
+     * @throws Error if session keys are not configured or if the session does not have a session key
+     */
+    async removeSessionKey(): Promise<void> {
+        if (!this.sessionKeyManager) {
+            throw new Error('Session keys are not configured. Add sessionKey to SessionKitOptions.')
+        }
+
+        await this.sessionKeyManager.remove(this)
+
+        if (this.onPersist) {
+            await this.onPersist(this)
+        }
+    }
+
+    /**
+     * Validate the session key whitelist against the on-chain permission links.
+     * Returns any mismatches between configured whitelist and actual blockchain state.
+     *
+     * @returns SessionKeyMismatch if there are differences, undefined if in sync or no session key
+     */
+    async validateSessionKeyWhitelist(): Promise<SessionKeyMismatch | undefined> {
+        if (!this.sessionKeyManager) {
+            return undefined
+        }
+
+        return this.sessionKeyManager.validateWhitelist(this)
+    }
+
+    /**
+     * Update the on-chain permission links to match the configured whitelist.
+     * Adds missing links and removes extra links, then persists the session.
+     *
+     * @throws Error if session keys are not configured or if the session does not have a session key
+     */
+    async updateSessionKeyLinks(): Promise<void> {
+        if (!this.sessionKeyManager) {
+            throw new Error('Session keys are not configured. Add sessionKey to SessionKitOptions.')
+        }
+
+        await this.sessionKeyManager.updateLinks(this)
+
+        if (this.onPersist) {
+            await this.onPersist(this)
+        }
     }
 }
 

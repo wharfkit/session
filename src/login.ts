@@ -10,6 +10,7 @@ import type {ChainDefinition, Fetch} from '@wharfkit/common'
 import {SigningRequestEncodingOptions} from '@wharfkit/signing-request'
 import zlib from 'pako'
 
+import type {Session} from './session'
 import {UserInterface} from './ui'
 import {WalletPluginConfig, WalletPluginMetadata} from './wallet'
 
@@ -39,6 +40,7 @@ export interface LoginContextOptions {
     permissionLevel?: PermissionLevel
     walletPlugins?: UserInterfaceWalletPlugin[]
     ui: UserInterface
+    sessionKeyManager?: any
 }
 
 export interface UserInterfaceRequirements {
@@ -72,6 +74,11 @@ export class LoginContext {
         beforeLogin: [],
     }
     permissionLevel?: PermissionLevel
+    /**
+     * The session created during login.
+     * Only available in afterLogin hooks.
+     */
+    session?: Session
     ui: UserInterface
     uiRequirements: UserInterfaceRequirements = {
         requiresChainSelect: true,
@@ -81,6 +88,7 @@ export class LoginContext {
     }
     walletPluginIndex?: number
     walletPlugins: UserInterfaceWalletPlugin[] = []
+    sessionKeyManager?: any
     constructor(options: LoginContextOptions) {
         this.appName = String(options.appName)
         if (options.arbitrary) {
@@ -96,6 +104,7 @@ export class LoginContext {
         this.fetch = options.fetch
         this.permissionLevel = options.permissionLevel
         this.walletPlugins = options.walletPlugins || []
+        this.sessionKeyManager = options.sessionKeyManager
         this.ui = options.ui
         options.loginPlugins?.forEach((plugin: AbstractLoginPlugin) => {
             plugin.register(this)

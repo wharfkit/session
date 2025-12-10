@@ -47,6 +47,64 @@ export type UserInterfaceAccountCreationResponse = {
 }
 
 /**
+ * A single whitelist entry for UI display purposes.
+ */
+export interface SessionKeyWhitelistItem {
+    /** Contract account name. */
+    contract: string
+    /** Optional array of action names. If omitted, all actions are whitelisted. */
+    actions?: string[]
+}
+
+/**
+ * Arguments passed to the session key consent UI callback.
+ */
+export interface SessionKeyConsentArgs {
+    /** The name of the application requesting session key creation. */
+    appName: string
+    /** The list of contracts and actions that will be whitelisted. */
+    whitelist: SessionKeyWhitelistItem[]
+}
+
+/**
+ * The arguments for a session key conflict call.
+ */
+export interface SessionKeyConflictArgs {
+    appName: string
+    existingKeyCount: number
+}
+
+/**
+ * The response for a session key conflict call.
+ */
+export type SessionKeyConflictResponse = 'add' | 'replace' | 'cancel'
+
+/**
+ * Arguments passed to the session key mismatch UI callback.
+ */
+export interface SessionKeyMismatchArgs {
+    /** The name of the application. */
+    appName: string
+    /** Actions in local whitelist but not linked on-chain. */
+    added: SessionKeyWhitelistItem[]
+    /** Actions linked on-chain but not in local whitelist. */
+    removed: SessionKeyWhitelistItem[]
+}
+
+/**
+ * The response for a session key mismatch call.
+ */
+export type SessionKeyMismatchResponse = 'update' | 'dismiss'
+
+/**
+ * Arguments passed to the session key removal UI callback.
+ */
+export interface SessionKeyRemoveArgs {
+    /** The name of the application. */
+    appName: string
+}
+
+/**
  * The options to pass to [[UserInterface.translate]].
  */
 export interface UserInterfaceTranslateOptions {
@@ -103,6 +161,18 @@ export interface UserInterface {
     getTranslate: (namespace?: string) => UserInterfaceTranslateFunction
     /** Programmatically add new localization strings to the  user interface */
     addTranslations: (translations: LocaleDefinitions) => void
+    /** Optional: Show session key consent UI */
+    onSessionKeyConsent?: (args: SessionKeyConsentArgs) => Promise<boolean>
+    /** Optional: Show session key conflict resolution UI */
+    onSessionKeyConflict?: (args: SessionKeyConflictArgs) => Promise<SessionKeyConflictResponse>
+    /** Optional: Show session key whitelist mismatch UI */
+    onSessionKeyMismatch?: (args: SessionKeyMismatchArgs) => Promise<SessionKeyMismatchResponse>
+    /** Optional: Show session key removal confirmation UI */
+    onSessionKeyRemove?: (args: SessionKeyRemoveArgs) => Promise<boolean>
+    /** Optional: Get current minimal mode state */
+    getMinimal?: () => boolean
+    /** Optional: Enable/disable minimal mode temporarily for session key transactions */
+    setMinimal?: (minimal: boolean) => void
 }
 
 /**
