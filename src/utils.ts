@@ -151,8 +151,7 @@ export function actionMatchesPermission(
     permissionLevel: PermissionLevel
 ): boolean {
     return action.authorization.some(
-        (auth: PermissionLevelType) =>
-            permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)
+        (auth: PermissionLevelType) => permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)
     )
 }
 
@@ -163,7 +162,14 @@ function rewriteAuthIfMatches(
 ): PermissionLevelType {
     if (permissionLevel.equals(auth)) {
         return PermissionLevel.from({
-            actor: auth.actor,
+            actor: permissionLevel.actor,
+            permission: newPermission,
+        })
+    }
+    // Also rewrite PlaceholderAuth to use the session's actor with the new permission
+    if (PlaceholderAuth.equals(auth)) {
+        return PermissionLevel.from({
+            actor: permissionLevel.actor,
             permission: newPermission,
         })
     }
