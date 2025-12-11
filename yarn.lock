@@ -1281,7 +1281,7 @@
     pako "^2.0.4"
     tslib "^2.1.0"
 
-"@wharfkit/antelope@^1.0.0", "@wharfkit/antelope@^1.0.11", "@wharfkit/antelope@^1.0.2", "@wharfkit/antelope@^1.0.4", "@wharfkit/antelope@^1.1.1":
+"@wharfkit/antelope@^1.0.11", "@wharfkit/antelope@^1.0.2", "@wharfkit/antelope@^1.0.4", "@wharfkit/antelope@^1.0.5", "@wharfkit/antelope@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-1.1.1.tgz#f54c4ed7ddd758f4a8aa643a81dc3e4575058d45"
   integrity sha512-zOetZJG0T4/WRCIC8Ui2DGv+RxrSkdXOq/q8sUqUcuKei+aJo4/9Xk37VULPt2qe0NpTm93ajYV9cYdD9m5Fgg==
@@ -1310,20 +1310,20 @@
     "@wharfkit/signing-request" "^3.1.0"
     tslib "^2.1.0"
 
-"@wharfkit/mock-data@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.npmjs.org/@wharfkit/mock-data/-/mock-data-1.2.1.tgz"
-  integrity sha512-foQDXyzK80woORqmV2OUBqy9Yy2trkyPmdURRaix2X3Hr9H9cEQBet63ipkTaEIUdeR+uPyx0kaoy0dlFECTqw==
+"@wharfkit/mock-data@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/mock-data/-/mock-data-1.3.1.tgz#f031bff8037e21d815679971de88d28f6f47661a"
+  integrity sha512-V+VRu07wCGLmxc6bPXKCavcHaEsFvMDlK4Q0sFJglwo4fsHr7dww6XsCoOGltY/XC1c0XpzeQ6v6eM352v95sA==
   dependencies:
-    "@wharfkit/antelope" "^1.0.0"
-    "@wharfkit/session" "^1.1.0-rcfinal"
+    "@wharfkit/antelope" "^1.0.5"
+    "@wharfkit/session" "^1.2.7"
     "@wharfkit/wallet-plugin-privatekey" "^1.1.0"
     node-fetch "^2.6.1"
     tslib "^2.1.0"
 
-"@wharfkit/session@^1.1.0-rcfinal":
+"@wharfkit/session@^1.2.7":
   version "1.6.1"
-  resolved "https://registry.npmjs.org/@wharfkit/session/-/session-1.6.1.tgz"
+  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.6.1.tgz#087856dc547fea7b5aff547ca9c984a772da9239"
   integrity sha512-k6ntDGOe8bvD/Ps0erTPTFMdYVFrw5cRvPcEwxytlmRRcNV/M8xWcpCYWdmGDxa8QYqynf/hAkbVh1PSwRGl5A==
   dependencies:
     "@wharfkit/abicache" "^1.2.1"
@@ -1333,10 +1333,10 @@
     pako "^2.0.4"
     tslib "^2.1.0"
 
-"@wharfkit/signing-request@^3.1.0", "@wharfkit/signing-request@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/signing-request/-/signing-request-3.3.0.tgz#2fda2093c0d0396f5a741d1f7c92606680f9ce21"
-  integrity sha512-8RYnXjF14LRXB8Ajd1SL/pNFFVkYU1sm+cWTDkJnNr0p8dBiILGBcZuXOuVFWCN6+xngwioSHt02LEEWyELLvw==
+"@wharfkit/signing-request@^3.1.0", "@wharfkit/signing-request@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@wharfkit/signing-request/-/signing-request-3.4.0.tgz#ac433e5c3af3a084643e6c8a32c5b9b15a6978dc"
+  integrity sha512-WstXfmR9i5pKaYXDUwNFNCgBIvN6u5IRGWSfj5O3XzthbtJUmRoJNtjGMaNnUqZ1MMx5YY4/JpY3b2e6LbpXLw==
   dependencies:
     "@wharfkit/antelope" "^1.1.1"
     tslib "^2.0.3"
