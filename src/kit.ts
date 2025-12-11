@@ -170,12 +170,15 @@ export class SessionKit {
         // Initialize session key support if configured
         if (options.sessionKey) {
             this.sessionKeyManager = new SessionKeyManager(options.sessionKey, this.ui)
-            this.walletPlugins = [
-                ...this.walletPlugins,
-                new SessionKeyWalletPlugin({
-                    walletPlugins: this.walletPlugins,
-                }),
-            ]
+            // Only add SessionKeyWalletPlugin to wallet picker if not disabled
+            if (!options.sessionKey.disableWalletPlugin) {
+                this.walletPlugins = [
+                    ...this.walletPlugins,
+                    new SessionKeyWalletPlugin({
+                        walletPlugins: this.walletPlugins,
+                    }),
+                ]
+            }
         }
     }
 

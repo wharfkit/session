@@ -222,6 +222,11 @@ export class SessionKeyWalletPlugin
     }
 
     login(context: LoginContext): Promise<WalletPluginLoginResponse> {
+        if (!this.primaryWallet) {
+            throw new Error(
+                'Session key wallet is not configured. Please log in with a regular wallet first to set up a session key.'
+            )
+        }
         return this.primaryWallet.login(context)
     }
 
