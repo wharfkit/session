@@ -1,0 +1,19 @@
+{
+    "request": {
+        "path": "https://jungle4.greymass.com/v1/resource_provider/request_transaction",
+        "params": {
+            "method": "POST",
+            "body": "{\"request\":\"esr://gmMsfmIRpc7x7DpLh8nvg-zz9VdvrLYRihbJ-mIxXW5CYY4vk-qi3Wlz10ye8NWUAQgYQQTDK4PQhsumMbEvfVwYA1w4bh4s9X0Mlpiw8RRHw8aJcbFqvadAagE\",\"signer\":{\"actor\":\"wharfkit1125\",\"permission\":\"test\"}}"
+        }
+    },
+    "status": 400,
+    "json": {
+        "code": 400,
+        "message": "Unexpected error while processing request.",
+        "data": {
+            "error": "FetchError: request to http://jungle4.greymass.com/v1/chain/get_abi failed, reason: connect ETIMEDOUT 144.217.253.32:80",
+            "url": "/v1/resource_provider/request_transaction"
+        }
+    },
+    "text": "{\"code\":400,\"message\":\"Unexpected error while processing request.\",\"data\":{\"error\":\"FetchError: request to http://jungle4.greymass.com/v1/chain/get_abi failed, reason: connect ETIMEDOUT 144.217.253.32:80\",\"url\":\"/v1/resource_provider/request_transaction\"}}"
+}
