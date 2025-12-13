@@ -505,7 +505,6 @@ export class SessionKit {
             // Call the `afterLogin` hooks that were registered by the LoginPlugins
             for (const hook of context.hooks.afterLogin) await hook(context)
 
-
             // Offer session key setup if configured and session does not have one yet
             if (this.sessionKeyManager && !session.hasSessionKey()) {
                 try {
@@ -513,7 +512,6 @@ export class SessionKit {
                 } catch (e) {
                     // User cancelled or setup failed - continue with regular session
                     // This is not a fatal error, the session is still valid
-                    console.log('Session key setup skipped or failed:', e)
                 }
             }
             // Save the session to storage if it has a storage instance.
