@@ -513,6 +513,7 @@ export class SessionKit {
                 } catch (e) {
                     // User cancelled or setup failed - continue with regular session
                     // This is not a fatal error, the session is still valid
+                    console.log('Session key setup skipped or failed:', e)
                 }
             }
             // Save the session to storage if it has a storage instance.
