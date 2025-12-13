@@ -160,14 +160,7 @@ function rewriteAuthIfMatches(
     permissionLevel: PermissionLevel,
     newPermission: Name
 ): PermissionLevelType {
-    if (permissionLevel.equals(auth)) {
-        return PermissionLevel.from({
-            actor: permissionLevel.actor,
-            permission: newPermission,
-        })
-    }
-    // Also rewrite PlaceholderAuth to use the session's actor with the new permission
-    if (PlaceholderAuth.equals(auth)) {
+    if (permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)) {
         return PermissionLevel.from({
             actor: permissionLevel.actor,
             permission: newPermission,
