@@ -170,8 +170,6 @@ export class SessionKit {
         // Initialize session key support if configured
         if (options.sessionKey) {
             this.sessionKeyManager = new SessionKeyManager(options.sessionKey, this.ui)
-            // Always add SessionKeyWalletPlugin so restore works
-            // Use disableWalletPlugin to hide from picker UI only
             this.walletPlugins = [
                 ...this.walletPlugins,
                 new SessionKeyWalletPlugin({
@@ -395,18 +393,43 @@ export class SessionKit {
             // Tell the UI a login request is beginning.
             await context.ui.onLogin()
 
+            // Get the list of selectable wallet plugins (excluding hidden ones like session key wallet)
+            const selectableWalletPlugins = this.walletPlugins.filter((plugin) => {
+                if (
+                    this.sessionKeyManager?.config.disableWalletPlugin &&
+                    plugin.id === 'session-key-wallet'
+                ) {
+                    return false
+                }
+                return true
+            })
+
+            // DEBUG: Log wallet plugin filtering
+            console.log('[SessionKit] Wallet plugin selection debug:', {
+                totalWalletPlugins: this.walletPlugins.length,
+                walletPluginIds: this.walletPlugins.map((p) => p.id),
+                sessionKeyManager: !!this.sessionKeyManager,
+                disableWalletPlugin: this.sessionKeyManager?.config.disableWalletPlugin,
+                selectableWalletPlugins: selectableWalletPlugins.length,
+                selectableIds: selectableWalletPlugins.map((p) => p.id),
+            })
+
             // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
             let walletPlugin: WalletPlugin | undefined = undefined
-            if (this.walletPlugins.length === 1) {
-                walletPlugin = this.walletPlugins[0] // Default to first when only one.
-                context.walletPluginIndex = 0
+            if (selectableWalletPlugins.length === 1) {
+                walletPlugin = selectableWalletPlugins[0] // Default to first when only one.
+                context.walletPluginIndex = this.walletPlugins.indexOf(walletPlugin)
                 context.uiRequirements.requiresWalletSelect = false
+                console.log('[SessionKit] Auto-selected wallet:', walletPlugin.id)
             } else if (options?.walletPlugin) {
                 walletPlugin = this.getWalletPlugin(options.walletPlugin)
                 if (walletPlugin) {
                     context.walletPluginIndex = this.walletPlugins.indexOf(walletPlugin)
                     context.uiRequirements.requiresWalletSelect = false
+                    console.log('[SessionKit] Wallet selected via options:', walletPlugin.id)
                 }
+            } else {
+                console.log('[SessionKit] Multiple wallets available, UI will prompt for selection')
             }
             // Set any uiRequirement overrides from the wallet plugin
             if (walletPlugin) {
