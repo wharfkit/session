@@ -170,15 +170,14 @@ export class SessionKit {
         // Initialize session key support if configured
         if (options.sessionKey) {
             this.sessionKeyManager = new SessionKeyManager(options.sessionKey, this.ui)
-            // Only add SessionKeyWalletPlugin to wallet picker if not disabled
-            if (!options.sessionKey.disableWalletPlugin) {
-                this.walletPlugins = [
-                    ...this.walletPlugins,
-                    new SessionKeyWalletPlugin({
-                        walletPlugins: this.walletPlugins,
-                    }),
-                ]
-            }
+            // Always add SessionKeyWalletPlugin so restore works
+            // Use disableWalletPlugin to hide from picker UI only
+            this.walletPlugins = [
+                ...this.walletPlugins,
+                new SessionKeyWalletPlugin({
+                    walletPlugins: this.walletPlugins,
+                }),
+            ]
         }
     }
 
@@ -372,13 +371,24 @@ export class SessionKit {
                 fetch: this.fetch,
                 loginPlugins: this.loginPlugins,
                 ui: this.ui,
-                walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
-                    return {
-                        config: plugin.config,
-                        metadata: WalletPluginMetadata.from(plugin.metadata),
-                        retrievePublicKey: plugin.retrievePublicKey?.bind(plugin),
-                    }
-                }),
+                walletPlugins: this.walletPlugins
+                    .filter((plugin) => {
+                        // Hide session key wallet from picker if disableWalletPlugin is set
+                        if (
+                            this.sessionKeyManager?.config.disableWalletPlugin &&
+                            plugin.id === 'session-key-wallet'
+                        ) {
+                            return false
+                        }
+                        return true
+                    })
+                    .map((plugin): UserInterfaceWalletPlugin => {
+                        return {
+                            config: plugin.config,
+                            metadata: WalletPluginMetadata.from(plugin.metadata),
+                            retrievePublicKey: plugin.retrievePublicKey?.bind(plugin),
+                        }
+                    }),
                 sessionKeyManager: this.sessionKeyManager,
             })
 

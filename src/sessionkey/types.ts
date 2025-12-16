@@ -33,7 +33,7 @@ export interface SessionKeyConfig {
     ) => Promise<API.v1.AccountPermission | undefined>
     /** Skip showing consent UI to user during setup. Default is false. */
     skipConsent?: boolean
-    /** Disable SessionKeyWalletPlugin from appearing in the wallet picker. Default is false. */
+    /** Hide SessionKeyWalletPlugin from the wallet picker UI. Default is false. */
     disableWalletPlugin?: boolean
 }
 
