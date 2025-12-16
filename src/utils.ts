@@ -8,7 +8,7 @@ import {
     Transaction,
 } from '@wharfkit/antelope'
 import type {Fetch, LocaleDefinitions} from '@wharfkit/common'
-import {SigningRequest, PlaceholderAuth} from '@wharfkit/signing-request'
+import {PlaceholderAuth, SigningRequest} from '@wharfkit/signing-request'
 import {TransactArgs, TransactPlugin} from './transact'
 import {WalletPlugin} from './wallet'
 
