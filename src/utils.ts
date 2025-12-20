@@ -139,9 +139,6 @@ export function extractActions(args: TransactArgs): AnyAction[] {
 
 /**
  * Check if an action has an authorization matching a given permission level.
- * Also matches PlaceholderAuth (actor: '............1', permission: '............2')
- * because willUseSessionKey() is called before placeholders are resolved,
- * and we need to detect if the action would match after resolution.
  *
  * @param action AnyAction
  * @param permissionLevel PermissionLevel
