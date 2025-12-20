@@ -357,6 +357,10 @@ export class SessionKit {
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
         try {
+            const selectableWalletPlugins = this.walletPlugins.filter(
+                (plugin) => plugin.id !== 'session-key-wallet'
+            )
+
             // Create LoginContext for this login request.
             const context = new LoginContext({
                 appName: this.appName,
@@ -369,40 +373,18 @@ export class SessionKit {
                 fetch: this.fetch,
                 loginPlugins: this.loginPlugins,
                 ui: this.ui,
-                walletPlugins: this.walletPlugins
-                    .filter((plugin) => {
-                        // Hide session key wallet from picker if disableWalletPlugin is set
-                        if (
-                            this.sessionKeyManager?.config.disableWalletPlugin &&
-                            plugin.id === 'session-key-wallet'
-                        ) {
-                            return false
-                        }
-                        return true
-                    })
-                    .map((plugin): UserInterfaceWalletPlugin => {
-                        return {
-                            config: plugin.config,
-                            metadata: WalletPluginMetadata.from(plugin.metadata),
-                            retrievePublicKey: plugin.retrievePublicKey?.bind(plugin),
-                        }
-                    }),
+                walletPlugins: selectableWalletPlugins.map((plugin): UserInterfaceWalletPlugin => {
+                    return {
+                        config: plugin.config,
+                        metadata: WalletPluginMetadata.from(plugin.metadata),
+                        retrievePublicKey: plugin.retrievePublicKey?.bind(plugin),
+                    }
+                }),
                 sessionKeyManager: this.sessionKeyManager,
             })
 
             // Tell the UI a login request is beginning.
             await context.ui.onLogin()
-
-            // Get the list of selectable wallet plugins (excluding hidden ones like session key wallet)
-            const selectableWalletPlugins = this.walletPlugins.filter((plugin) => {
-                if (
-                    this.sessionKeyManager?.config.disableWalletPlugin &&
-                    plugin.id === 'session-key-wallet'
-                ) {
-                    return false
-                }
-                return true
-            })
 
             // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
             let walletPlugin: WalletPlugin | undefined = undefined
