@@ -1,7 +1,7 @@
 {
     "name": "@wharfkit/session",
     "description": "Create account-based sessions, perform transactions, and allow users to login using Antelope-based blockchains.",
-    "version": "2.0.0-rc3",
+    "version": "2.0.0-rc4",
     "homepage": "https://github.com/wharfkit/session",
     "license": "BSD-3-Clause",
     "main": "lib/session.js",
@@ -65,5 +65,6 @@
         "typedoc-plugin-mermaid": "^1.10.0",
         "typescript": "^4.1.2",
         "yarn-deduplicate": "^6.0.2"
-    }
+    },
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
