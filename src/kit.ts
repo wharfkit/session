@@ -357,6 +357,10 @@ export class SessionKit {
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
         try {
+            const selectableWalletPlugins = this.walletPlugins.filter(
+                (plugin) => plugin.id !== 'session-key-wallet'
+            )
+
             // Create LoginContext for this login request.
             const context = new LoginContext({
                 appName: this.appName,
@@ -369,7 +373,7 @@ export class SessionKit {
                 fetch: this.fetch,
                 loginPlugins: this.loginPlugins,
                 ui: this.ui,
-                walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
+                walletPlugins: selectableWalletPlugins.map((plugin): UserInterfaceWalletPlugin => {
                     return {
                         config: plugin.config,
                         metadata: WalletPluginMetadata.from(plugin.metadata),
@@ -384,9 +388,9 @@ export class SessionKit {
 
             // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
             let walletPlugin: WalletPlugin | undefined = undefined
-            if (this.walletPlugins.length === 1) {
-                walletPlugin = this.walletPlugins[0] // Default to first when only one.
-                context.walletPluginIndex = 0
+            if (selectableWalletPlugins.length === 1) {
+                walletPlugin = selectableWalletPlugins[0] // Default to first when only one.
+                context.walletPluginIndex = this.walletPlugins.indexOf(walletPlugin)
                 context.uiRequirements.requiresWalletSelect = false
             } else if (options?.walletPlugin) {
                 walletPlugin = this.getWalletPlugin(options.walletPlugin)

@@ -8,7 +8,7 @@ import {
     Transaction,
 } from '@wharfkit/antelope'
 import type {Fetch, LocaleDefinitions} from '@wharfkit/common'
-import {SigningRequest} from '@wharfkit/signing-request'
+import {PlaceholderAuth, SigningRequest} from '@wharfkit/signing-request'
 import {TransactArgs, TransactPlugin} from './transact'
 import {WalletPlugin} from './wallet'
 
@@ -148,7 +148,9 @@ export function actionMatchesPermission(
     action: AnyAction,
     permissionLevel: PermissionLevel
 ): boolean {
-    return action.authorization.some((auth: PermissionLevelType) => permissionLevel.equals(auth))
+    return action.authorization.some(
+        (auth: PermissionLevelType) => permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)
+    )
 }
 
 function rewriteAuthIfMatches(
@@ -156,9 +158,9 @@ function rewriteAuthIfMatches(
     permissionLevel: PermissionLevel,
     newPermission: Name
 ): PermissionLevelType {
-    if (permissionLevel.equals(auth)) {
+    if (permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)) {
         return PermissionLevel.from({
-            actor: auth.actor,
+            actor: permissionLevel.actor,
             permission: newPermission,
         })
     }
