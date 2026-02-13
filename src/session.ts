@@ -31,6 +31,7 @@ import {ABICache, ABICacheInterface} from '@wharfkit/abicache'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    BroadcastOptions,
     TransactABIDef,
     TransactArgs,
     TransactContext,
@@ -44,6 +45,7 @@ import {
 import {SessionStorage} from './storage'
 import {
     actionMatchesPermission,
+    buildSendTransaction2Options,
     extractActions,
     getFetch,
     getPluginTranslations,
@@ -87,6 +89,8 @@ export interface SessionOptions {
     transactPlugins?: AbstractTransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
     ui?: UserInterface
+    awaitIrreversible?: boolean
+    broadcastOptions?: BroadcastOptions
     sessionKeyManager?: SessionKeyManager
     onPersist?: (session: Session) => Promise<void>
 }
@@ -108,7 +112,9 @@ export class Session {
     readonly abis: TransactABIDef[] = []
     readonly abiCache: ABICacheInterface
     readonly allowModify: boolean = true
+    readonly awaitIrreversible: boolean = false
     readonly broadcast: boolean = true
+    readonly broadcastOptions?: BroadcastOptions
     readonly chain: ChainDefinition
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
@@ -200,6 +206,12 @@ export class Session {
         }
         if (options.broadcast !== undefined) {
             this.broadcast = options.broadcast
+        }
+        if (options.awaitIrreversible !== undefined) {
+            this.awaitIrreversible = options.awaitIrreversible
+        }
+        if (options.broadcastOptions !== undefined) {
+            this.broadcastOptions = options.broadcastOptions
         }
         if (options.expireSeconds) {
             this.expireSeconds = options.expireSeconds
@@ -448,6 +460,16 @@ export class Session {
                     ? options.broadcast
                     : this.broadcast
 
+            const awaitIrreversible =
+                options && options.awaitIrreversible !== undefined
+                    ? options.awaitIrreversible
+                    : this.awaitIrreversible
+
+            const broadcastOptions =
+                options && options.broadcastOptions !== undefined
+                    ? options.broadcastOptions
+                    : this.broadcastOptions
+
             // The abi provider to use for this transaction, falling back to the session instance
             const abiCache = this.getMergedAbiCache(args, options)
 
@@ -596,8 +618,19 @@ export class Session {
                     signatures: result.signatures,
                 })
 
-                // Broadcast the SignedTransaction and save the API response to the TransactResult
-                result.response = await context.client.v1.chain.send_transaction(signed)
+                const tx2Options = buildSendTransaction2Options(awaitIrreversible, broadcastOptions)
+                try {
+                    result.response = await context.client.v1.chain.send_transaction2(
+                        signed,
+                        tx2Options
+                    )
+                } catch (error: any) {
+                    if (error?.response?.status === 404) {
+                        result.response = await context.client.v1.chain.send_transaction(signed)
+                    } else {
+                        throw error
+                    }
+                }
 
                 // Find and process any return values from the transaction
                 if (result.response.processed && result.response.processed.action_traces) {

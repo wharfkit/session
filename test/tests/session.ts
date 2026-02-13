@@ -160,7 +160,7 @@ suite('session', function () {
                 test('default: true', async function () {
                     const action = makeMockAction('test broadcast default')
                     const testSession = new Session(mockSessionArgs, {
-                        fetch: mockSessionOptions.fetch,
+                        fetch: mockFetch,
                     })
                     const result = await testSession.transact({action})
                     assert.isDefined(result.response)
@@ -169,6 +169,7 @@ suite('session', function () {
                     const action = makeMockAction('test broadcast true')
                     const testSession = new Session(mockSessionArgs, {
                         ...mockSessionOptions,
+                        fetch: mockFetch,
                         broadcast: true,
                     })
                     const result = await testSession.transact({action}, {broadcast: true})

@@ -9,7 +9,7 @@ import {
 } from '@wharfkit/antelope'
 import type {Fetch, LocaleDefinitions} from '@wharfkit/common'
 import {PlaceholderAuth, SigningRequest} from '@wharfkit/signing-request'
-import {TransactArgs, TransactPlugin} from './transact'
+import {BroadcastOptions, TransactArgs, TransactPlugin} from './transact'
 import {WalletPlugin} from './wallet'
 
 /**
@@ -214,4 +214,29 @@ export function rewriteAuthorizations(
     }
 
     return args
+}
+
+export interface SendTransaction2Options {
+    return_failure_trace?: boolean
+    retry_trx?: boolean
+    retry_trx_num_blocks?: number
+}
+
+export function buildSendTransaction2Options(
+    awaitIrreversible: boolean,
+    broadcastOptions?: BroadcastOptions
+): SendTransaction2Options {
+    const options: SendTransaction2Options = {
+        return_failure_trace: broadcastOptions?.returnFailureTrace ?? true,
+    }
+    if (awaitIrreversible) {
+        options.retry_trx = true
+        options.retry_trx_num_blocks = undefined
+    } else if (broadcastOptions) {
+        options.retry_trx = broadcastOptions.retryTrx ?? true
+        if (broadcastOptions.retryTrxNumBlocks !== undefined) {
+            options.retry_trx_num_blocks = broadcastOptions.retryTrxNumBlocks
+        }
+    }
+    return options
 }

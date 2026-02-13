@@ -51,24 +51,25 @@ export class SessionKeyLoginPlugin extends AbstractLoginPlugin {
                         })),
                     })
 
-                    if (choice === 'update') {
-                        await manager.updateLinks(session)
+                    if (choice !== 'update') {
+                        return
                     }
-                }
-                return
-            }
-
-            if (!manager.config.skipConsent && context.ui?.onSessionKeyConsent) {
-                const consent = await context.ui.onSessionKeyConsent({
-                    appName: String(session.appName || 'this app'),
-                    whitelist: manager.whitelist.map((e) => ({
-                        contract: String(e.contract),
-                        actions: e.actions?.map((a) => String(a)),
-                    })),
-                })
-
-                if (!consent) {
+                } else {
                     return
+                }
+            } else {
+                if (!manager.config.skipConsent && context.ui?.onSessionKeyConsent) {
+                    const consent = await context.ui.onSessionKeyConsent({
+                        appName: String(session.appName || 'this app'),
+                        whitelist: manager.whitelist.map((e) => ({
+                            contract: String(e.contract),
+                            actions: e.actions?.map((a) => String(a)),
+                        })),
+                    })
+
+                    if (!consent) {
+                        return
+                    }
                 }
             }
 
