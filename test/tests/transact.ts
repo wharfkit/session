@@ -30,7 +30,6 @@ import {mockSessionArgs, mockSessionOptions} from '@wharfkit/mock-data'
 import {MockStorage} from '@wharfkit/mock-data'
 import {MockUserInterface} from '@wharfkit/mock-data'
 import {ContractKit} from '@wharfkit/contract'
-import {TransactPluginResourceProvider} from '@wharfkit/transact-plugin-resource-provider'
 
 const client = makeClient()
 const wallet = makeWallet()
@@ -93,10 +92,7 @@ suite('transact', function () {
                 )
                 const contract = await kit.load('eosio')
                 const action = contract.action('claimrewards', {owner: 'teamgreymass'})
-                const result = await session.transact(
-                    {action},
-                    {transactPlugins: [new TransactPluginResourceProvider()]}
-                )
+                const result = await session.transact({action}, {broadcast: false})
                 assert.isTrue(
                     result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
                 )
@@ -132,10 +128,7 @@ suite('transact', function () {
                     ...header,
                     actions: [action],
                 })
-                const result = await session.transact(
-                    {transaction},
-                    {transactPlugins: [new TransactPluginResourceProvider()]}
-                )
+                const result = await session.transact({transaction}, {broadcast: false})
                 assert.isTrue(
                     result.transaction?.actions[0].authorization[0].actor.equals('wharfkit1125')
                 )
@@ -380,15 +373,18 @@ suite('transact', function () {
             test('default: true', async function () {
                 const action = makeMockAction('transact broadcast default')
                 const session = new Session(mockSessionArgs, {
-                    fetch: mockSessionOptions.fetch,
+                    fetch: mockFetch,
                 })
                 const result = await session.transact({action})
                 assert.isDefined(result.response)
                 assetValidTransactResponse(result)
             })
             test('true', async function () {
-                const {session} = await mockData()
                 const action = makeMockAction('transact broadcast true')
+                const session = new Session(mockSessionArgs, {
+                    ...mockSessionOptions,
+                    fetch: mockFetch,
+                })
                 const result = await session.transact({action}, {broadcast: true})
                 assert.isDefined(result.response)
                 assetValidTransactResponse(result)
@@ -398,6 +394,66 @@ suite('transact', function () {
                 const result = await session.transact({action}, {broadcast: false})
                 assert.isUndefined(result.response)
                 assetValidTransactResponse(result)
+            })
+        })
+        suite('send_transaction2', function () {
+            test('falls back to send_transaction on 404', async function () {
+                const txCalls: Array<{path: string}> = []
+                const fetch = async (path: string, params?: any) => {
+                    const url = String(path)
+                    if (url.includes('/v1/chain/send_transaction2')) {
+                        const text = JSON.stringify({
+                            error: {
+                                code: 404,
+                                what: 'Not Found',
+                                details: [],
+                            },
+                        })
+                        return {
+                            status: 404,
+                            ok: false,
+                            text: async () => text,
+                            headers: new Map(),
+                        }
+                    }
+                    if (
+                        url.includes('/v1/chain/send_transaction') &&
+                        !url.includes('send_transaction2')
+                    ) {
+                        txCalls.push({path: url})
+                        const json = {
+                            transaction_id: 'mock_fallback_id',
+                            processed: {
+                                id: 'mock_fallback_id',
+                                block_num: 100,
+                                block_time: '2024-01-01T00:00:00.000',
+                                receipt: {
+                                    status: 'executed',
+                                    cpu_usage_us: 100,
+                                    net_usage_words: 10,
+                                },
+                                elapsed: 50,
+                                net_usage: 80,
+                                scheduled: false,
+                                action_traces: [],
+                                account_ram_delta: null,
+                            },
+                        }
+                        const text = JSON.stringify(json)
+                        return {
+                            status: 202,
+                            ok: true,
+                            text: async () => text,
+                            headers: new Map(),
+                        }
+                    }
+                    return mockFetch(url, params)
+                }
+                const action = makeMockAction('tx2 fallback')
+                const session = new Session(mockSessionArgs, {fetch})
+                const result = await session.transact({action})
+                assert.isDefined(result.response)
+                assert.lengthOf(txCalls, 1)
             })
         })
         suite('expireSeconds', function () {
@@ -538,7 +594,7 @@ suite('transact', function () {
                         walletPlugins: [makeWallet()],
                     },
                     {
-                        fetch: mockFetch, // Required for unit tests
+                        fetch: mockFetch,
                         storage: new MockStorage(),
                         transactPlugins: [new MockTransactResourceProviderPlugin()],
                         transactPluginsOptions: {
@@ -572,7 +628,7 @@ suite('transact', function () {
                         walletPlugins: [makeWallet()],
                     },
                     {
-                        fetch: mockFetch, // Required for unit tests
+                        fetch: mockFetch,
                         storage: new MockStorage(),
                         transactPlugins: [new MockTransactResourceProviderPlugin()],
                     }
@@ -718,7 +774,10 @@ suite('transact', function () {
             }
         })
         test('return values', async function () {
-            const {session} = await mockData()
+            const session = new Session(mockSessionArgs, {
+                ...mockSessionOptions,
+                fetch: mockFetch,
+            })
             const action = {
                 account: 'todoapp12345',
                 name: 'add',
@@ -739,7 +798,11 @@ suite('transact', function () {
     })
     suite('context_free_actions', function () {
         test('transact w/ action', async function () {
-            const {session, action} = await mockData()
+            const action = await makeMockAction()
+            const session = new Session(mockSessionArgs, {
+                ...mockSessionOptions,
+                fetch: mockFetch,
+            })
             const result = await session.transact(
                 {
                     action,
@@ -761,7 +824,11 @@ suite('transact', function () {
             }
         })
         test('transact w/ actions', async function () {
-            const {session, action} = await mockData()
+            const action = await makeMockAction()
+            const session = new Session(mockSessionArgs, {
+                ...mockSessionOptions,
+                fetch: mockFetch,
+            })
             const result = await session.transact(
                 {
                     actions: [action],

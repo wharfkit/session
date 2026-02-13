@@ -5,7 +5,7 @@ import zlib from 'pako'
 import {ChainDefinition, Logo, SigningRequest, Transaction} from '$lib'
 import {makeMockAction} from '@wharfkit/mock-data'
 
-import {appendAction, prependAction} from 'src/utils'
+import {appendAction, buildSendTransaction2Options, prependAction} from 'src/utils'
 import {mockData} from '@wharfkit/mock-data'
 import {mockChainId} from '@wharfkit/mock-data'
 
@@ -162,6 +162,45 @@ suite('utils', function () {
             commonAsserts(originalTransaction, modifiedTransaction)
             assert.isTrue(newAction.equals(modifiedTransaction.actions[0]))
             assert.isTrue(originalTransaction.actions[0].equals(modifiedTransaction.actions[1]))
+        })
+    })
+    suite('buildSendTransaction2Options', function () {
+        test('defaults', function () {
+            const options = buildSendTransaction2Options(false)
+            assert.equal(options.return_failure_trace, true)
+            assert.isUndefined(options.retry_trx)
+            assert.isUndefined(options.retry_trx_num_blocks)
+        })
+        test('awaitIrreversible', function () {
+            const options = buildSendTransaction2Options(true)
+            assert.equal(options.retry_trx, true)
+            assert.equal(options.return_failure_trace, true)
+            assert.isUndefined(options.retry_trx_num_blocks)
+        })
+        test('broadcastOptions', function () {
+            const options = buildSendTransaction2Options(false, {
+                retryTrx: true,
+                retryTrxNumBlocks: 10,
+                returnFailureTrace: false,
+            })
+            assert.equal(options.retry_trx, true)
+            assert.equal(options.retry_trx_num_blocks, 10)
+            assert.equal(options.return_failure_trace, false)
+        })
+        test('awaitIrreversible takes precedence over broadcastOptions', function () {
+            const options = buildSendTransaction2Options(true, {
+                retryTrxNumBlocks: 5,
+                returnFailureTrace: false,
+            })
+            assert.equal(options.retry_trx, true)
+            assert.isUndefined(options.retry_trx_num_blocks)
+            assert.equal(options.return_failure_trace, false)
+        })
+        test('empty broadcastOptions uses defaults', function () {
+            const options = buildSendTransaction2Options(false, {})
+            assert.equal(options.return_failure_trace, true)
+            assert.equal(options.retry_trx, true)
+            assert.isUndefined(options.retry_trx_num_blocks)
         })
     })
     suite('logo', function () {

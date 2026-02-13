@@ -247,6 +247,22 @@ export interface TransactOptions {
      * Optional parameter to control whether signatures returned from plugins are validated.
      */
     validatePluginSignatures?: boolean
+    /**
+     * Wait for the transaction to become irreversible before returning.
+     * Uses send_transaction2 with retry enabled and no block limit (waits for LIB).
+     */
+    awaitIrreversible?: boolean
+    /**
+     * Advanced options for send_transaction2. Provides fine-grained control over
+     * retry behavior and failure tracing.
+     */
+    broadcastOptions?: BroadcastOptions
+}
+
+export interface BroadcastOptions {
+    returnFailureTrace?: boolean
+    retryTrx?: boolean
+    retryTrxNumBlocks?: number
 }
 
 export interface TransactABIDef {

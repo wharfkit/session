@@ -20,6 +20,7 @@ import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    BroadcastOptions,
     TransactABIDef,
     TransactPlugin,
     TransactPluginsOptions,
@@ -86,6 +87,8 @@ export interface SessionKitOptions {
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    awaitIrreversible?: boolean
+    broadcastOptions?: BroadcastOptions
     accountCreationPlugins?: AccountCreationPlugin[]
     sessionKey?: SessionKeyConfig
 }
@@ -97,6 +100,8 @@ export class SessionKit {
     readonly abis: TransactABIDef[] = []
     readonly allowModify: boolean = true
     readonly appName: string
+    readonly awaitIrreversible: boolean = false
+    readonly broadcastOptions?: BroadcastOptions
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
@@ -152,6 +157,12 @@ export class SessionKit {
         // Store options passed on the kit
         if (typeof options.allowModify !== 'undefined') {
             this.allowModify = options.allowModify
+        }
+        if (options.awaitIrreversible !== undefined) {
+            this.awaitIrreversible = options.awaitIrreversible
+        }
+        if (options.broadcastOptions !== undefined) {
+            this.broadcastOptions = options.broadcastOptions
         }
         // Override default expireSeconds for all sessions if specified
         if (options.expireSeconds) {
@@ -790,6 +801,8 @@ export class SessionKit {
             storage: this.storage,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            awaitIrreversible: this.awaitIrreversible,
+            broadcastOptions: this.broadcastOptions,
             ui: this.ui,
             sessionKeyManager: this.sessionKeyManager,
             onPersist: (session: Session) => this.persistSession(session),
