@@ -17,11 +17,11 @@
         "prepare": "make"
     },
     "resolutions": {
-        "@wharfkit/antelope": "^1.1.1"
+        "@wharfkit/antelope": "^1.2.0"
     },
     "dependencies": {
         "@wharfkit/abicache": "^1.2.1",
-        "@wharfkit/antelope": "^1.1.1",
+        "@wharfkit/antelope": "^1.2.0",
         "@wharfkit/common": "^1.2.0",
         "@wharfkit/contract": "^1.2.1",
         "@wharfkit/signing-request": "^3.4.0",
