@@ -242,6 +242,14 @@ export class SessionKit {
         return this.walletPlugins.find((plugin) => plugin.id === id)
     }
 
+    private cloneWalletPlugin(id: string): WalletPlugin | undefined {
+        const registered = this.getWalletPlugin(id)
+        if (!registered) {
+            return undefined
+        }
+        return registered.clone ? registered.clone() : registered
+    }
+
     /**
      * Request account creation.
      */
@@ -581,13 +589,11 @@ export class SessionKit {
             throw new Error('An instance of Storage must be provided to utilize the logout method.')
         }
         if (session) {
-            // Use the session's wallet plugin directly if it's a Session instance
-            // (it may be a wrapped SessionKeyWalletPlugin with data)
             let walletPlugin: WalletPlugin | undefined
             if (session instanceof Session) {
                 walletPlugin = session.walletPlugin
             } else {
-                walletPlugin = this.getWalletPlugin(session.walletPlugin.id)
+                walletPlugin = this.cloneWalletPlugin(session.walletPlugin.id)
                 if (walletPlugin && session.walletPlugin.data) {
                     walletPlugin.data = session.walletPlugin.data
                 }
@@ -609,7 +615,10 @@ export class SessionKit {
 
             if (sessions) {
                 for (const s of sessions) {
-                    const walletPlugin = this.getWalletPlugin(s.walletPlugin.id)
+                    const walletPlugin = this.cloneWalletPlugin(s.walletPlugin.id)
+                    if (walletPlugin && s.walletPlugin.data) {
+                        walletPlugin.data = s.walletPlugin.data
+                    }
 
                     if (walletPlugin?.logout) {
                         await walletPlugin.logout(this.logoutParams(s, walletPlugin))
@@ -689,7 +698,7 @@ export class SessionKit {
             return
         }
 
-        const walletPlugin = this.getWalletPlugin(serializedSession.walletPlugin.id)
+        const walletPlugin = this.cloneWalletPlugin(serializedSession.walletPlugin.id)
 
         if (!walletPlugin) {
             throw new Error(
