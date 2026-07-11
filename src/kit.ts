@@ -180,6 +180,24 @@ export class SessionKit {
 
         // Initialize session key support if configured
         if (options.sessionKey) {
+            const requiredHooks = [
+                'onSessionKeyConflict',
+                'onSessionKeyMismatch',
+                'onSessionKeyRemove',
+            ]
+            if (!options.sessionKey.skipConsent) {
+                requiredHooks.push('onSessionKeyConsent')
+            }
+            const missing = requiredHooks.filter(
+                (hook) => typeof (this.ui as any)[hook] !== 'function'
+            )
+            if (missing.length > 0) {
+                throw new Error(
+                    `Session keys require a UserInterface implementing: ${missing.join(
+                        ', '
+                    )}. The provided UserInterface does not support session keys.`
+                )
+            }
             this.sessionKeyManager = new SessionKeyManager(options.sessionKey, this.ui)
             this.walletPlugins = [
                 ...this.walletPlugins,

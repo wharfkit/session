@@ -372,13 +372,9 @@ export class SessionKeyManager {
         }
 
         if (!onConflict) {
-            const auth = Authority.from({
-                threshold: 1,
-                keys: [...existingPerm.required_auth.keys, keyWeight],
-                accounts: [],
-                waits: [],
-            })
-            return auth.keys
+            throw new Error(
+                'A session key permission already exists but no conflict resolution handler was provided.'
+            )
         }
 
         const choice = await onConflict(existingPerm.required_auth.keys)
@@ -433,7 +429,16 @@ export class SessionKeyManager {
             existingLinks
         )
 
-        return [updateAuthAction, ...linkAuthActions]
+        const unlinkAuthActions = existingLinks
+            ? this.buildUnlinkAuthActionsFromEntries(
+                  systemContract,
+                  this.findExtraLinks(this.whitelist, existingLinks),
+                  actor,
+                  authorization
+              )
+            : []
+
+        return [updateAuthAction, ...unlinkAuthActions, ...linkAuthActions]
     }
 
     private wrapSessionWallet(session: Session, privateKey: PrivateKey, permission: Name): void {

@@ -929,7 +929,9 @@ export class Session {
 
         const result = await this.sessionKeyManager.setup(this, async (existingKeys) => {
             if (!this.ui?.onSessionKeyConflict) {
-                return 'replace'
+                throw new Error(
+                    'Session keys require a UserInterface implementing onSessionKeyConflict.'
+                )
             }
             return this.ui.onSessionKeyConflict({
                 appName: String(this.appName || 'this app'),
