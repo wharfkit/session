@@ -614,16 +614,17 @@ export class SessionKit {
             const sessions = await this.getSessions()
 
             if (sessions) {
-                for (const s of sessions) {
-                    const walletPlugin = this.cloneWalletPlugin(s.walletPlugin.id)
-                    if (walletPlugin && s.walletPlugin.data) {
-                        walletPlugin.data = s.walletPlugin.data
-                    }
-
-                    if (walletPlugin?.logout) {
-                        await walletPlugin.logout(this.logoutParams(s, walletPlugin))
-                    }
-                }
+                await Promise.allSettled(
+                    sessions.map((s) => {
+                        const walletPlugin = this.cloneWalletPlugin(s.walletPlugin.id)
+                        if (walletPlugin && s.walletPlugin.data) {
+                            walletPlugin.data = s.walletPlugin.data
+                        }
+                        return walletPlugin?.logout
+                            ? walletPlugin.logout(this.logoutParams(s, walletPlugin))
+                            : Promise.resolve()
+                    })
+                )
             }
 
             await this.storage.remove('session')
