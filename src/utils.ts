@@ -148,6 +148,9 @@ export function actionMatchesPermission(
     action: AnyAction,
     permissionLevel: PermissionLevel
 ): boolean {
+    if (!action.authorization) {
+        return false
+    }
     return action.authorization.some(
         (auth: PermissionLevelType) => permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)
     )
@@ -172,6 +175,9 @@ function rewriteActionAuthorizations(
     permissionLevel: PermissionLevel,
     newPermission: Name
 ): AnyAction {
+    if (!action.authorization) {
+        return action
+    }
     return {
         ...action,
         authorization: action.authorization.map((auth) =>
