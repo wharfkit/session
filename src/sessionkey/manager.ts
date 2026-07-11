@@ -555,7 +555,10 @@ export class SessionKeyManager {
                         account: actor,
                         permission,
                         parent: 'active',
-                        auth: permData.required_auth,
+                        auth: {
+                            ...permData.required_auth,
+                            keys: remainingKeys,
+                        },
                     },
                     {authorization: [session.permissionLevel]}
                 )
