@@ -625,7 +625,8 @@ export class Session {
                         tx2Options
                     )
                 } catch (error: any) {
-                    if (error?.response?.status === 404) {
+                    const status = error?.response?.status
+                    if (status === 404 || status === 501) {
                         result.response = await context.client.v1.chain.send_transaction(signed)
                     } else {
                         throw error

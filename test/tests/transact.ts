@@ -455,6 +455,64 @@ suite('transact', function () {
                 assert.isDefined(result.response)
                 assert.lengthOf(txCalls, 1)
             })
+            test('falls back to send_transaction on 501', async function () {
+                const txCalls: Array<{path: string}> = []
+                const fetch = async (path: string, params?: any) => {
+                    const url = String(path)
+                    if (url.includes('/v1/chain/send_transaction2')) {
+                        const text = JSON.stringify({
+                            error: {
+                                code: 501,
+                                what: 'Not Implemented',
+                                details: [],
+                            },
+                        })
+                        return {
+                            status: 501,
+                            ok: false,
+                            text: async () => text,
+                            headers: new Map(),
+                        }
+                    }
+                    if (
+                        url.includes('/v1/chain/send_transaction') &&
+                        !url.includes('send_transaction2')
+                    ) {
+                        txCalls.push({path: url})
+                        const json = {
+                            transaction_id: 'mock_fallback_id',
+                            processed: {
+                                id: 'mock_fallback_id',
+                                block_num: 100,
+                                block_time: '2024-01-01T00:00:00.000',
+                                receipt: {
+                                    status: 'executed',
+                                    cpu_usage_us: 100,
+                                    net_usage_words: 10,
+                                },
+                                elapsed: 50,
+                                net_usage: 80,
+                                scheduled: false,
+                                action_traces: [],
+                                account_ram_delta: null,
+                            },
+                        }
+                        const text = JSON.stringify(json)
+                        return {
+                            status: 202,
+                            ok: true,
+                            text: async () => text,
+                            headers: new Map(),
+                        }
+                    }
+                    return mockFetch(url, params)
+                }
+                const action = makeMockAction('tx2 fallback 501')
+                const session = new Session(mockSessionArgs, {fetch})
+                const result = await session.transact({action})
+                assert.isDefined(result.response)
+                assert.lengthOf(txCalls, 1)
+            })
         })
         suite('expireSeconds', function () {
             test('override: 60', async function () {
