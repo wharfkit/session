@@ -565,10 +565,15 @@ export class SessionKit {
         if (session) {
             // Use the session's wallet plugin directly if it's a Session instance
             // (it may be a wrapped SessionKeyWalletPlugin with data)
-            const walletPlugin =
-                session instanceof Session
-                    ? session.walletPlugin
-                    : this.getWalletPlugin(session.walletPlugin.id)
+            let walletPlugin: WalletPlugin | undefined
+            if (session instanceof Session) {
+                walletPlugin = session.walletPlugin
+            } else {
+                walletPlugin = this.getWalletPlugin(session.walletPlugin.id)
+                if (walletPlugin && session.walletPlugin.data) {
+                    walletPlugin.data = session.walletPlugin.data
+                }
+            }
 
             if (walletPlugin?.logout) {
                 await walletPlugin.logout(this.logoutParams(session, walletPlugin))
