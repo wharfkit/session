@@ -3,7 +3,6 @@ import type {Contract} from '@wharfkit/contract'
 import {
     Checksum256,
     Checksum256Type,
-    Name,
     NameType,
     PermissionLevel,
     PermissionLevelType,
@@ -21,6 +20,7 @@ import {BrowserLocalStorage, SessionStorage} from './storage'
 import {
     AbstractTransactPlugin,
     BaseTransactPlugin,
+    BroadcastOptions,
     TransactABIDef,
     TransactPlugin,
     TransactPluginsOptions,
@@ -34,6 +34,9 @@ import {
     CreateAccountOptions,
     CreateAccountResponse,
 } from './account-creation'
+import {SessionKeyManager} from './sessionkey/manager'
+import {SessionKeyWalletPlugin} from './sessionkey/wallet'
+import {SessionKeyConfig} from './sessionkey/types'
 
 export interface LoginOptions {
     arbitrary?: Record<string, any> // Arbitrary data that will be passed via context to wallet plugin
@@ -56,6 +59,7 @@ export interface LoginResult {
 export interface LogoutContext {
     session: Session
     appName: string
+    ui?: UserInterface
 }
 
 export interface RestoreArgs {
@@ -83,7 +87,10 @@ export interface SessionKitOptions {
     storage?: SessionStorage
     transactPlugins?: TransactPlugin[]
     transactPluginsOptions?: TransactPluginsOptions
+    awaitIrreversible?: boolean
+    broadcastOptions?: BroadcastOptions
     accountCreationPlugins?: AccountCreationPlugin[]
+    sessionKey?: SessionKeyConfig
 }
 
 /**
@@ -93,6 +100,8 @@ export class SessionKit {
     readonly abis: TransactABIDef[] = []
     readonly allowModify: boolean = true
     readonly appName: string
+    readonly awaitIrreversible: boolean = false
+    readonly broadcastOptions?: BroadcastOptions
     readonly expireSeconds: number = 120
     readonly fetch: Fetch
     readonly loginPlugins: AbstractLoginPlugin[]
@@ -102,6 +111,7 @@ export class SessionKit {
     readonly ui: UserInterface
     readonly walletPlugins: WalletPlugin[]
     readonly accountCreationPlugins: AccountCreationPlugin[] = []
+    readonly sessionKeyManager?: SessionKeyManager
     public chains: ChainDefinition[]
 
     constructor(args: SessionKitArgs, options: SessionKitOptions = {}) {
@@ -148,6 +158,12 @@ export class SessionKit {
         if (typeof options.allowModify !== 'undefined') {
             this.allowModify = options.allowModify
         }
+        if (options.awaitIrreversible !== undefined) {
+            this.awaitIrreversible = options.awaitIrreversible
+        }
+        if (options.broadcastOptions !== undefined) {
+            this.broadcastOptions = options.broadcastOptions
+        }
         // Override default expireSeconds for all sessions if specified
         if (options.expireSeconds) {
             this.expireSeconds = options.expireSeconds
@@ -160,6 +176,35 @@ export class SessionKit {
         // Establish default plugins for account creation
         if (options.accountCreationPlugins) {
             this.accountCreationPlugins = options.accountCreationPlugins
+        }
+
+        // Initialize session key support if configured
+        if (options.sessionKey) {
+            const requiredHooks = [
+                'onSessionKeyConflict',
+                'onSessionKeyMismatch',
+                'onSessionKeyRemove',
+            ]
+            if (!options.sessionKey.skipConsent) {
+                requiredHooks.push('onSessionKeyConsent')
+            }
+            const missing = requiredHooks.filter(
+                (hook) => typeof (this.ui as any)[hook] !== 'function'
+            )
+            if (missing.length > 0) {
+                throw new Error(
+                    `Session keys require a UserInterface implementing: ${missing.join(
+                        ', '
+                    )}. The provided UserInterface does not support session keys.`
+                )
+            }
+            this.sessionKeyManager = new SessionKeyManager(options.sessionKey, this.ui)
+            this.walletPlugins = [
+                ...this.walletPlugins,
+                new SessionKeyWalletPlugin({
+                    walletPlugins: this.walletPlugins,
+                }),
+            ]
         }
     }
 
@@ -185,6 +230,24 @@ export class SessionKit {
             throw new Error(`No chain defined with an ID of: ${chainId}`)
         }
         return chain
+    }
+
+    /**
+     * Find a wallet plugin by its ID.
+     *
+     * @param id The wallet plugin ID to search for
+     * @returns The wallet plugin if found, undefined otherwise
+     */
+    getWalletPlugin(id: string): WalletPlugin | undefined {
+        return this.walletPlugins.find((plugin) => plugin.id === id)
+    }
+
+    private cloneWalletPlugin(id: string): WalletPlugin | undefined {
+        const registered = this.getWalletPlugin(id)
+        if (!registered) {
+            return undefined
+        }
+        return registered.clone ? registered.clone() : registered
     }
 
     /**
@@ -331,6 +394,10 @@ export class SessionKit {
      */
     async login(options?: LoginOptions): Promise<LoginResult> {
         try {
+            const selectableWalletPlugins = this.walletPlugins.filter(
+                (plugin) => plugin.id !== 'session-key-wallet'
+            )
+
             // Create LoginContext for this login request.
             const context = new LoginContext({
                 appName: this.appName,
@@ -343,13 +410,14 @@ export class SessionKit {
                 fetch: this.fetch,
                 loginPlugins: this.loginPlugins,
                 ui: this.ui,
-                walletPlugins: this.walletPlugins.map((plugin): UserInterfaceWalletPlugin => {
+                walletPlugins: selectableWalletPlugins.map((plugin): UserInterfaceWalletPlugin => {
                     return {
                         config: plugin.config,
                         metadata: WalletPluginMetadata.from(plugin.metadata),
                         retrievePublicKey: plugin.retrievePublicKey?.bind(plugin),
                     }
                 }),
+                sessionKeyManager: this.sessionKeyManager,
             })
 
             // Tell the UI a login request is beginning.
@@ -357,15 +425,14 @@ export class SessionKit {
 
             // Predetermine WalletPlugin (if possible) to prevent uneeded UI interactions.
             let walletPlugin: WalletPlugin | undefined = undefined
-            if (this.walletPlugins.length === 1) {
-                walletPlugin = this.walletPlugins[0] // Default to first when only one.
-                context.walletPluginIndex = 0
+            if (selectableWalletPlugins.length === 1) {
+                walletPlugin = selectableWalletPlugins[0] // Default to first when only one.
+                context.walletPluginIndex = this.walletPlugins.indexOf(walletPlugin)
                 context.uiRequirements.requiresWalletSelect = false
             } else if (options?.walletPlugin) {
-                const index = this.walletPlugins.findIndex((p) => p.id === options.walletPlugin)
-                if (index >= 0) {
-                    walletPlugin = this.walletPlugins[index]
-                    context.walletPluginIndex = index
+                walletPlugin = this.getWalletPlugin(options.walletPlugin)
+                if (walletPlugin) {
+                    context.walletPluginIndex = this.walletPlugins.indexOf(walletPlugin)
                     context.uiRequirements.requiresWalletSelect = false
                 }
             }
@@ -470,6 +537,9 @@ export class SessionKit {
                 this.getSessionOptions(options)
             )
 
+            // Make session available to afterLogin hooks
+            context.session = session
+
             // Call the `afterLogin` hooks that were registered by the LoginPlugins
             for (const hook of context.hooks.afterLogin) await hook(context)
 
@@ -496,6 +566,7 @@ export class SessionKit {
             return {
                 session,
                 appName: this.appName,
+                ui: this.ui,
             }
         } else {
             return {
@@ -508,6 +579,7 @@ export class SessionKit {
                     walletPlugin,
                 }),
                 appName: this.appName,
+                ui: this.ui,
             }
         }
     }
@@ -516,53 +588,47 @@ export class SessionKit {
         if (!this.storage) {
             throw new Error('An instance of Storage must be provided to utilize the logout method.')
         }
-        await this.storage.remove('session')
         if (session) {
-            const walletPlugin = this.walletPlugins.find(
-                (wPlugin) => session?.walletPlugin.id === wPlugin.id
-            )
+            let walletPlugin: WalletPlugin | undefined
+            if (session instanceof Session) {
+                walletPlugin = session.walletPlugin
+            } else {
+                walletPlugin = this.cloneWalletPlugin(session.walletPlugin.id)
+                if (walletPlugin && session.walletPlugin.data) {
+                    walletPlugin.data = session.walletPlugin.data
+                }
+            }
 
             if (walletPlugin?.logout) {
                 await walletPlugin.logout(this.logoutParams(session, walletPlugin))
             }
 
+            await this.storage.remove('session')
+
             const sessions = await this.getSessions()
             if (sessions) {
-                let serialized = session
-                if (session instanceof Session) {
-                    serialized = session.serialize()
-                }
-                const other = sessions.filter((s: Record<string, any>) => {
-                    return (
-                        !Checksum256.from(s.chain).equals(
-                            Checksum256.from(String(serialized.chain))
-                        ) ||
-                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
-                        !Name.from(s.permission).equals(Name.from(serialized.permission))
-                    )
-                })
+                const other = sessions.filter((s) => !Session.matches(s, session))
                 await this.storage.write('sessions', JSON.stringify(other))
             }
         } else {
             const sessions = await this.getSessions()
 
-            await this.storage.remove('sessions')
-
             if (sessions) {
-                Promise.all(
+                await Promise.allSettled(
                     sessions.map((s) => {
-                        const walletPlugin = this.walletPlugins.find(
-                            (wPlugin) => s.walletPlugin.id === wPlugin.id
-                        )
-
-                        if (walletPlugin?.logout) {
-                            return walletPlugin.logout(this.logoutParams(s, walletPlugin))
-                        } else {
-                            return Promise.resolve()
+                        const walletPlugin = this.cloneWalletPlugin(s.walletPlugin.id)
+                        if (walletPlugin && s.walletPlugin.data) {
+                            walletPlugin.data = s.walletPlugin.data
                         }
+                        return walletPlugin?.logout
+                            ? walletPlugin.logout(this.logoutParams(s, walletPlugin))
+                            : Promise.resolve()
                     })
                 )
             }
+
+            await this.storage.remove('session')
+            await this.storage.remove('sessions')
         }
     }
 
@@ -633,13 +699,7 @@ export class SessionKit {
             return
         }
 
-        // Ensure a WalletPlugin was found with the provided ID.
-        const walletPlugin = this.walletPlugins.find((p) => {
-            if (!args) {
-                return false
-            }
-            return p.id === serializedSession.walletPlugin.id
-        })
+        const walletPlugin = this.cloneWalletPlugin(serializedSession.walletPlugin.id)
 
         if (!walletPlugin) {
             throw new Error(
@@ -719,15 +779,7 @@ export class SessionKit {
         if (existing) {
             const stored = JSON.parse(existing)
             const sessions: SerializedSession[] = stored
-                // Filter out any matching session to ensure no duplicates
-                .filter((s: SerializedSession): boolean => {
-                    return (
-                        !Checksum256.from(s.chain).equals(Checksum256.from(serialized.chain)) ||
-                        !Name.from(s.actor).equals(Name.from(serialized.actor)) ||
-                        !Name.from(s.permission).equals(Name.from(serialized.permission))
-                    )
-                })
-                // Remove the default status from all other sessions for this chain
+                .filter((s: SerializedSession) => !Session.matches(s, serialized))
                 .map((s: SerializedSession): SerializedSession => {
                     if (session.chain.id.equals(s.chain)) {
                         s.default = false
@@ -782,7 +834,11 @@ export class SessionKit {
             storage: this.storage,
             transactPlugins: options?.transactPlugins || this.transactPlugins,
             transactPluginsOptions: options?.transactPluginsOptions || this.transactPluginsOptions,
+            awaitIrreversible: this.awaitIrreversible,
+            broadcastOptions: this.broadcastOptions,
             ui: this.ui,
+            sessionKeyManager: this.sessionKeyManager,
+            onPersist: (session: Session) => this.persistSession(session),
         }
     }
 }

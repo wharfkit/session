@@ -1,7 +1,15 @@
-import {Action, AnyAction, FetchProviderOptions, Transaction} from '@wharfkit/antelope'
+import {
+    Action,
+    AnyAction,
+    FetchProviderOptions,
+    Name,
+    PermissionLevel,
+    PermissionLevelType,
+    Transaction,
+} from '@wharfkit/antelope'
 import type {Fetch, LocaleDefinitions} from '@wharfkit/common'
-import {SigningRequest} from '@wharfkit/signing-request'
-import {TransactPlugin} from './transact'
+import {PlaceholderAuth, SigningRequest} from '@wharfkit/signing-request'
+import {BroadcastOptions, TransactArgs, TransactPlugin} from './transact'
 import {WalletPlugin} from './wallet'
 
 /**
@@ -108,4 +116,133 @@ export function getPluginTranslations(
         }
     })
     return prefixed
+}
+
+/**
+ * Extract actions from TransactArgs.
+ *
+ * @param args TransactArgs
+ * @returns Array of actions, or empty array if not determinable
+ */
+export function extractActions(args: TransactArgs): AnyAction[] {
+    if (args.action) {
+        return [args.action]
+    }
+    if (args.actions) {
+        return args.actions
+    }
+    if (args.transaction && args.transaction.actions) {
+        return args.transaction.actions
+    }
+    return []
+}
+
+/**
+ * Check if an action has an authorization matching a given permission level.
+ *
+ * @param action AnyAction
+ * @param permissionLevel PermissionLevel
+ * @returns boolean
+ */
+export function actionMatchesPermission(
+    action: AnyAction,
+    permissionLevel: PermissionLevel
+): boolean {
+    if (!action.authorization) {
+        return false
+    }
+    return action.authorization.some(
+        (auth: PermissionLevelType) => permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)
+    )
+}
+
+function rewriteAuthIfMatches(
+    auth: PermissionLevelType,
+    permissionLevel: PermissionLevel,
+    newPermission: Name
+): PermissionLevelType {
+    if (permissionLevel.equals(auth) || PlaceholderAuth.equals(auth)) {
+        return PermissionLevel.from({
+            actor: permissionLevel.actor,
+            permission: newPermission,
+        })
+    }
+    return auth
+}
+
+function rewriteActionAuthorizations(
+    action: AnyAction,
+    permissionLevel: PermissionLevel,
+    newPermission: Name
+): AnyAction {
+    if (!action.authorization) {
+        return action
+    }
+    return {
+        ...action,
+        authorization: action.authorization.map((auth) =>
+            rewriteAuthIfMatches(auth, permissionLevel, newPermission)
+        ),
+    }
+}
+
+export function rewriteAuthorizations(
+    args: TransactArgs,
+    permissionLevel: PermissionLevel,
+    newPermission: Name
+): TransactArgs {
+    if (args.action) {
+        return {
+            ...args,
+            action: rewriteActionAuthorizations(args.action, permissionLevel, newPermission),
+        }
+    }
+
+    if (args.actions) {
+        return {
+            ...args,
+            actions: args.actions.map((action) =>
+                rewriteActionAuthorizations(action, permissionLevel, newPermission)
+            ),
+        }
+    }
+
+    if (args.transaction && args.transaction.actions) {
+        return {
+            ...args,
+            transaction: {
+                ...args.transaction,
+                actions: args.transaction.actions.map((action) =>
+                    rewriteActionAuthorizations(action, permissionLevel, newPermission)
+                ),
+            },
+        }
+    }
+
+    return args
+}
+
+export interface SendTransaction2Options {
+    return_failure_trace?: boolean
+    retry_trx?: boolean
+    retry_trx_num_blocks?: number
+}
+
+export function buildSendTransaction2Options(
+    awaitIrreversible: boolean,
+    broadcastOptions?: BroadcastOptions
+): SendTransaction2Options {
+    const options: SendTransaction2Options = {
+        return_failure_trace: broadcastOptions?.returnFailureTrace ?? true,
+    }
+    if (awaitIrreversible) {
+        options.retry_trx = true
+        options.retry_trx_num_blocks = undefined
+    } else if (broadcastOptions) {
+        options.retry_trx = broadcastOptions.retryTrx ?? true
+        if (broadcastOptions.retryTrxNumBlocks !== undefined) {
+            options.retry_trx_num_blocks = broadcastOptions.retryTrxNumBlocks
+        }
+    }
+    return options
 }
