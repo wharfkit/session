@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This package lives in the WharfKit monorepo at [wharfkit/js/packages/session](https://github.com/wharfkit/js/tree/dev/packages/session), and this repository is archived. Open new issues and pull requests on [wharfkit/js](https://github.com/wharfkit/js).
+
 # @wharfkit/session
 
 [![Unit Tests](https://github.com/wharfkit/session/actions/workflows/test.yml/badge.svg)](https://github.com/wharfkit/session/actions/workflows/test.yml?query=branch%3Amaster)
