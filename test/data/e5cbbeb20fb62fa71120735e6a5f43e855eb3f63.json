@@ -19,11 +19,11 @@
                 {
                     "message": "unable to retrieve account abi (unknown key (eosio::chain::name): )",
                     "file": "chain_plugin.cpp",
-                    "line_number": 2380,
+                    "line_number": 2416,
                     "method": "get_raw_abi"
                 }
             ]
         }
     },
-    "text": "{\"code\":400,\"message\":\"Account lookup\",\"error\":{\"code\":3060002,\"name\":\"account_query_exception\",\"what\":\"Account Query Exception\",\"details\":[{\"message\":\"unable to retrieve account abi (unknown key (eosio::chain::name): )\",\"file\":\"chain_plugin.cpp\",\"line_number\":2380,\"method\":\"get_raw_abi\"}]}}"
+    "text": "{\"code\":400,\"message\":\"Account lookup\",\"error\":{\"code\":3060002,\"name\":\"account_query_exception\",\"what\":\"Account Query Exception\",\"details\":[{\"message\":\"unable to retrieve account abi (unknown key (eosio::chain::name): )\",\"file\":\"chain_plugin.cpp\",\"line_number\":2416,\"method\":\"get_raw_abi\"}]}}"
 }

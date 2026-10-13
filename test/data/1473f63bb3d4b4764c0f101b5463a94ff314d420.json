@@ -1,26 +1,26 @@
 {
     "request": {
-        "path": "https://jungle4.greymass.com/v1/chain/send_transaction",
+        "path": "https://jungle4.greymass.com/v1/chain/send_transaction2",
         "params": {
             "method": "POST",
-            "body": "{\"signatures\":[\"SIG_K1_KBqxPZWzXEUgTUqLFdZVZWFwstSFxpFnpQ9GNjh8FCLWp4psopeZywuddHuTsQeucPJx6iYjGkFqLhmzyrRZg6kVnykhni\"],\"compression\":1,\"packed_context_free_data\":\"789c63000000010001\",\"packed_trx\":\"789c535db43b6dee9ac913be9a32000123c3b22613e65706a14076b8aecdd9b38c024e1c370f96fa3e06c9324cd878ca0426d0b071625cac5aef294b56b014038bab7f3088162e492d2ec9cc4b57484c2b492d52c8c94fcfcc630000dfbc20b9\"}",
+            "body": "{\"return_failure_trace\":true,\"retry_trx\":false,\"retry_trx_num_blocks\":0,\"transaction\":{\"signatures\":[\"SIG_K1_K8S2QMpmcrzhZqGvXAYpCavpMk8ZYB46RLX34FvfzehCLppSBx6hMMJ3p8eoHFJdTZ2wV66yxiBmizUahP5jRj9omZ4Bj8\"],\"compression\":1,\"packed_context_free_data\":\"789c63000000010001\",\"packed_trx\":\"789c0b57efcdfcbef9d0b7e3d60c40c0c8b0acc984f9954128901dae6b73f62ca38013c7cd83a5be8f41b20c13369e328109346c9c1817abd67bca92152cc5c0e2ea1f0ca2854b528b4b32f3d21512d34a528b1472f2d333f3180000402113\"}}",
             "headers": {}
         }
     },
     "status": 202,
     "json": {
-        "transaction_id": "5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181",
+        "transaction_id": "5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec",
         "processed": {
-            "id": "5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181",
-            "block_num": 155561466,
-            "block_time": "2024-08-13T18:11:00.000",
+            "id": "5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec",
+            "block_num": 250000388,
+            "block_time": "2026-02-12T01:03:32.500",
             "producer_block_id": null,
             "receipt": {
                 "status": "executed",
-                "cpu_usage_us": 134,
+                "cpu_usage_us": 130,
                 "net_usage_words": 18
             },
-            "elapsed": 134,
+            "elapsed": 130,
             "net_usage": 144,
             "scheduled": false,
             "action_traces": [
@@ -31,12 +31,12 @@
                     "receipt": {
                         "receiver": "eosio.token",
                         "act_digest": "e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1",
-                        "global_sequence": 216057421,
-                        "recv_sequence": 8401127,
+                        "global_sequence": 326018627,
+                        "recv_sequence": 8610915,
                         "auth_sequence": [
                             [
                                 "wharfkit1111",
-                                2730
+                                3087
                             ]
                         ],
                         "code_sequence": 4,
@@ -61,11 +61,11 @@
                         "hex_data": "104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e"
                     },
                     "context_free": false,
-                    "elapsed": 47,
+                    "elapsed": 45,
                     "console": "",
-                    "trx_id": "5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181",
-                    "block_num": 155561466,
-                    "block_time": "2024-08-13T18:11:00.000",
+                    "trx_id": "5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec",
+                    "block_num": 250000388,
+                    "block_time": "2026-02-12T01:03:32.500",
                     "producer_block_id": null,
                     "account_ram_deltas": [],
                     "except": null,
@@ -79,12 +79,12 @@
                     "receipt": {
                         "receiver": "wharfkit1111",
                         "act_digest": "e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1",
-                        "global_sequence": 216057422,
-                        "recv_sequence": 700,
+                        "global_sequence": 326018628,
+                        "recv_sequence": 821,
                         "auth_sequence": [
                             [
                                 "wharfkit1111",
-                                2731
+                                3088
                             ]
                         ],
                         "code_sequence": 4,
@@ -111,9 +111,9 @@
                     "context_free": false,
                     "elapsed": 4,
                     "console": "",
-                    "trx_id": "5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181",
-                    "block_num": 155561466,
-                    "block_time": "2024-08-13T18:11:00.000",
+                    "trx_id": "5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec",
+                    "block_num": 250000388,
+                    "block_time": "2026-02-12T01:03:32.500",
                     "producer_block_id": null,
                     "account_ram_deltas": [],
                     "except": null,
@@ -127,12 +127,12 @@
                     "receipt": {
                         "receiver": "teamgreymass",
                         "act_digest": "e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1",
-                        "global_sequence": 216057423,
-                        "recv_sequence": 1455,
+                        "global_sequence": 326018629,
+                        "recv_sequence": 1724,
                         "auth_sequence": [
                             [
                                 "wharfkit1111",
-                                2732
+                                3089
                             ]
                         ],
                         "code_sequence": 4,
@@ -157,11 +157,11 @@
                         "hex_data": "104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e"
                     },
                     "context_free": false,
-                    "elapsed": 5,
+                    "elapsed": 4,
                     "console": "",
-                    "trx_id": "5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181",
-                    "block_num": 155561466,
-                    "block_time": "2024-08-13T18:11:00.000",
+                    "trx_id": "5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec",
+                    "block_num": 250000388,
+                    "block_time": "2026-02-12T01:03:32.500",
                     "producer_block_id": null,
                     "account_ram_deltas": [],
                     "except": null,
@@ -174,5 +174,5 @@
             "error_code": null
         }
     },
-    "text": "{\"transaction_id\":\"5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181\",\"processed\":{\"id\":\"5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181\",\"block_num\":155561466,\"block_time\":\"2024-08-13T18:11:00.000\",\"producer_block_id\":null,\"receipt\":{\"status\":\"executed\",\"cpu_usage_us\":134,\"net_usage_words\":18},\"elapsed\":134,\"net_usage\":144,\"scheduled\":false,\"action_traces\":[{\"action_ordinal\":1,\"creator_action_ordinal\":0,\"closest_unnotified_ancestor_action_ordinal\":0,\"receipt\":{\"receiver\":\"eosio.token\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":216057421,\"recv_sequence\":8401127,\"auth_sequence\":[[\"wharfkit1111\",2730]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"eosio.token\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":47,\"console\":\"\",\"trx_id\":\"5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181\",\"block_num\":155561466,\"block_time\":\"2024-08-13T18:11:00.000\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"},{\"action_ordinal\":2,\"creator_action_ordinal\":1,\"closest_unnotified_ancestor_action_ordinal\":1,\"receipt\":{\"receiver\":\"wharfkit1111\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":216057422,\"recv_sequence\":700,\"auth_sequence\":[[\"wharfkit1111\",2731]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"wharfkit1111\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":4,\"console\":\"\",\"trx_id\":\"5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181\",\"block_num\":155561466,\"block_time\":\"2024-08-13T18:11:00.000\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"},{\"action_ordinal\":3,\"creator_action_ordinal\":1,\"closest_unnotified_ancestor_action_ordinal\":1,\"receipt\":{\"receiver\":\"teamgreymass\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":216057423,\"recv_sequence\":1455,\"auth_sequence\":[[\"wharfkit1111\",2732]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"teamgreymass\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":5,\"console\":\"\",\"trx_id\":\"5cca59bd6b8253b541fbb125a2f970a0b4cb5348df32fc33fbdb9816a6397181\",\"block_num\":155561466,\"block_time\":\"2024-08-13T18:11:00.000\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"}],\"account_ram_delta\":null,\"except\":null,\"error_code\":null}}"
+    "text": "{\"transaction_id\":\"5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec\",\"processed\":{\"id\":\"5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec\",\"block_num\":250000388,\"block_time\":\"2026-02-12T01:03:32.500\",\"producer_block_id\":null,\"receipt\":{\"status\":\"executed\",\"cpu_usage_us\":130,\"net_usage_words\":18},\"elapsed\":130,\"net_usage\":144,\"scheduled\":false,\"action_traces\":[{\"action_ordinal\":1,\"creator_action_ordinal\":0,\"closest_unnotified_ancestor_action_ordinal\":0,\"receipt\":{\"receiver\":\"eosio.token\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":326018627,\"recv_sequence\":8610915,\"auth_sequence\":[[\"wharfkit1111\",3087]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"eosio.token\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":45,\"console\":\"\",\"trx_id\":\"5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec\",\"block_num\":250000388,\"block_time\":\"2026-02-12T01:03:32.500\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"},{\"action_ordinal\":2,\"creator_action_ordinal\":1,\"closest_unnotified_ancestor_action_ordinal\":1,\"receipt\":{\"receiver\":\"wharfkit1111\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":326018628,\"recv_sequence\":821,\"auth_sequence\":[[\"wharfkit1111\",3088]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"wharfkit1111\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":4,\"console\":\"\",\"trx_id\":\"5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec\",\"block_num\":250000388,\"block_time\":\"2026-02-12T01:03:32.500\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"},{\"action_ordinal\":3,\"creator_action_ordinal\":1,\"closest_unnotified_ancestor_action_ordinal\":1,\"receipt\":{\"receiver\":\"teamgreymass\",\"act_digest\":\"e2e171b0b40fc636d8786c5d178349fe72a61a3668fbbadbb7f957e440c2c9e1\",\"global_sequence\":326018629,\"recv_sequence\":1724,\"auth_sequence\":[[\"wharfkit1111\",3089]],\"code_sequence\":4,\"abi_sequence\":5},\"receiver\":\"teamgreymass\",\"act\":{\"account\":\"eosio.token\",\"name\":\"transfer\",\"authorization\":[{\"actor\":\"wharfkit1111\",\"permission\":\"test\"}],\"data\":{\"from\":\"wharfkit1111\",\"to\":\"teamgreymass\",\"quantity\":\"0.1337 EOS\",\"memo\":\"testing after login\"},\"hex_data\":\"104208d9c1754de380b1915e5d268dca390500000000000004454f53000000001374657374696e67206166746572206c6f67696e\"},\"context_free\":false,\"elapsed\":4,\"console\":\"\",\"trx_id\":\"5184e003ecdd061cfac4674cc7660c65fd67b0a8720cd5394ea5ee1037dc11ec\",\"block_num\":250000388,\"block_time\":\"2026-02-12T01:03:32.500\",\"producer_block_id\":null,\"account_ram_deltas\":[],\"except\":null,\"error_code\":null,\"return_value_hex_data\":\"\"}],\"account_ram_delta\":null,\"except\":null,\"error_code\":null}}"
 }

@@ -153,6 +153,9 @@ export interface WalletPlugin {
      * Requests a public key from the wallet plugin.
      */
     retrievePublicKey?(chainId: Checksum256Type): Promise<PublicKey>
+
+    /** Return a copy of this [[WalletPlugin]] with its own session data. */
+    clone?(): WalletPlugin
 }
 
 /**
@@ -184,5 +187,19 @@ export abstract class AbstractWalletPlugin implements WalletPlugin {
             id: this.id,
             data: this.data,
         }
+    }
+    clone(): WalletPlugin {
+        const cloned = Object.create(Object.getPrototypeOf(this))
+        Object.assign(cloned, this)
+        cloned._data = {}
+        cloned.metadata = WalletPluginMetadata.from({
+            name: this.metadata.name,
+            description: this.metadata.description,
+            logo: this.metadata.logo,
+            homepage: this.metadata.homepage,
+            download: this.metadata.download,
+            publicKey: this.metadata.publicKey,
+        })
+        return cloned
     }
 }

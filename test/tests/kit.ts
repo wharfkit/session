@@ -155,6 +155,59 @@ suite('kit', function () {
                     )
                 })
             })
+            suite('awaitIrreversible', function () {
+                test('default', function () {
+                    assert.equal(sessionKit.awaitIrreversible, false)
+                })
+                test('override', function () {
+                    const kit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        awaitIrreversible: true,
+                    })
+                    assert.equal(kit.awaitIrreversible, true)
+                })
+                test('propagates to session via login', async function () {
+                    const kit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        awaitIrreversible: true,
+                    })
+                    const {session} = await kit.login(defaultLoginOptions)
+                    assert.equal(session.awaitIrreversible, true)
+                })
+                test('propagates to session via restore', async function () {
+                    const kit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        awaitIrreversible: true,
+                    })
+                    await kit.login(defaultLoginOptions)
+                    const session = await kit.restore()
+                    assert.isDefined(session)
+                    assert.equal(session!.awaitIrreversible, true)
+                })
+            })
+            suite('broadcastOptions', function () {
+                test('default', function () {
+                    assert.isUndefined(sessionKit.broadcastOptions)
+                })
+                test('override', function () {
+                    const kit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        broadcastOptions: {retryTrx: true, retryTrxNumBlocks: 10},
+                    })
+                    assert.deepEqual(kit.broadcastOptions, {
+                        retryTrx: true,
+                        retryTrxNumBlocks: 10,
+                    })
+                })
+                test('propagates to session via login', async function () {
+                    const kit = new SessionKit(mockSessionKitArgs, {
+                        ...mockSessionKitOptions,
+                        broadcastOptions: {retryTrx: true},
+                    })
+                    const {session} = await kit.login(defaultLoginOptions)
+                    assert.deepEqual(session.broadcastOptions, {retryTrx: true})
+                })
+            })
             suite('transactPlugins', function () {
                 test('default', async function () {
                     assert.lengthOf(sessionKit.transactPlugins, 1)
